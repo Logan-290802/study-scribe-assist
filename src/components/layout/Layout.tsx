@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Beaker, Book, BookOpen, File, FileText, Home, LogOut, Settings, User, Library, Tool } from 'lucide-react';
+import { Beaker, Book, BookOpen, File, FileText, Home, LogOut, Settings, User, Library, Wrench } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -33,7 +33,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               </NavLink>
               
               <NavLink href="/tools" isActive={location.pathname === '/tools'}>
-                <Tool className="h-4 w-4" />
+                <Wrench className="h-4 w-4" />
                 <span>Tools</span>
               </NavLink>
             </nav>

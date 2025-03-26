@@ -16,6 +16,7 @@ import Blockquote from '@tiptap/extension-blockquote';
 import Code from '@tiptap/extension-code';
 import CodeBlock from '@tiptap/extension-code-block';
 import Link from '@tiptap/extension-link';
+import History from '@tiptap/extension-history';
 import { EditorToolbar } from './EditorToolbar';
 
 interface TextEditorProps {
@@ -45,6 +46,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange }) => 
       Link.configure({
         openOnClick: true,
       }),
+      History,
     ],
     content,
     onUpdate: ({ editor }) => {

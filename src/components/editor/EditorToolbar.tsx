@@ -133,15 +133,15 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor }) => {
       <div className="flex-grow"></div>
       
       <ToolbarButton
-        onClick={() => editor.chain().focus().undo().run()}
-        disabled={!editor.can().undo()}
+        onClick={() => editor.commands.undo()}
+        disabled={!editor.isActive('history')}
       >
         <Undo className="w-4 h-4" />
       </ToolbarButton>
       
       <ToolbarButton
-        onClick={() => editor.chain().focus().redo().run()}
-        disabled={!editor.can().redo()}
+        onClick={() => editor.commands.redo()}
+        disabled={!editor.isActive('history')}
       >
         <Redo className="w-4 h-4" />
       </ToolbarButton>

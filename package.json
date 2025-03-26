@@ -47,6 +47,7 @@
     "@tiptap/extension-code-block": "^2.1.12",
     "@tiptap/extension-document": "^2.1.12",
     "@tiptap/extension-heading": "^2.1.12",
+    "@tiptap/extension-history": "^2.1.12",
     "@tiptap/extension-italic": "^2.1.12",
     "@tiptap/extension-link": "^2.1.12",
     "@tiptap/extension-list-item": "^2.1.12",

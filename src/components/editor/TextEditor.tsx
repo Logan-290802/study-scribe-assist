@@ -19,13 +19,15 @@ import History from '@tiptap/extension-history';
 import { EditorToolbar } from './EditorToolbar';
 import { HeadingNavigator } from './HeadingNavigator';
 import { HeadingWithId } from './extensions/HeadingWithId';
+import TextSelectionMenu from './TextSelectionMenu';
 
 interface TextEditorProps {
   content: string;
   onChange: (content: string) => void;
+  onAiAction?: (action: 'research' | 'expand' | 'critique', selectedText: string) => void;
 }
 
-export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange }) => {
+export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange, onAiAction }) => {
   const [headings, setHeadings] = useState<{ id: string; level: number; text: string }[]>([]);
   
   const editor = useEditor({
@@ -109,6 +111,12 @@ export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange }) => 
     }
   };
 
+  const handleSelectionAction = (action: 'research' | 'expand' | 'critique', selectedText: string) => {
+    if (onAiAction) {
+      onAiAction(action, selectedText);
+    }
+  };
+
   if (!editor) {
     return <div className="animate-pulse-subtle p-4 h-[400px] bg-gray-100 rounded-md"></div>;
   }
@@ -121,6 +129,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange }) => 
       </div>
       <div className="flex-grow overflow-auto thin-scrollbar">
         <EditorContent editor={editor} className="h-full" />
+        <TextSelectionMenu onAction={handleSelectionAction} />
       </div>
     </div>
   );

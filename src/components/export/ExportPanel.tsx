@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
-import { Download, File, FileText, History, CheckCircle, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Download, File, FileText, History, CheckCircle, Loader2, Eye } from 'lucide-react';
 import { Reference } from '../ai/AiChat';
 import { cn } from '@/lib/utils';
+import { Link } from 'react-router-dom';
 
 interface ExportPanelProps {
   documentContent: string;
@@ -21,6 +22,16 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
   const [exportSuccess, setExportSuccess] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<'docx' | 'pdf'>('docx');
   const [includeAiHistory, setIncludeAiHistory] = useState(true);
+  const [wordCount, setWordCount] = useState(0);
+
+  useEffect(() => {
+    // Calculate word count from HTML content
+    const tempElement = document.createElement('div');
+    tempElement.innerHTML = documentContent;
+    const text = tempElement.textContent || '';
+    const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+    setWordCount(words.length);
+  }, [documentContent]);
 
   const handleExport = () => {
     setIsExporting(true);
@@ -41,6 +52,12 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
       <div className="p-3 border-b bg-gray-50/80 backdrop-blur-sm flex items-center gap-2">
         <Download className="w-5 h-5 text-blue-500" />
         <h3 className="font-medium">Export Document</h3>
+        <div className="ml-auto text-sm text-gray-500 flex items-center">
+          <span className="mr-2">Word Count:</span>
+          <span className="font-medium bg-blue-50 text-blue-700 px-2 py-0.5 rounded">
+            {wordCount}
+          </span>
+        </div>
       </div>
       
       <div className="p-4 space-y-4">
@@ -113,33 +130,43 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
           </ul>
         </div>
         
-        <button
-          onClick={handleExport}
-          disabled={isExporting || exportSuccess}
-          className={cn(
-            "w-full py-2.5 flex justify-center items-center gap-2 text-white rounded transition-colors",
-            (isExporting || exportSuccess) 
-              ? "bg-blue-400" 
-              : "bg-blue-600 hover:bg-blue-700"
-          )}
-        >
-          {isExporting ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span>Exporting...</span>
-            </>
-          ) : exportSuccess ? (
-            <>
-              <CheckCircle className="w-5 h-5" />
-              <span>Exported Successfully!</span>
-            </>
-          ) : (
-            <>
-              <Download className="w-5 h-5" />
-              <span>Export {selectedFormat.toUpperCase()}</span>
-            </>
-          )}
-        </button>
+        <div className="flex gap-2">
+          <Link
+            to="/preview-export"
+            className="flex-1 py-2.5 flex justify-center items-center gap-2 border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 rounded transition-colors"
+          >
+            <Eye className="w-5 h-5" />
+            <span>Preview</span>
+          </Link>
+          
+          <button
+            onClick={handleExport}
+            disabled={isExporting || exportSuccess}
+            className={cn(
+              "flex-1 py-2.5 flex justify-center items-center gap-2 text-white rounded transition-colors",
+              (isExporting || exportSuccess) 
+                ? "bg-blue-400" 
+                : "bg-blue-600 hover:bg-blue-700"
+            )}
+          >
+            {isExporting ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Exporting...</span>
+              </>
+            ) : exportSuccess ? (
+              <>
+                <CheckCircle className="w-5 h-5" />
+                <span>Exported!</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-5 h-5" />
+                <span>Export {selectedFormat.toUpperCase()}</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

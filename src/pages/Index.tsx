@@ -33,6 +33,30 @@ const Index = () => {
     setReferences(prev => prev.filter(ref => ref.id !== id));
   };
 
+  const handleAiAction = (action: 'research' | 'expand' | 'critique', selectedText: string) => {
+    // The actual implementation is in the AiChat component
+    // Here we just need to add the action to aiChatHistory so it appears in export
+    let actionDescription = '';
+    switch (action) {
+      case 'research':
+        actionDescription = 'find supporting research for';
+        break;
+      case 'expand':
+        actionDescription = 'expand on';
+        break;
+      case 'critique':
+        actionDescription = 'critique';
+        break;
+    }
+    
+    const newMessage = { 
+      role: 'user' as const, 
+      content: `Please ${actionDescription} the following text: "${selectedText}"`
+    };
+    
+    setAiChatHistory(prev => [...prev, newMessage]);
+  };
+
   return (
     <Layout>
       <DocumentTitle title={documentTitle} onTitleChange={setDocumentTitle} />
@@ -40,7 +64,11 @@ const Index = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="flex flex-col space-y-6">
           <div className="h-[500px]">
-            <TextEditor content={documentContent} onChange={setDocumentContent} />
+            <TextEditor 
+              content={documentContent} 
+              onChange={setDocumentContent} 
+              onAiAction={handleAiAction}
+            />
           </div>
           
           <ReferenceManager 

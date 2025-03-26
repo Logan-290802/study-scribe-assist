@@ -1,13 +1,16 @@
 
 import React from 'react';
-import { Beaker, Book, BookOpen, File, FileText, Home, LogOut, Settings, User } from 'lucide-react';
+import { Beaker, Book, BookOpen, File, FileText, Home, LogOut, Settings, User, Library } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Link, useLocation } from 'react-router-dom';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const location = useLocation();
+  
   return (
     <div className="min-h-screen flex flex-col animate-fade-in">
       <header className="border-b shadow-sm bg-white/70 backdrop-blur-md sticky top-0 z-10">
@@ -19,13 +22,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
             
             <nav className="hidden md:flex space-x-4">
-              <NavLink href="#" isActive>
+              <NavLink href="/" isActive={location.pathname === '/'}>
                 <File className="h-4 w-4" />
                 <span>Document</span>
               </NavLink>
               
-              <NavLink href="#">
-                <Book className="h-4 w-4" />
+              <NavLink href="/library" isActive={location.pathname === '/library'}>
+                <Library className="h-4 w-4" />
                 <span>Library</span>
               </NavLink>
               
@@ -78,8 +81,8 @@ interface NavLinkProps {
 }
 
 const NavLink: React.FC<NavLinkProps> = ({ href, isActive, children }) => (
-  <a
-    href={href}
+  <Link
+    to={href}
     className={cn(
       "flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md transition-colors",
       isActive
@@ -88,7 +91,7 @@ const NavLink: React.FC<NavLinkProps> = ({ href, isActive, children }) => (
     )}
   >
     {children}
-  </a>
+  </Link>
 );
 
 export default Layout;

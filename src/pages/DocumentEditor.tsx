@@ -125,9 +125,9 @@ const DocumentEditor = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 space-y-4">
             <TextEditor
-              initialContent={documentContent}
-              onContentChange={setDocumentContent}
-              onSelectionAction={handleAiAction}
+              content={documentContent}
+              onChange={setDocumentContent}
+              onAiAction={handleAiAction}
             />
             
             <Tabs defaultValue="references" className="mt-4">
@@ -138,18 +138,24 @@ const DocumentEditor = () => {
               <TabsContent value="references" className="p-4 border rounded-md">
                 <ReferenceManager
                   references={references}
+                  onAddReference={handleAddReference}
                   onDeleteReference={handleDeleteReference}
                 />
               </TabsContent>
               <TabsContent value="export" className="p-4 border rounded-md">
-                <ExportPanel documentTitle={documentTitle} />
+                <ExportPanel 
+                  documentTitle={documentTitle}
+                  documentContent={documentContent}
+                  references={references}
+                  aiChatHistory={aiChatHistory}
+                />
               </TabsContent>
             </Tabs>
           </div>
           
           <div className="lg:col-span-1">
             <AiChat
-              chatHistory={aiChatHistory}
+              onAddReference={handleAddReference}
               onNewMessage={(message) => {
                 setAiChatHistory([...aiChatHistory, { role: 'user', content: message }]);
                 // Simulate AI response (in a real app, this would call an API)
@@ -163,7 +169,6 @@ const DocumentEditor = () => {
                   ]);
                 }, 1000);
               }}
-              onAddReference={handleAddReference}
             />
           </div>
         </div>

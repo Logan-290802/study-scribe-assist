@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { BookOpen, File, Library, Wrench, User, Settings, Home, ChevronRight, ChevronLeft } from 'lucide-react';
+import React, { useState } from 'react';
+import { BookOpen, Library, Wrench, User, Settings, Home, ChevronRight, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Link, useLocation } from 'react-router-dom';
 import { 
@@ -24,14 +24,19 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   return (
-    <SidebarProvider defaultOpen={true}>
+    <SidebarProvider defaultOpen={false} open={sidebarOpen} onOpenChange={setSidebarOpen}>
       <div className="min-h-screen flex flex-col animate-fade-in">
         <header className="border-b shadow-sm bg-white/70 backdrop-blur-md sticky top-0 z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
-              <div className="flex items-center gap-2">
+              <div 
+                className="flex items-center gap-2 cursor-pointer"
+                onMouseEnter={() => setSidebarOpen(true)}
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+              >
                 <BookOpen className="h-6 w-6 text-blue-600" />
                 <span className="font-medium text-lg">StudyScribe</span>
               </div>
@@ -56,8 +61,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           <Sidebar>
             <SidebarRail />
             <SidebarHeader>
+              {/* Removed the "Navigation" text */}
               <div className="flex items-center justify-between px-2 py-1.5">
-                <span className="font-medium text-sm">Navigation</span>
+                <div 
+                  className="ml-auto cursor-pointer p-1 rounded hover:bg-gray-100"
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </div>
               </div>
             </SidebarHeader>
             <SidebarContent>
@@ -73,14 +84,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild isActive={location.pathname === '/'} tooltip="Document">
-                        <Link to="/">
-                          <File className="h-4 w-4" />
-                          <span>Document</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
+                    {/* Removed the Document menu item */}
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild isActive={location.pathname === '/library'} tooltip="Library">
                         <Link to="/library">

@@ -1,48 +1,10 @@
 
 import React from 'react';
 import Layout from '@/components/layout/Layout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { BookOpen, FileText, Clock, Calendar, ArrowRight } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
-  // Sample assignments data
-  const assignments = [
-    {
-      id: 1,
-      title: "Literature Review",
-      course: "English 301",
-      dueDate: "May 15, 2023",
-      progress: 75,
-      lastEdited: "3 hours ago"
-    },
-    {
-      id: 2,
-      title: "Research Paper: Climate Change",
-      course: "Environmental Science 202",
-      dueDate: "May 22, 2023",
-      progress: 45,
-      lastEdited: "Yesterday"
-    },
-    {
-      id: 3,
-      title: "Historical Analysis Essay",
-      course: "History 104",
-      dueDate: "May 30, 2023",
-      progress: 20,
-      lastEdited: "2 days ago"
-    },
-    {
-      id: 4,
-      title: "Case Study Analysis",
-      course: "Business 405",
-      dueDate: "June 5, 2023",
-      progress: 10,
-      lastEdited: "1 week ago"
-    }
-  ];
-
   return (
     <Layout>
       <div className="space-y-6 w-full">
@@ -59,52 +21,16 @@ const Dashboard = () => {
           </Button>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {assignments.map((assignment) => (
-            <Card key={assignment.id} className="overflow-hidden hover:shadow-md transition-shadow">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xl">{assignment.title}</CardTitle>
-                <CardDescription>{assignment.course}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center text-muted-foreground">
-                      <Calendar className="mr-1 h-4 w-4" />
-                      <span>Due: {assignment.dueDate}</span>
-                    </div>
-                    <div className="flex items-center text-muted-foreground">
-                      <Clock className="mr-1 h-4 w-4" />
-                      <span>Edited: {assignment.lastEdited}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className="bg-blue-600 h-2.5 rounded-full" 
-                      style={{ width: `${assignment.progress}%` }}
-                    />
-                  </div>
-                  <div className="text-xs text-right text-muted-foreground">
-                    {assignment.progress}% complete
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="pt-0">
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-between" 
-                  size="sm"
-                  asChild
-                >
-                  <Link to={`/documents/${assignment.id}`}>
-                    Continue working 
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+        <div className="border-2 border-dashed border-gray-200 rounded-lg py-16 text-center">
+          <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900">No assignments yet</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Get started by creating a new assignment
+          </p>
+          <Button className="mt-4">
+            <FileText className="mr-2 h-4 w-4" />
+            Create Assignment
+          </Button>
         </div>
       </div>
     </Layout>

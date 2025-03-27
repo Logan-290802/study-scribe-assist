@@ -6,6 +6,9 @@ import ChatMessage from './chat/ChatMessage';
 import ChatInput from './chat/ChatInput';
 import ChatActions from './chat/ChatActions';
 import UploadedFile from './chat/UploadedFile';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/store/AuthContext';
+import { v4 as uuidv4 } from '@/lib/utils/uuid';
 
 interface Message {
   id: string;
@@ -17,6 +20,7 @@ interface Message {
 export interface AiChatProps {
   onAddReference: (reference: Reference) => void;
   onNewMessage?: (message: string) => void;
+  documentId?: string;
 }
 
 export interface Reference {
@@ -30,7 +34,7 @@ export interface Reference {
   content?: string;
 }
 
-export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage }) => {
+export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage, documentId }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -41,8 +45,10 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage }) 
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedPdf, setUploadedPdf] = useState<File | null>(null);
+  const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useAuth();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -68,55 +74,90 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage }) 
     // Call onNewMessage prop if provided
     if (onNewMessage) {
       onNewMessage(input);
-    }
-    
-    setIsLoading(true);
+    } else {
+      // If no onNewMessage prop is provided, handle the message internally
+      setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      let aiResponse: Message;
-      
-      if (input.toLowerCase().includes('reference') || input.toLowerCase().includes('citation')) {
-        // Generate sample reference
-        aiResponse = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: "I found this reference that might be helpful for your research on cognitive learning theory:\n\n**Sweller, J., van Merriënboer, J. J. G., & Paas, F. (2019). Cognitive Architecture and Instructional Design: 20 Years Later. Educational Psychology Review, 31(2), 261–292.**\n\nWould you like me to add this to your references list?",
-          timestamp: new Date(),
-        };
-        
-      } else if (input.toLowerCase().includes('summarize') || input.toLowerCase().includes('summary')) {
-        aiResponse = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: "Based on the literature, here's a summary of key points about cognitive load theory:\n\n• Cognitive load theory focuses on the limitations of working memory during learning\n• It identifies three types of cognitive load: intrinsic, extraneous, and germane\n• Instructional design should minimize extraneous load and optimize germane load\n• Split-attention and redundancy effects can impair learning efficiency\n• Schema acquisition and automation are key mechanisms for knowledge transfer\n\nWould you like me to elaborate on any of these points?",
-          timestamp: new Date(),
-        };
-      } else if (uploadedPdf) {
-        aiResponse = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: `I've analyzed the PDF "${uploadedPdf.name}" and here are the key findings:\n\n• The paper discusses cognitive load theory and its applications in education\n• It emphasizes the importance of managing working memory load during instruction\n• The authors propose a new framework for instructional design based on cognitive architecture\n• There are several practical implications for classroom teaching and online learning\n\nWould you like me to provide more specific details about any of these points or generate a citation for this paper?`,
-          timestamp: new Date(),
-        };
-        setUploadedPdf(null);
-      } else {
-        aiResponse = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: "I can help you with that. To provide the most relevant assistance, could you specify if you need:\n\n1. Research information on a particular topic\n2. Help with structuring your argument\n3. Citation suggestions for your current paragraph\n4. Feedback on your writing\n\nAlternatively, you could share a specific paragraph you're working on, or upload a PDF for me to analyze.",
-          timestamp: new Date(),
-        };
-      }
-      
-      setMessages((prev) => [...prev, aiResponse]);
-      setIsLoading(false);
-    }, 1500);
+      // Simulate AI response
+      setTimeout(() => {
+        handleAiResponse(input);
+      }, 1500);
+    }
   };
 
-  const addSampleReference = () => {
+  const handleAiResponse = (input: string) => {
+    let aiResponse: Message;
+    
+    if (input.toLowerCase().includes('reference') || input.toLowerCase().includes('citation')) {
+      // Generate sample reference
+      aiResponse = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: "I found this reference that might be helpful for your research on cognitive learning theory:\n\n**Sweller, J., van Merriënboer, J. J. G., & Paas, F. (2019). Cognitive Architecture and Instructional Design: 20 Years Later. Educational Psychology Review, 31(2), 261–292.**\n\nWould you like me to add this to your references list?",
+        timestamp: new Date(),
+      };
+      
+    } else if (input.toLowerCase().includes('summarize') || input.toLowerCase().includes('summary')) {
+      aiResponse = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: "Based on the literature, here's a summary of key points about cognitive load theory:\n\n• Cognitive load theory focuses on the limitations of working memory during learning\n• It identifies three types of cognitive load: intrinsic, extraneous, and germane\n• Instructional design should minimize extraneous load and optimize germane load\n• Split-attention and redundancy effects can impair learning efficiency\n• Schema acquisition and automation are key mechanisms for knowledge transfer\n\nWould you like me to elaborate on any of these points?",
+        timestamp: new Date(),
+      };
+    } else if (uploadedPdf) {
+      aiResponse = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: `I've analyzed the PDF "${uploadedPdf.name}" and here are the key findings:\n\n• The paper discusses cognitive load theory and its applications in education\n• It emphasizes the importance of managing working memory load during instruction\n• The authors propose a new framework for instructional design based on cognitive architecture\n• There are several practical implications for classroom teaching and online learning\n\nWould you like me to provide more specific details about any of these points or generate a citation for this paper?`,
+        timestamp: new Date(),
+      };
+      setUploadedPdf(null);
+    } else {
+      aiResponse = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: "I can help you with that. To provide the most relevant assistance, could you specify if you need:\n\n1. Research information on a particular topic\n2. Help with structuring your argument\n3. Citation suggestions for your current paragraph\n4. Feedback on your writing\n\nAlternatively, you could share a specific paragraph you're working on, or upload a PDF for me to analyze.",
+        timestamp: new Date(),
+      };
+    }
+    
+    setMessages((prev) => [...prev, aiResponse]);
+    setIsLoading(false);
+    
+    // Save message to Supabase if authenticated and document ID provided
+    if (user && documentId) {
+      saveChatMessageToSupabase({
+        role: 'assistant',
+        content: aiResponse.content,
+        document_id: documentId,
+        user_id: user.id,
+      });
+    }
+  };
+
+  const saveChatMessageToSupabase = async (message: {
+    role: 'user' | 'assistant';
+    content: string;
+    document_id: string;
+    user_id: string;
+  }) => {
+    try {
+      const { error } = await supabase.from('ai_chat_history').insert({
+        ...message,
+        timestamp: new Date().toISOString(),
+      });
+      
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error saving chat message:', error);
+    }
+  };
+
+  const addSampleReference = async () => {
     const newReference: Reference = {
-      id: Date.now().toString(),
+      id: uuidv4(),
       title: "Cognitive Architecture and Instructional Design: 20 Years Later",
       authors: ["Sweller, J.", "van Merriënboer, J. J. G.", "Paas, F."],
       year: "2019",
@@ -128,24 +169,33 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage }) 
     onAddReference(newReference);
     
     // Add confirmation message
-    setMessages((prev) => [
-      ...prev, 
-      {
-        id: Date.now().toString(),
+    const confirmationMessage: Message = {
+      id: Date.now().toString(),
+      role: 'assistant',
+      content: "I've added this reference to your reference list. You can now cite it in your document.",
+      timestamp: new Date(),
+    };
+    
+    setMessages((prev) => [...prev, confirmationMessage]);
+    
+    // Save message to Supabase if authenticated and document ID provided
+    if (user && documentId) {
+      saveChatMessageToSupabase({
         role: 'assistant',
-        content: "I've added this reference to your reference list. You can now cite it in your document.",
-        timestamp: new Date(),
-      }
-    ]);
+        content: confirmationMessage.content,
+        document_id: documentId,
+        user_id: user.id,
+      });
+    }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       if (file.type === 'application/pdf') {
         setUploadedPdf(file);
         
-        // Send a message about the uploaded PDF
+        // Create a message about the uploaded PDF
         const userMessage: Message = {
           id: Date.now().toString(),
           role: 'user',
@@ -155,6 +205,53 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage }) 
         
         setMessages((prev) => [...prev, userMessage]);
         setIsLoading(true);
+        
+        // If authenticated and document ID provided, upload to Supabase Storage
+        if (user && documentId) {
+          try {
+            // Create a unique file path
+            const filePath = `documents/${documentId}/${Date.now()}_${file.name}`;
+            
+            // Upload file to Supabase Storage
+            const { data, error } = await supabase.storage
+              .from('uploads')
+              .upload(filePath, file);
+            
+            if (error) {
+              throw error;
+            }
+            
+            // Get public URL for the file
+            const { data: urlData } = supabase.storage
+              .from('uploads')
+              .getPublicUrl(filePath);
+            
+            if (urlData) {
+              setUploadedFileUrl(urlData.publicUrl);
+              
+              // Save file metadata to Supabase
+              await supabase.from('file_uploads').insert({
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                path: filePath,
+                document_id: documentId,
+                user_id: user.id,
+                created_at: new Date().toISOString(),
+              });
+              
+              // Save chat message to Supabase
+              saveChatMessageToSupabase({
+                role: 'user',
+                content: userMessage.content,
+                document_id: documentId,
+                user_id: user.id,
+              });
+            }
+          } catch (error) {
+            console.error('Error uploading file:', error);
+          }
+        }
         
         // Simulate processing time
         setTimeout(() => {
@@ -167,6 +264,16 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage }) 
           
           setMessages((prev) => [...prev, aiResponse]);
           
+          // Save AI response to Supabase if authenticated and document ID provided
+          if (user && documentId) {
+            saveChatMessageToSupabase({
+              role: 'assistant',
+              content: aiResponse.content,
+              document_id: documentId,
+              user_id: user.id,
+            });
+          }
+          
           // Simulate completion after another delay
           setTimeout(() => {
             const completionMessage: Message = {
@@ -178,6 +285,16 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage }) 
             
             setMessages((prev) => [...prev, completionMessage]);
             setIsLoading(false);
+            
+            // Save AI completion response to Supabase if authenticated and document ID provided
+            if (user && documentId) {
+              saveChatMessageToSupabase({
+                role: 'assistant',
+                content: completionMessage.content,
+                document_id: documentId,
+                user_id: user.id,
+              });
+            }
           }, 2000);
         }, 1500);
       } else {
@@ -249,12 +366,15 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage }) 
           onSendMessage={handleSendMessage}
           onUploadFile={triggerFileUpload}
           isLoading={isLoading}
+          disabled={!user}
+          placeholder={user ? "Ask your AI research assistant..." : "Sign in to chat with AI assistant"}
         />
         
         <ChatActions
           onSearchClick={handleSearchAction}
           onCitationsClick={handleCitationsAction}
           onSummarizeClick={handleSummarizeAction}
+          disabled={!user || isLoading}
         />
         
         {/* Hidden file input */}

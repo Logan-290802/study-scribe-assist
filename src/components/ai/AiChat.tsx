@@ -1,6 +1,11 @@
+
 import React, { useState, useRef, useEffect } from 'react';
-import { SendHorizontal, Bot, Clipboard, Search, BookOpen, BookText, Upload, File, X } from 'lucide-react';
+import { Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import ChatMessage from './chat/ChatMessage';
+import ChatInput from './chat/ChatInput';
+import ChatActions from './chat/ChatActions';
+import UploadedFile from './chat/UploadedFile';
 
 interface Message {
   id: string;
@@ -34,7 +39,6 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage }) 
       timestamp: new Date(),
     },
   ]);
-  const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedPdf, setUploadedPdf] = useState<File | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -48,8 +52,7 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage }) 
     scrollToBottom();
   }, [messages]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSendMessage = (input: string) => {
     if (!input.trim()) return;
 
     // Add user message
@@ -67,7 +70,6 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage }) 
       onNewMessage(input);
     }
     
-    setInput('');
     setIsLoading(true);
 
     // Simulate AI response
@@ -185,66 +187,20 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage }) 
     }
   };
 
-  const handleTextSelectionAction = (action: 'research' | 'expand' | 'critique', selectedText: string) => {
-    let promptPrefix = '';
-    
-    switch (action) {
-      case 'research':
-        promptPrefix = 'Can you find supporting research for this idea: ';
-        break;
-      case 'expand':
-        promptPrefix = 'Can you help me expand on this idea: ';
-        break;
-      case 'critique':
-        promptPrefix = 'Can you critique this idea and provide potential counterarguments: ';
-        break;
-    }
-    
-    // Add user message
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: `${promptPrefix}\n\n"${selectedText}"`,
-      timestamp: new Date(),
-    };
-    
-    setMessages((prev) => [...prev, userMessage]);
-    setIsLoading(true);
-    
-    // Simulate AI response based on the action
-    setTimeout(() => {
-      let aiResponse: Message;
-      
-      if (action === 'research') {
-        aiResponse = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: `Here's some supporting research for your idea about "${selectedText.substring(0, 30)}...":\n\n1. **Smith et al. (2020)** conducted a study that supports this concept, finding that...\n\n2. **The Journal of Educational Psychology (2019)** published research demonstrating...\n\n3. **According to Brown & Johnson's meta-analysis (2021)**, there is strong evidence that...\n\nWould you like me to add any of these as references to your document?`,
-          timestamp: new Date(),
-        };
-      } else if (action === 'expand') {
-        aiResponse = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: `Here's how you might expand on your idea about "${selectedText.substring(0, 30)}...":\n\n• Consider adding examples from different educational contexts\n• You could connect this to learning theory by explaining how...\n• This concept relates to recent developments in the field, such as...\n• A practical application of this idea would be...\n\nWould you like me to elaborate on any of these points in more detail?`,
-          timestamp: new Date(),
-        };
-      } else { // critique
-        aiResponse = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: `Here's a thoughtful critique of your idea about "${selectedText.substring(0, 30)}...":\n\n• **Alternative perspective:** Some researchers argue that...\n• **Methodological concerns:** The approach mentioned might be limited by...\n• **Contextual limitations:** This concept may not apply equally in all settings because...\n• **Recent contradicting evidence:** Williams & Chen (2022) found that...\n\nAddressing these counterarguments in your writing would strengthen your overall argument.`,
-          timestamp: new Date(),
-        };
-      }
-      
-      setMessages((prev) => [...prev, aiResponse]);
-      setIsLoading(false);
-    }, 2000);
-  };
-
   const triggerFileUpload = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleSearchAction = () => {
+    handleSendMessage("Can you help me research the latest findings on cognitive load theory?");
+  };
+
+  const handleCitationsAction = () => {
+    handleSendMessage("Can you suggest some key references for my paper on educational psychology?");
+  };
+
+  const handleSummarizeAction = () => {
+    handleSendMessage("Can you summarize the main theories of learning?");
   };
 
   return (
@@ -256,44 +212,14 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage }) 
       
       <div className="flex-grow overflow-y-auto p-4 space-y-4 thin-scrollbar">
         {messages.map((message) => (
-          <div
+          <ChatMessage
             key={message.id}
-            className={cn(
-              "flex animate-fade-in",
-              message.role === 'user' ? "justify-end" : "justify-start"
-            )}
-          >
-            <div
-              className={cn(
-                "max-w-[85%] rounded-lg p-3",
-                message.role === 'user' 
-                  ? "bg-blue-500 text-white rounded-tr-none" 
-                  : "bg-gray-100 text-gray-800 rounded-tl-none"
-              )}
-            >
-              <div className="whitespace-pre-line">{message.content}</div>
-              
-              {message.role === 'assistant' && message.content.includes('reference') && (
-                <div className="mt-2 flex gap-2">
-                  <button 
-                    onClick={addSampleReference}
-                    className="text-xs py-1 px-2 bg-white text-blue-600 rounded border border-blue-200 hover:bg-blue-50 transition-colors flex items-center gap-1"
-                  >
-                    <BookText className="w-3 h-3" />
-                    Add to References
-                  </button>
-                  <button className="text-xs py-1 px-2 bg-white text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors flex items-center gap-1">
-                    <Clipboard className="w-3 h-3" />
-                    Copy
-                  </button>
-                </div>
-              )}
-              
-              <div className="text-xs mt-1 opacity-70">
-                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </div>
-            </div>
-          </div>
+            id={message.id}
+            role={message.role}
+            content={message.content}
+            timestamp={message.timestamp}
+            onAddReference={message.role === 'assistant' && message.content.includes('reference') ? addSampleReference : undefined}
+          />
         ))}
         
         {isLoading && (
@@ -309,79 +235,36 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage }) 
         )}
         
         {uploadedPdf && (
-          <div className="flex justify-center animate-fade-in">
-            <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-lg p-3 flex items-center gap-2">
-              <File className="h-5 w-5 text-blue-500" />
-              <span className="text-sm font-medium">{uploadedPdf.name}</span>
-              <button 
-                onClick={() => setUploadedPdf(null)}
-                className="ml-2 p-1 rounded-full hover:bg-blue-100"
-              >
-                <X className="h-4 w-4 text-blue-500" />
-              </button>
-            </div>
-          </div>
+          <UploadedFile 
+            file={uploadedPdf} 
+            onRemove={() => setUploadedPdf(null)} 
+          />
         )}
         
         <div ref={messagesEndRef} />
       </div>
       
       <div className="p-3 border-t">
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask your AI research assistant..."
-            className="flex-grow p-2 border rounded-md bg-white/80 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            disabled={isLoading}
-          />
-          <button
-            type="button"
-            onClick={triggerFileUpload}
-            className="p-2 rounded-md transition-colors text-gray-600 hover:bg-gray-100"
-          >
-            <Upload className="w-5 h-5" />
-          </button>
-          <button
-            type="submit"
-            disabled={!input.trim() || isLoading}
-            className={cn(
-              "p-2 rounded-md transition-colors text-white",
-              input.trim() && !isLoading 
-                ? "bg-blue-500 hover:bg-blue-600" 
-                : "bg-gray-300 cursor-not-allowed"
-            )}
-          >
-            <SendHorizontal className="w-5 h-5" />
-          </button>
-          
-          {/* Hidden file input */}
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept="application/pdf"
-            className="hidden"
-          />
-        </form>
+        <ChatInput 
+          onSendMessage={handleSendMessage}
+          onUploadFile={triggerFileUpload}
+          isLoading={isLoading}
+        />
         
-        <div className="flex gap-1 mt-2 text-xs text-gray-500">
-          <button className="flex items-center gap-1 hover:text-blue-500 transition-colors">
-            <Search className="w-3 h-3" />
-            Research
-          </button>
-          <span>•</span>
-          <button className="flex items-center gap-1 hover:text-blue-500 transition-colors">
-            <BookOpen className="w-3 h-3" />
-            Find Citations
-          </button>
-          <span>•</span>
-          <button className="flex items-center gap-1 hover:text-blue-500 transition-colors">
-            <Bot className="w-3 h-3" />
-            Summarize
-          </button>
-        </div>
+        <ChatActions
+          onSearchClick={handleSearchAction}
+          onCitationsClick={handleCitationsAction}
+          onSummarizeClick={handleSummarizeAction}
+        />
+        
+        {/* Hidden file input */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          accept="application/pdf"
+          className="hidden"
+        />
       </div>
     </div>
   );

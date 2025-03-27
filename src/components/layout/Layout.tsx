@@ -28,9 +28,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   
   return (
     <SidebarProvider defaultOpen={false} open={sidebarOpen} onOpenChange={setSidebarOpen}>
-      <div className="min-h-screen flex flex-col animate-fade-in">
-        <header className="border-b shadow-sm bg-white/70 backdrop-blur-md sticky top-0 z-10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex flex-col animate-fade-in w-full">
+        <header className="border-b shadow-sm bg-white/70 backdrop-blur-md sticky top-0 z-10 w-full">
+          <div className="w-full px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div 
                 className="flex items-center gap-2 cursor-pointer"
@@ -57,7 +57,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </header>
         
-        <div className="flex flex-1 relative">
+        <div className="flex flex-1 relative w-full">
           <Sidebar variant="floating">
             <SidebarRail />
             <SidebarHeader>
@@ -106,14 +106,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </Sidebar>
           
           <main className="flex-grow py-6 w-full">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="w-full px-4 sm:px-6 lg:px-8">
               {children}
             </div>
           </main>
         </div>
         
-        <footer className="border-t py-4 bg-white/70 backdrop-blur-md">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <footer className="border-t py-4 bg-white/70 backdrop-blur-md w-full">
+          <div className="w-full px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center">
               <div className="text-sm text-gray-500">
                 &copy; {new Date().getFullYear()} StudyScribe

@@ -49,7 +49,7 @@ const DocumentEditor = () => {
   const [documentTitle, setDocumentTitle] = useState(assignment?.title || 'Untitled Document');
   const [documentContent, setDocumentContent] = useState(assignment?.content || '');
   const [references, setReferences] = useState<Reference[]>([]);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
   
   const handleSave = () => {
     toast({
@@ -58,11 +58,11 @@ const DocumentEditor = () => {
     });
   };
 
-  const handleSubmit = () => {
-    setIsSubmitted(true);
+  const handleComplete = () => {
+    setIsCompleted(true);
     toast({
-      title: "Document submitted",
-      description: "Your document has been submitted successfully.",
+      title: "Document completed",
+      description: "Your document has been marked as completed.",
       variant: "default",
     });
   };
@@ -114,30 +114,30 @@ const DocumentEditor = () => {
               Save
             </Button>
             <Button 
-              onClick={handleSubmit} 
+              onClick={handleComplete} 
               size="sm"
               variant="default"
-              disabled={isSubmitted}
-              className={isSubmitted ? "bg-green-600 hover:bg-green-700" : ""}
+              disabled={isCompleted}
+              className={isCompleted ? "bg-green-600 hover:bg-green-700" : ""}
             >
               <CheckCircle className="h-4 w-4 mr-2" />
-              {isSubmitted ? "Submitted" : "Submit"}
+              {isCompleted ? "Completed" : "Complete"}
             </Button>
           </div>
         </div>
 
-        <div className="mb-2">
+        <div className="mb-2 flex items-center gap-3">
           <DocumentTitle 
             title={documentTitle} 
             onTitleChange={setDocumentTitle} 
           />
-          <p className="text-sm text-muted-foreground">{assignment.course}</p>
-          {isSubmitted && (
-            <p className="text-sm text-green-600 font-medium mt-1 flex items-center">
-              <CheckCircle className="h-4 w-4 mr-1" /> Submitted
-            </p>
+          {isCompleted && (
+            <span className="inline-flex items-center text-sm text-green-600 font-medium">
+              <CheckCircle className="h-4 w-4 mr-1" /> Completed
+            </span>
           )}
         </div>
+        <p className="text-sm text-muted-foreground">{assignment.course}</p>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 space-y-4">

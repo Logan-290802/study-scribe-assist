@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { SendHorizontal, Bot, Clipboard, Search, BookOpen, BookText, Upload, File, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -10,8 +9,9 @@ interface Message {
   timestamp: Date;
 }
 
-interface AiChatProps {
+export interface AiChatProps {
   onAddReference: (reference: Reference) => void;
+  onNewMessage?: (message: string) => void;
 }
 
 export interface Reference {
@@ -25,7 +25,7 @@ export interface Reference {
   content?: string;
 }
 
-export const AiChat: React.FC<AiChatProps> = ({ onAddReference }) => {
+export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -61,6 +61,12 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference }) => {
     };
     
     setMessages((prev) => [...prev, userMessage]);
+    
+    // Call onNewMessage prop if provided
+    if (onNewMessage) {
+      onNewMessage(input);
+    }
+    
     setInput('');
     setIsLoading(true);
 

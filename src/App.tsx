@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import Library from "./pages/Library";
 import PreviewExport from "./pages/PreviewExport";
 import Tools from "./pages/Tools";
+import DocumentEditor from "./pages/DocumentEditor";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/library" element={<Library />} />
           <Route path="/preview-export" element={<PreviewExport />} />
           <Route path="/tools" element={<Tools />} />
+          <Route path="/documents/:id" element={<DocumentEditor />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

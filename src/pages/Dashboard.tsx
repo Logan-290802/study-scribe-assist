@@ -4,6 +4,7 @@ import Layout from '@/components/layout/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { BookOpen, FileText, Clock, Calendar, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
   // Sample assignments data
@@ -90,9 +91,16 @@ const Dashboard = () => {
                 </div>
               </CardContent>
               <CardFooter className="pt-0">
-                <Button variant="ghost" className="w-full justify-between" size="sm">
-                  Continue working 
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                <Button 
+                  variant="ghost" 
+                  className="w-full justify-between" 
+                  size="sm"
+                  asChild
+                >
+                  <Link to={`/documents/${assignment.id}`}>
+                    Continue working 
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Link>
                 </Button>
               </CardFooter>
             </Card>

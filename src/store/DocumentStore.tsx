@@ -11,7 +11,13 @@ const DocumentContext = createContext<DocumentContextType | undefined>(undefined
 export const DocumentProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const { documents, setDocuments, loading } = useLoadDocuments(user?.id);
-  const { addDocument, updateDocument, getDocument, deleteDocument } = useDocumentOperations(
+  const { 
+    addDocument, 
+    updateDocument, 
+    getDocument, 
+    deleteDocument, 
+    archiveDocument 
+  } = useDocumentOperations(
     user?.id, 
     documents, 
     setDocuments
@@ -27,7 +33,8 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
       addDocument, 
       updateDocument, 
       getDocument, 
-      deleteDocument 
+      deleteDocument,
+      archiveDocument 
     }}>
       {children}
     </DocumentContext.Provider>

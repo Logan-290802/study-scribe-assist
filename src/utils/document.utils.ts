@@ -10,6 +10,7 @@ export const transformSupabaseToDocument = (doc: any): Document => ({
   snippet: doc.snippet,
   referencesCount: doc.references_count || 0,
   content: doc.content,
+  archived: doc.archived || false,
 });
 
 export const transformDocumentToSupabase = (
@@ -24,6 +25,7 @@ export const transformDocumentToSupabase = (
   references_count: document.referencesCount,
   content: document.content || '',
   user_id: userId,
+  archived: document.archived || false,
 });
 
 export const prepareDocumentUpdate = (updates: Partial<Omit<Document, 'id'>>) => {
@@ -35,6 +37,7 @@ export const prepareDocumentUpdate = (updates: Partial<Omit<Document, 'id'>>) =>
   if (updates.snippet !== undefined) supabaseUpdates.snippet = updates.snippet;
   if (updates.referencesCount !== undefined) supabaseUpdates.references_count = updates.referencesCount;
   if (updates.content !== undefined) supabaseUpdates.content = updates.content;
+  if (updates.archived !== undefined) supabaseUpdates.archived = updates.archived;
   
   // Always update last_modified
   supabaseUpdates.last_modified = new Date().toISOString();

@@ -8,6 +8,7 @@ export interface Document {
   snippet: string;
   referencesCount: number;
   content?: string;
+  archived?: boolean;
 }
 
 export interface DocumentContextType {
@@ -17,4 +18,5 @@ export interface DocumentContextType {
   updateDocument: (id: string, updates: Partial<Omit<Document, 'id'>>) => Promise<void>;
   getDocument: (id: string) => Document | undefined;
   deleteDocument: (id: string) => Promise<void>;
+  archiveDocument: (id: string, archived: boolean) => Promise<void>;
 }

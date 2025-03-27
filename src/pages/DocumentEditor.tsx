@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, CheckCircle } from 'lucide-react';
 import TextEditor from '@/components/editor/TextEditor';
 import AiChat, { Reference } from '@/components/ai/AiChat';
 import DocumentTitle from '@/components/editor/DocumentTitle';
@@ -49,11 +49,21 @@ const DocumentEditor = () => {
   const [documentTitle, setDocumentTitle] = useState(assignment?.title || 'Untitled Document');
   const [documentContent, setDocumentContent] = useState(assignment?.content || '');
   const [references, setReferences] = useState<Reference[]>([]);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   
   const handleSave = () => {
     toast({
       title: "Document saved",
       description: "Your document has been saved successfully.",
+    });
+  };
+
+  const handleSubmit = () => {
+    setIsSubmitted(true);
+    toast({
+      title: "Document submitted",
+      description: "Your document has been submitted successfully.",
+      variant: "default",
     });
   };
 
@@ -94,10 +104,26 @@ const DocumentEditor = () => {
               Back to Dashboard
             </Button>
           </div>
-          <Button onClick={handleSave} size="sm">
-            <Save className="h-4 w-4 mr-2" />
-            Save Document
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              onClick={handleSave} 
+              size="sm"
+              variant="outline"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Save
+            </Button>
+            <Button 
+              onClick={handleSubmit} 
+              size="sm"
+              variant="default"
+              disabled={isSubmitted}
+              className={isSubmitted ? "bg-green-600 hover:bg-green-700" : ""}
+            >
+              <CheckCircle className="h-4 w-4 mr-2" />
+              {isSubmitted ? "Submitted" : "Submit"}
+            </Button>
+          </div>
         </div>
 
         <div className="mb-2">
@@ -106,6 +132,11 @@ const DocumentEditor = () => {
             onTitleChange={setDocumentTitle} 
           />
           <p className="text-sm text-muted-foreground">{assignment.course}</p>
+          {isSubmitted && (
+            <p className="text-sm text-green-600 font-medium mt-1 flex items-center">
+              <CheckCircle className="h-4 w-4 mr-1" /> Submitted
+            </p>
+          )}
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

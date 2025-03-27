@@ -63,9 +63,9 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
           title: doc.title,
           moduleNumber: doc.moduleNumber,
           dueDate: doc.dueDate ? new Date(doc.dueDate) : undefined,
-          lastModified: new Date(doc.lastModified),
+          lastModified: new Date(doc.last_modified), // Note changed from lastModified to last_modified
           snippet: doc.snippet,
-          referencesCount: doc.referencesCount,
+          referencesCount: doc.references_count || 0, // Note changed from referencesCount to references_count and added fallback
           content: doc.content,
         }));
 
@@ -133,7 +133,7 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
         dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
         lastModified: new Date(data.last_modified),
         snippet: data.snippet,
-        referencesCount: data.references_count,
+        referencesCount: data.references_count || 0,
         content: data.content,
       };
       
@@ -161,12 +161,18 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
     }
 
     try {
-      // Prepare updates for Supabase
-      const supabaseUpdates: any = {
-        ...updates,
-        lastModified: new Date().toISOString(),
-        dueDate: updates.dueDate?.toISOString(),
-      };
+      // Convert snake_case for Supabase
+      const supabaseUpdates: any = {};
+      
+      if (updates.title !== undefined) supabaseUpdates.title = updates.title;
+      if (updates.moduleNumber !== undefined) supabaseUpdates.moduleNumber = updates.moduleNumber;
+      if (updates.dueDate !== undefined) supabaseUpdates.dueDate = updates.dueDate?.toISOString();
+      if (updates.snippet !== undefined) supabaseUpdates.snippet = updates.snippet;
+      if (updates.referencesCount !== undefined) supabaseUpdates.references_count = updates.referencesCount;
+      if (updates.content !== undefined) supabaseUpdates.content = updates.content;
+      
+      // Always update last_modified
+      supabaseUpdates.last_modified = new Date().toISOString();
       
       const { error } = await supabase
         .from('documents')

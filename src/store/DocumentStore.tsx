@@ -83,6 +83,70 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
     }
 
     loadDocuments();
+
+    // Set up realtime subscription
+    const documentsSubscription = supabase
+      .channel('documents-changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'documents',
+          filter: `user_id=eq.${user.id}`
+        }, 
+        (payload) => {
+          console.log('Realtime update received:', payload);
+          
+          // Handle different event types
+          switch (payload.eventType) {
+            case 'INSERT': {
+              const newDoc = payload.new as any;
+              const transformedDoc: Document = {
+                id: newDoc.id,
+                title: newDoc.title,
+                moduleNumber: newDoc.moduleNumber,
+                dueDate: newDoc.dueDate ? new Date(newDoc.dueDate) : undefined,
+                lastModified: new Date(newDoc.last_modified),
+                snippet: newDoc.snippet,
+                referencesCount: newDoc.references_count || 0,
+                content: newDoc.content,
+              };
+              
+              setDocuments(prev => [transformedDoc, ...prev]);
+              break;
+            }
+            case 'UPDATE': {
+              const updatedDoc = payload.new as any;
+              setDocuments(prev => prev.map(doc => {
+                if (doc.id === updatedDoc.id) {
+                  return {
+                    ...doc,
+                    title: updatedDoc.title,
+                    moduleNumber: updatedDoc.moduleNumber,
+                    dueDate: updatedDoc.dueDate ? new Date(updatedDoc.dueDate) : undefined,
+                    lastModified: new Date(updatedDoc.last_modified),
+                    snippet: updatedDoc.snippet,
+                    referencesCount: updatedDoc.references_count || 0,
+                    content: updatedDoc.content,
+                  };
+                }
+                return doc;
+              }));
+              break;
+            }
+            case 'DELETE': {
+              const deletedDoc = payload.old as any;
+              setDocuments(prev => prev.filter(doc => doc.id !== deletedDoc.id));
+              break;
+            }
+          }
+        }
+      ).subscribe();
+
+    // Clean up subscription when component unmounts or user changes
+    return () => {
+      documentsSubscription.unsubscribe();
+    };
   }, [user, toast]);
 
   const addDocument = async (document: Omit<Document, 'id' | 'lastModified'>) => {

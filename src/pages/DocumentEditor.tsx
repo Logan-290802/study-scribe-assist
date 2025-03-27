@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
@@ -8,6 +9,8 @@ import AiChat, { Reference } from '@/components/ai/AiChat';
 import DocumentTitle from '@/components/editor/DocumentTitle';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
+import ReferenceManager from '@/components/references/ReferenceManager';
+import ExportPanel from '@/components/export/ExportPanel';
 
 const sampleAssignments = {
   "1": {
@@ -47,6 +50,9 @@ const DocumentEditor = () => {
   const [documentContent, setDocumentContent] = useState(assignment?.content || '');
   const [references, setReferences] = useState<Reference[]>([]);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [aiChatHistory, setAiChatHistory] = useState<{ role: 'user' | 'assistant'; content: string }[]>([
+    { role: 'assistant', content: 'Hello! I\'m your AI research assistant. How can I help you today?' }
+  ]);
   
   const handleSave = () => {
     toast({
@@ -66,10 +72,35 @@ const DocumentEditor = () => {
 
   const handleAiAction = (action: 'research' | 'expand' | 'critique', selectedText: string) => {
     console.log(`AI action: ${action} on "${selectedText}"`);
+    
+    // Add the action to aiChatHistory so it appears in export
+    let actionDescription = '';
+    switch (action) {
+      case 'research':
+        actionDescription = 'find supporting research for';
+        break;
+      case 'expand':
+        actionDescription = 'expand on';
+        break;
+      case 'critique':
+        actionDescription = 'critique';
+        break;
+    }
+    
+    const newMessage = { 
+      role: 'user' as const, 
+      content: `Please ${actionDescription} the following text: "${selectedText}"`
+    };
+    
+    setAiChatHistory(prev => [...prev, newMessage]);
   };
 
   const handleAddReference = (reference: Reference) => {
     setReferences(prev => [...prev, reference]);
+  };
+
+  const handleDeleteReference = (id: string) => {
+    setReferences(prev => prev.filter(ref => ref.id !== id));
   };
 
   if (!assignment) {
@@ -171,6 +202,21 @@ const DocumentEditor = () => {
                 </div>
               </TabsContent>
             </Tabs>
+            
+            {/* Reference Manager Component */}
+            <ReferenceManager 
+              references={references} 
+              onAddReference={handleAddReference}
+              onDeleteReference={handleDeleteReference}
+            />
+            
+            {/* Export Panel Component */}
+            <ExportPanel 
+              documentContent={documentContent}
+              documentTitle={documentTitle}
+              references={references}
+              aiChatHistory={aiChatHistory}
+            />
           </div>
           
           <div className="h-[calc(100vh-240px)]">

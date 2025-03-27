@@ -3,13 +3,13 @@ import React from 'react';
 import { File, X } from 'lucide-react';
 
 interface UploadedFileProps {
-  file: File | { name: string, path: string };
+  file: File | { name: string; path?: string };
   onRemove: () => void;
 }
 
 export const UploadedFile: React.FC<UploadedFileProps> = ({ file, onRemove }) => {
-  // Get file name from either a File object or our custom file object with path
-  const fileName = 'name' in file ? file.name : file.name;
+  // Get file name from the file object (works for both File and custom file object)
+  const fileName = file.name;
 
   return (
     <div className="flex justify-center animate-fade-in">

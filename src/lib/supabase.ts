@@ -1,19 +1,11 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Default to empty strings instead of undefined
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+// Use the provided Supabase URL and anon key
+const supabaseUrl = 'https://icpophaaxzftjsesephp.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljcG9waGFheHpmdGpzZXNlcGhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMxMTA3MTEsImV4cCI6MjA1ODY4NjcxMX0.qckabQzKlWt2zEU-hXgP_qSiywoy3Ndn7ZHDFP6vfe8';
 
-// Check if we're in development and provide fallback values when env vars aren't set
-const isDevelopment = import.meta.env.DEV;
-
-if ((!supabaseUrl || !supabaseAnonKey) && isDevelopment) {
-  console.warn('Missing Supabase URL or Anon Key. Using mock Supabase client for development.');
-  console.warn('Please set the VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.');
-}
-
-// Create a mock Supabase client for development if credentials are missing
+// Create Supabase client with the configuration
 export const supabase = createClient(
   supabaseUrl,
   supabaseAnonKey,

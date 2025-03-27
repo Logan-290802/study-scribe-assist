@@ -84,8 +84,8 @@ const MyWorkList: React.FC<MyWorkListProps> = ({ searchQuery }) => {
   };
   
   const handleOpenProject = (id: string) => {
-    // Navigate to the document editor page with the project ID
-    navigate(`/documents/${id}`);
+    // In a real app, this would navigate to the editor with the selected project
+    navigate('/');
   };
   
   const handleDeleteProject = (id: string) => {

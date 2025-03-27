@@ -15,52 +15,56 @@ import { DocumentProvider } from "./store/DocumentStore";
 import { AuthProvider } from "./store/AuthContext";
 import Auth from "./pages/Auth";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import { useState } from "react";
 
-const queryClient = new QueryClient();
+const App = () => {
+  // Create a new QueryClient instance inside the component
+  const [queryClient] = useState(() => new QueryClient());
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <BrowserRouter>
-        <AuthProvider>
-          <DocumentProvider>
-            <Toaster />
-            <Sonner />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/library" element={
-                <ProtectedRoute>
-                  <Library />
-                </ProtectedRoute>
-              } />
-              <Route path="/preview-export" element={
-                <ProtectedRoute>
-                  <PreviewExport />
-                </ProtectedRoute>
-              } />
-              <Route path="/tools" element={
-                <ProtectedRoute>
-                  <Tools />
-                </ProtectedRoute>
-              } />
-              <Route path="/documents/:id" element={
-                <ProtectedRoute>
-                  <DocumentEditor />
-                </ProtectedRoute>
-              } />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </DocumentProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <DocumentProvider>
+              <Toaster />
+              <Sonner />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/library" element={
+                  <ProtectedRoute>
+                    <Library />
+                  </ProtectedRoute>
+                } />
+                <Route path="/preview-export" element={
+                  <ProtectedRoute>
+                    <PreviewExport />
+                  </ProtectedRoute>
+                } />
+                <Route path="/tools" element={
+                  <ProtectedRoute>
+                    <Tools />
+                  </ProtectedRoute>
+                } />
+                <Route path="/documents/:id" element={
+                  <ProtectedRoute>
+                    <DocumentEditor />
+                  </ProtectedRoute>
+                } />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </DocumentProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

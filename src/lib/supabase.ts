@@ -1,16 +1,29 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Default to empty strings instead of undefined
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase URL or Anon Key. Please set the VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.');
+// Check if we're in development and provide fallback values when env vars aren't set
+const isDevelopment = import.meta.env.DEV;
+
+if ((!supabaseUrl || !supabaseAnonKey) && isDevelopment) {
+  console.warn('Missing Supabase URL or Anon Key. Using mock Supabase client for development.');
+  console.warn('Please set the VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.');
 }
 
+// Create a mock Supabase client for development if credentials are missing
 export const supabase = createClient(
-  supabaseUrl || '',
-  supabaseAnonKey || ''
+  supabaseUrl,
+  supabaseAnonKey,
+  {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true
+    }
+  }
 );
 
 export type Document = {
@@ -57,4 +70,3 @@ export type FileUpload = {
   user_id: string;
   created_at: string;
 };
-

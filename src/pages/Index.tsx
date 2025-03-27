@@ -1,11 +1,15 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import TextEditor from '@/components/editor/TextEditor';
 import AiChat, { Reference } from '@/components/ai/AiChat';
 import ReferenceManager from '@/components/references/ReferenceManager';
 import DocumentTitle from '@/components/editor/DocumentTitle';
 import ExportPanel from '@/components/export/ExportPanel';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { AlertCircle, ArrowRight } from 'lucide-react';
 
 const initialContent = `<h1>Introduction</h1>
 <p>Start writing your document here. You can format text using the toolbar above.</p>
@@ -24,6 +28,17 @@ const Index = () => {
   const [aiChatHistory, setAiChatHistory] = useState<{ role: 'user' | 'assistant'; content: string }[]>([
     { role: 'assistant', content: 'Hello! I\'m your AI research assistant. How can I help you today?' }
   ]);
+  const [isSupabaseConfigured, setIsSupabaseConfigured] = useState(true);
+
+  useEffect(() => {
+    // Check if Supabase is properly configured
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      setIsSupabaseConfigured(false);
+    }
+  }, []);
 
   const handleAddReference = (reference: Reference) => {
     setReferences(prev => [...prev, reference]);
@@ -33,7 +48,7 @@ const Index = () => {
     setReferences(prev => prev.filter(ref => ref.id !== id));
   };
 
-  const handleAiAction = (action: 'research' | 'expand' | 'critique', selectedText: string) => {
+  const handleAiAction = (action: string, selectedText: string) => {
     // The actual implementation is in the AiChat component
     // Here we just need to add the action to aiChatHistory so it appears in export
     let actionDescription = '';
@@ -41,12 +56,14 @@ const Index = () => {
       case 'research':
         actionDescription = 'find supporting research for';
         break;
-      case 'expand':
+      case 'elaborate':
         actionDescription = 'expand on';
         break;
-      case 'critique':
-        actionDescription = 'critique';
+      case 'summarize':
+        actionDescription = 'summarize';
         break;
+      default:
+        actionDescription = action;
     }
     
     const newMessage = { 
@@ -59,6 +76,24 @@ const Index = () => {
 
   return (
     <Layout>
+      {!isSupabaseConfigured && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Configuration Required</AlertTitle>
+          <AlertDescription>
+            <p className="mb-2">Supabase environment variables are missing. To use all features of this application, please:</p>
+            <ol className="list-decimal ml-5 mb-2 space-y-1">
+              <li>Create a Supabase project at <a href="https://app.supabase.io" target="_blank" rel="noreferrer" className="underline">supabase.io</a></li>
+              <li>Add the following environment variables to your project:</li>
+              <ul className="list-disc ml-5">
+                <li>VITE_SUPABASE_URL - Your Supabase project URL</li>
+                <li>VITE_SUPABASE_ANON_KEY - Your Supabase project anon/public key</li>
+              </ul>
+            </ol>
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <DocumentTitle title={documentTitle} onTitleChange={setDocumentTitle} />
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -88,6 +123,15 @@ const Index = () => {
         <div className="h-[500px]">
           <AiChat onAddReference={handleAddReference} />
         </div>
+      </div>
+      
+      <div className="mt-8 text-center">
+        <Link to="/dashboard">
+          <Button>
+            Go to Dashboard
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </Link>
       </div>
     </Layout>
   );

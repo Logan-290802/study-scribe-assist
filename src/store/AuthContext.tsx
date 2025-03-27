@@ -8,6 +8,7 @@ interface AuthContextType {
   session: Session | null;
   user: User | null;
   loading: boolean;
+  isConfigError: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -19,13 +20,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isConfigError, setIsConfigError] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
+    // Check if Supabase is properly configured
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      setIsConfigError(true);
+      setLoading(false);
+      return;
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      setLoading(false);
+    }).catch(error => {
+      console.error("Error getting session:", error);
+      setIsConfigError(true);
       setLoading(false);
     });
 
@@ -105,7 +121,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ session, user, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ 
+      session, 
+      user, 
+      loading, 
+      isConfigError,
+      signIn, 
+      signUp, 
+      signOut 
+    }}>
       {children}
     </AuthContext.Provider>
   );

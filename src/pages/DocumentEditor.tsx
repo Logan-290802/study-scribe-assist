@@ -116,28 +116,28 @@ const DocumentEditor = () => {
           </div>
         </div>
 
-        <div className="mb-2 flex items-center justify-between">
+        <div className="mb-2 flex items-center gap-3">
           <div className="flex items-center gap-3">
             <DocumentTitle 
               title={documentTitle} 
               onTitleChange={setDocumentTitle} 
             />
+            <Button 
+              onClick={handleComplete} 
+              size="sm"
+              variant="default"
+              disabled={isCompleted}
+              className={isCompleted ? "bg-green-600 hover:bg-green-700" : "bg-[#F97316] hover:bg-[#F97316]/90"}
+            >
+              <CheckCircle className="h-4 w-4 mr-2" />
+              {isCompleted ? "Completed" : "Complete"}
+            </Button>
             {isCompleted && (
               <span className="inline-flex items-center text-sm text-green-600 font-medium">
                 <CheckCircle className="h-4 w-4 mr-1" /> Completed
               </span>
             )}
           </div>
-          <Button 
-            onClick={handleComplete} 
-            size="sm"
-            variant="default"
-            disabled={isCompleted}
-            className={isCompleted ? "bg-green-600 hover:bg-green-700" : ""}
-          >
-            <CheckCircle className="h-4 w-4 mr-2" />
-            {isCompleted ? "Completed" : "Complete"}
-          </Button>
         </div>
         <p className="text-sm text-muted-foreground">{assignment.course}</p>
         

@@ -59,6 +59,7 @@ const Dashboard = () => {
 
     try {
       setIsCreating(true);
+      console.log("Creating document with title:", title);
       
       // Add the new document to our store
       const newDocumentId = await addDocument({
@@ -69,6 +70,8 @@ const Dashboard = () => {
         referencesCount: 0,
         content: '<p>Start writing your document here...</p>'
       });
+
+      console.log("Document created with ID:", newDocumentId);
 
       toast({
         title: "Assignment created",
@@ -85,6 +88,7 @@ const Dashboard = () => {
       // Navigate to document editor with the new ID
       navigate(`/documents/${newDocumentId}`);
     } catch (error: any) {
+      console.error("Error creating document:", error);
       toast({
         title: "Error creating document",
         description: error.message || "There was a problem creating your document.",

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import TextEditor from '@/components/editor/TextEditor';
@@ -10,6 +10,7 @@ import ExportPanel from '@/components/export/ExportPanel';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, ArrowRight } from 'lucide-react';
+import { supabaseUrl, supabaseAnonKey } from '@/lib/supabase';
 
 const initialContent = `<h1>Introduction</h1>
 <p>Start writing your document here. You can format text using the toolbar above.</p>
@@ -30,11 +31,10 @@ const Index = () => {
   ]);
   const [isSupabaseConfigured, setIsSupabaseConfigured] = useState(true);
 
-  useEffect(() => {
-    // Check if Supabase is properly configured
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
+  // No need to check environment variables, we're using hardcoded values
+  // This check is here just to maintain compatibility with the code that expects it
+  // In a real app, we would check environment variables, but we already have the values hardcoded
+  React.useEffect(() => {
     if (!supabaseUrl || !supabaseAnonKey) {
       setIsSupabaseConfigured(false);
     }

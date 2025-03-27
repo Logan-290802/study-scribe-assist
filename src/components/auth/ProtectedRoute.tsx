@@ -5,6 +5,7 @@ import { useAuth } from '@/store/AuthContext';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { supabaseUrl, supabaseAnonKey } from '@/lib/supabase';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -12,6 +13,14 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading, isConfigError } = useAuth();
+  const [localConfigError, setLocalConfigError] = React.useState(false);
+
+  // Check for configuration error locally
+  React.useEffect(() => {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      setLocalConfigError(true);
+    }
+  }, []);
 
   // Show loading state while checking authentication
   if (loading) {
@@ -23,7 +32,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   // Show configuration error message
-  if (isConfigError) {
+  if (isConfigError || localConfigError) {
     return (
       <div className="h-screen flex items-center justify-center p-4">
         <div className="max-w-md w-full">

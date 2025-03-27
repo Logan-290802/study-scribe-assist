@@ -2,8 +2,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Use the provided Supabase URL and anon key
-const supabaseUrl = 'https://icpophaaxzftjsesephp.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljcG9waGFheHpmdGpzZXNlcGhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMxMTA3MTEsImV4cCI6MjA1ODY4NjcxMX0.qckabQzKlWt2zEU-hXgP_qSiywoy3Ndn7ZHDFP6vfe8';
+export const supabaseUrl = 'https://icpophaaxzftjsesephp.supabase.co';
+export const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljcG9waGFheHpmdGpzZXNlcGhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMxMTA3MTEsImV4cCI6MjA1ODY4NjcxMX0.qckabQzKlWt2zEU-hXgP_qSiywoy3Ndn7ZHDFP6vfe8';
 
 // Create Supabase client with the configuration
 export const supabase = createClient(

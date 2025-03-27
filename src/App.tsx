@@ -11,25 +11,28 @@ import Library from "./pages/Library";
 import PreviewExport from "./pages/PreviewExport";
 import Tools from "./pages/Tools";
 import DocumentEditor from "./pages/DocumentEditor";
+import { DocumentProvider } from "./store/DocumentStore";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/library" element={<Library />} />
-          <Route path="/preview-export" element={<PreviewExport />} />
-          <Route path="/tools" element={<Tools />} />
-          <Route path="/documents/:id" element={<DocumentEditor />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <DocumentProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/library" element={<Library />} />
+            <Route path="/preview-export" element={<PreviewExport />} />
+            <Route path="/tools" element={<Tools />} />
+            <Route path="/documents/:id" element={<DocumentEditor />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </DocumentProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

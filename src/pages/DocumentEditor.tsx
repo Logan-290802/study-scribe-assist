@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Save, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Save } from 'lucide-react';
 import TextEditor from '@/components/editor/TextEditor';
 import AiChat, { Reference } from '@/components/ai/AiChat';
 import DocumentTitle from '@/components/editor/DocumentTitle';
@@ -11,48 +11,30 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
 import ReferenceManager from '@/components/references/ReferenceManager';
 import ExportPanel from '@/components/export/ExportPanel';
-
-const sampleAssignments = {
-  "1": {
-    title: "Literature Review",
-    course: "English 301",
-    content: "<h1>Literature Review</h1><p>This is a review of the literature on cognitive load theory and its applications in education.</p><p>Start by introducing the key concepts...</p>",
-    references: []
-  },
-  "2": {
-    title: "Research Paper: Climate Change",
-    course: "Environmental Science 202",
-    content: "<h1>Climate Change Research</h1><p>This paper examines the current evidence for anthropogenic climate change and evaluates potential mitigation strategies.</p>",
-    references: []
-  },
-  "3": {
-    title: "Historical Analysis Essay",
-    course: "History 104",
-    content: "<h1>Historical Analysis</h1><p>In this essay, we will analyze the causes and consequences of the Industrial Revolution in Britain.</p>",
-    references: []
-  },
-  "4": {
-    title: "Case Study Analysis",
-    course: "Business 405",
-    content: "<h1>Business Case Study</h1><p>This case study examines the strategic decisions made by Company X during its expansion into international markets.</p>",
-    references: []
-  }
-};
+import { useDocuments } from '@/store/DocumentStore';
 
 const DocumentEditor = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { getDocument } = useDocuments();
 
-  const assignment = id ? sampleAssignments[id as keyof typeof sampleAssignments] : null;
+  const document = id ? getDocument(id) : undefined;
 
-  const [documentTitle, setDocumentTitle] = useState(assignment?.title || 'Untitled Document');
-  const [documentContent, setDocumentContent] = useState(assignment?.content || '');
+  const [documentTitle, setDocumentTitle] = useState(document?.title || 'Untitled Document');
+  const [documentContent, setDocumentContent] = useState(document?.content || '');
   const [references, setReferences] = useState<Reference[]>([]);
-  const [isCompleted, setIsCompleted] = useState(false);
   const [aiChatHistory, setAiChatHistory] = useState<{ role: 'user' | 'assistant'; content: string }[]>([
     { role: 'assistant', content: 'Hello! I\'m your AI research assistant. How can I help you today?' }
   ]);
+  
+  // Update state when document changes
+  useEffect(() => {
+    if (document) {
+      setDocumentTitle(document.title);
+      setDocumentContent(document.content || '');
+    }
+  }, [document]);
   
   const handleSave = () => {
     toast({
@@ -61,49 +43,49 @@ const DocumentEditor = () => {
     });
   };
 
-  const handleComplete = () => {
-    setIsCompleted(true);
+  const handleAiAction = (action: string, selection: string) => {
+    // Add the user's request to the chat history
+    const userQuery = `Please ${action} the following text: "${selection}"`;
+    setAiChatHistory([...aiChatHistory, { role: 'user', content: userQuery }]);
+    
+    // Simulate AI response (in a real app, this would call an API)
+    setTimeout(() => {
+      let response;
+      switch (action) {
+        case 'elaborate':
+          response = `I've expanded on your selection by adding more context and details. "${selection}" could be enhanced with additional supporting evidence...`;
+          break;
+        case 'summarize':
+          response = `Here's a concise summary of your text: The main point of "${selection}" is...`;
+          break;
+        case 'research':
+          response = `Based on my research about "${selection}", here are some relevant facts and sources: ...`;
+          break;
+        default:
+          response = `I've analyzed "${selection}" as requested.`;
+      }
+      
+      setAiChatHistory(prevHistory => [...prevHistory, { role: 'assistant', content: response }]);
+    }, 1000);
+  };
+  
+  const handleAddReference = (reference: Reference) => {
+    setReferences([...references, reference]);
     toast({
-      title: "Document completed",
-      description: "Your document has been marked as completed.",
-      variant: "default",
+      title: "Reference added",
+      description: `${reference.title} has been added to your references.`,
+    });
+  };
+  
+  const handleDeleteReference = (referenceId: string) => {
+    setReferences(references.filter(ref => ref.id !== referenceId));
+    toast({
+      title: "Reference removed",
+      description: "The reference has been removed from your document.",
     });
   };
 
-  const handleAiAction = (action: 'research' | 'expand' | 'critique', selectedText: string) => {
-    console.log(`AI action: ${action} on "${selectedText}"`);
-    
-    // Add the action to aiChatHistory so it appears in export
-    let actionDescription = '';
-    switch (action) {
-      case 'research':
-        actionDescription = 'find supporting research for';
-        break;
-      case 'expand':
-        actionDescription = 'expand on';
-        break;
-      case 'critique':
-        actionDescription = 'critique';
-        break;
-    }
-    
-    const newMessage = { 
-      role: 'user' as const, 
-      content: `Please ${actionDescription} the following text: "${selectedText}"`
-    };
-    
-    setAiChatHistory(prev => [...prev, newMessage]);
-  };
-
-  const handleAddReference = (reference: Reference) => {
-    setReferences(prev => [...prev, reference]);
-  };
-
-  const handleDeleteReference = (id: string) => {
-    setReferences(prev => prev.filter(ref => ref.id !== id));
-  };
-
-  if (!assignment) {
+  if (!document) {
     return (
       <Layout>
         <div className="flex flex-col items-center justify-center h-full">
@@ -127,100 +109,62 @@ const DocumentEditor = () => {
               onClick={() => navigate('/dashboard')}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
+              Back
             </Button>
+            <DocumentTitle 
+              title={documentTitle}
+              onTitleChange={setDocumentTitle}
+            />
           </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              onClick={handleSave} 
-              size="sm"
-              variant="outline"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              Save
-            </Button>
-          </div>
-        </div>
-
-        <div className="mb-2 flex items-center gap-3">
-          <DocumentTitle 
-            title={documentTitle} 
-            onTitleChange={setDocumentTitle} 
-          />
-          <Button 
-            onClick={handleComplete} 
-            size="sm"
-            variant="default"
-            disabled={isCompleted}
-            className={isCompleted ? "bg-green-600 hover:bg-green-700" : "bg-[#F97316] hover:bg-[#F97316]/90"}
-          >
-            <CheckCircle className="h-4 w-4 mr-2" />
-            {isCompleted ? "Completed" : "Complete"}
+          <Button onClick={handleSave}>
+            <Save className="h-4 w-4 mr-2" />
+            Save
           </Button>
-          {isCompleted && (
-            <span className="inline-flex items-center text-sm text-green-600 font-medium">
-              <CheckCircle className="h-4 w-4 mr-1" /> Completed
-            </span>
-          )}
         </div>
-        <p className="text-sm text-muted-foreground">{assignment.course}</p>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 space-y-4">
-            <Tabs defaultValue="editor" className="w-full">
-              <TabsList>
-                <TabsTrigger value="editor">Editor</TabsTrigger>
+            <TextEditor
+              initialContent={documentContent}
+              onContentChange={setDocumentContent}
+              onSelectionAction={handleAiAction}
+            />
+            
+            <Tabs defaultValue="references" className="mt-4">
+              <TabsList className="mb-2">
                 <TabsTrigger value="references">References ({references.length})</TabsTrigger>
+                <TabsTrigger value="export">Export Options</TabsTrigger>
               </TabsList>
-              <TabsContent value="editor" className="mt-2">
-                <div className="h-[calc(100vh-240px)]">
-                  <TextEditor
-                    content={documentContent}
-                    onChange={setDocumentContent}
-                    onAiAction={handleAiAction}
-                  />
-                </div>
+              <TabsContent value="references" className="p-4 border rounded-md">
+                <ReferenceManager
+                  references={references}
+                  onDeleteReference={handleDeleteReference}
+                />
               </TabsContent>
-              <TabsContent value="references" className="mt-2">
-                <div className="h-[calc(100vh-240px)] overflow-y-auto border rounded-md p-4">
-                  {references.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <p>No references added yet.</p>
-                      <p className="text-sm mt-2">Use the AI Assistant to add references to your document.</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {references.map((ref) => (
-                        <div key={ref.id} className="p-3 border rounded-md">
-                          <h3 className="font-medium">{ref.title}</h3>
-                          <p className="text-sm">{ref.authors.join(', ')} ({ref.year})</p>
-                          <p className="text-sm text-muted-foreground">{ref.source}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+              <TabsContent value="export" className="p-4 border rounded-md">
+                <ExportPanel documentTitle={documentTitle} />
               </TabsContent>
             </Tabs>
-            
-            {/* Reference Manager Component */}
-            <ReferenceManager 
-              references={references} 
-              onAddReference={handleAddReference}
-              onDeleteReference={handleDeleteReference}
-            />
-            
-            {/* Export Panel Component */}
-            <ExportPanel 
-              documentContent={documentContent}
-              documentTitle={documentTitle}
-              references={references}
-              aiChatHistory={aiChatHistory}
-            />
           </div>
           
-          <div className="h-[calc(100vh-240px)]">
-            <AiChat onAddReference={handleAddReference} />
+          <div className="lg:col-span-1">
+            <AiChat
+              chatHistory={aiChatHistory}
+              onNewMessage={(message) => {
+                setAiChatHistory([...aiChatHistory, { role: 'user', content: message }]);
+                // Simulate AI response (in a real app, this would call an API)
+                setTimeout(() => {
+                  setAiChatHistory(prevHistory => [
+                    ...prevHistory,
+                    { 
+                      role: 'assistant', 
+                      content: `I'll help you with "${message}". Here's what I found...` 
+                    }
+                  ]);
+                }, 1000);
+              }}
+              onAddReference={handleAddReference}
+            />
           </div>
         </div>
       </div>

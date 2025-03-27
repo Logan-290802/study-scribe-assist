@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,25 +7,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/h
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { FileText, MoreVertical, Edit, Trash2, Archive, Clock, Link2, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-interface Project {
-  id: string;
-  title: string;
-  snippet: string;
-  lastModified: Date;
-  referencesCount: number;
-}
-
-// Mock data for demo (reduced from 4 to 1 project)
-const MOCK_PROJECTS: Project[] = [
-  {
-    id: '1',
-    title: 'Renewable Energy in Developing Countries',
-    snippet: 'This paper explores the potential of renewable energy sources in developing countries, with a focus on solar and wind power implementations in rural areas.',
-    lastModified: new Date('2023-05-15'),
-    referencesCount: 12,
-  }
-];
+import { useDocuments } from '@/store/DocumentStore';
 
 interface MyWorkListProps {
   searchQuery: string;
@@ -33,9 +16,10 @@ interface MyWorkListProps {
 const MyWorkList: React.FC<MyWorkListProps> = ({ searchQuery }) => {
   const [sortBy, setSortBy] = useState<string>('date');
   const navigate = useNavigate();
+  const { documents } = useDocuments();
   
   // Filter projects based on search query
-  const filteredProjects = MOCK_PROJECTS.filter(project => 
+  const filteredProjects = documents.filter(project => 
     project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     project.snippet.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -102,7 +86,7 @@ const MyWorkList: React.FC<MyWorkListProps> = ({ searchQuery }) => {
           <p className="mt-1 text-sm text-gray-500">
             {searchQuery ? 'Try a different search term' : 'Start by creating a new document'}
           </p>
-          <Button className="mt-4" onClick={() => navigate('/')}>
+          <Button className="mt-4" onClick={() => navigate('/dashboard')}>
             Create Document
           </Button>
         </div>

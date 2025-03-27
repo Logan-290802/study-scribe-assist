@@ -22,10 +22,12 @@ import {
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
+import { useDocuments } from '@/store/DocumentStore';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { documents, addDocument } = useDocuments();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [moduleNumber, setModuleNumber] = useState('');
@@ -52,8 +54,16 @@ const Dashboard = () => {
       return;
     }
 
-    // In a real application, this would create a new assignment in the database
-    // For demo purposes, navigate to a new document
+    // Add the new document to our store
+    const newDocumentId = addDocument({
+      title,
+      moduleNumber,
+      dueDate,
+      snippet: `A new assignment about ${title}`,
+      referencesCount: 0,
+      content: ''
+    });
+
     toast({
       title: "Assignment created",
       description: "Your new assignment has been created successfully.",
@@ -66,8 +76,8 @@ const Dashboard = () => {
     setDueDate(undefined);
     setFile(null);
 
-    // Navigate to document editor (using a sample ID for demo)
-    navigate('/documents/1');
+    // Navigate to document editor with the new ID
+    navigate(`/documents/${newDocumentId}`);
   };
 
   return (
@@ -86,17 +96,36 @@ const Dashboard = () => {
           </Button>
         </div>
 
-        <div className="border-2 border-dashed border-gray-200 rounded-lg py-16 text-center">
-          <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900">No assignments yet</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Get started by creating a new assignment
-          </p>
-          <Button className="mt-4" onClick={handleCreateAssignment}>
-            <FileText className="mr-2 h-4 w-4" />
-            Create Assignment
-          </Button>
-        </div>
+        {documents.length === 0 ? (
+          <div className="border-2 border-dashed border-gray-200 rounded-lg py-16 text-center">
+            <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900">No assignments yet</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Get started by creating a new assignment
+            </p>
+            <Button className="mt-4" onClick={handleCreateAssignment}>
+              <FileText className="mr-2 h-4 w-4" />
+              Create Assignment
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {documents.map((doc) => (
+              <div 
+                key={doc.id}
+                className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => navigate(`/documents/${doc.id}`)}
+              >
+                <h3 className="font-medium text-lg line-clamp-1 mb-2">{doc.title}</h3>
+                <p className="text-gray-600 text-sm line-clamp-2 mb-4">{doc.snippet}</p>
+                <div className="flex justify-between text-xs text-gray-500">
+                  <div>Last modified: {format(doc.lastModified, 'PPP')}</div>
+                  {doc.dueDate && <div>Due: {format(doc.dueDate, 'PPP')}</div>}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Create Assignment Dialog */}

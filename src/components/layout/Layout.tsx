@@ -57,11 +57,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </header>
         
-        <div className="flex flex-1">
-          <Sidebar>
+        <div className="flex flex-1 relative">
+          <Sidebar variant="floating">
             <SidebarRail />
             <SidebarHeader>
-              {/* Removed the "Navigation" text */}
               <div className="flex items-center justify-between px-2 py-1.5">
                 <div 
                   className="ml-auto cursor-pointer p-1 rounded hover:bg-gray-100"
@@ -84,7 +83,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                    {/* Removed the Document menu item */}
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild isActive={location.pathname === '/library'} tooltip="Library">
                         <Link to="/library">
@@ -107,7 +105,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             </SidebarContent>
           </Sidebar>
           
-          <main className="flex-grow py-6">
+          <main className="flex-grow py-6 w-full">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               {children}
             </div>

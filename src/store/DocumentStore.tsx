@@ -58,14 +58,14 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
         console.log("Documents loaded:", data);
 
         // Transform from Supabase format to our app format
-        const transformedDocs: Document[] = data.map((doc: SupabaseDocument) => ({
+        const transformedDocs: Document[] = data.map((doc: any) => ({
           id: doc.id,
           title: doc.title,
           moduleNumber: doc.moduleNumber,
           dueDate: doc.dueDate ? new Date(doc.dueDate) : undefined,
-          lastModified: new Date(doc.last_modified), // Note changed from lastModified to last_modified
+          lastModified: new Date(doc.last_modified), // Convert from snake_case to camelCase
           snippet: doc.snippet,
-          referencesCount: doc.references_count || 0, // Note changed from referencesCount to references_count and added fallback
+          referencesCount: doc.references_count || 0, // Convert from snake_case to camelCase with fallback
           content: doc.content,
         }));
 
@@ -104,9 +104,9 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
         title: document.title,
         moduleNumber: document.moduleNumber,
         dueDate: document.dueDate?.toISOString(),
-        last_modified: now, // Note: Using snake_case for Supabase column
+        last_modified: now, // Use snake_case for Supabase
         snippet: document.snippet,
-        references_count: document.referencesCount, // Note: Using snake_case for Supabase column
+        references_count: document.referencesCount, // Use snake_case for Supabase
         content: document.content || '',
         user_id: user.id,
       };

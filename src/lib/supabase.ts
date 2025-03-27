@@ -18,14 +18,15 @@ export const supabase = createClient(
   }
 );
 
+// Updated to match Supabase's snake_case convention
 export type Document = {
   id: string;
   title: string;
   moduleNumber?: string;
   dueDate?: string;
-  lastModified: string;
+  last_modified: string;  // Note: snake_case for Supabase
   snippet: string;
-  referencesCount: number;
+  references_count: number;  // Note: snake_case for Supabase
   content?: string;
   user_id: string;
 };

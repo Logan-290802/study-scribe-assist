@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
@@ -10,7 +9,6 @@ import DocumentTitle from '@/components/editor/DocumentTitle';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
 
-// Sample data - in a real app, this would come from a database
 const sampleAssignments = {
   "1": {
     title: "Literature Review",
@@ -43,7 +41,6 @@ const DocumentEditor = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Get the assignment data based on the ID
   const assignment = id ? sampleAssignments[id as keyof typeof sampleAssignments] : null;
 
   const [documentTitle, setDocumentTitle] = useState(assignment?.title || 'Untitled Document');
@@ -68,8 +65,6 @@ const DocumentEditor = () => {
   };
 
   const handleAiAction = (action: 'research' | 'expand' | 'critique', selectedText: string) => {
-    // This function is passed to TextEditor and will be called when the user
-    // selects text and chooses an AI action
     console.log(`AI action: ${action} on "${selectedText}"`);
   };
 
@@ -117,27 +112,25 @@ const DocumentEditor = () => {
         </div>
 
         <div className="mb-2 flex items-center gap-3">
-          <div className="flex items-center gap-3">
-            <DocumentTitle 
-              title={documentTitle} 
-              onTitleChange={setDocumentTitle} 
-            />
-            <Button 
-              onClick={handleComplete} 
-              size="sm"
-              variant="default"
-              disabled={isCompleted}
-              className={isCompleted ? "bg-green-600 hover:bg-green-700" : "bg-[#F97316] hover:bg-[#F97316]/90"}
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              {isCompleted ? "Completed" : "Complete"}
-            </Button>
-            {isCompleted && (
-              <span className="inline-flex items-center text-sm text-green-600 font-medium">
-                <CheckCircle className="h-4 w-4 mr-1" /> Completed
-              </span>
-            )}
-          </div>
+          <DocumentTitle 
+            title={documentTitle} 
+            onTitleChange={setDocumentTitle} 
+          />
+          <Button 
+            onClick={handleComplete} 
+            size="sm"
+            variant="default"
+            disabled={isCompleted}
+            className={isCompleted ? "bg-green-600 hover:bg-green-700" : "bg-[#F97316] hover:bg-[#F97316]/90"}
+          >
+            <CheckCircle className="h-4 w-4 mr-2" />
+            {isCompleted ? "Completed" : "Complete"}
+          </Button>
+          {isCompleted && (
+            <span className="inline-flex items-center text-sm text-green-600 font-medium">
+              <CheckCircle className="h-4 w-4 mr-1" /> Completed
+            </span>
+          )}
         </div>
         <p className="text-sm text-muted-foreground">{assignment.course}</p>
         

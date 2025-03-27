@@ -113,29 +113,31 @@ const DocumentEditor = () => {
               <Save className="h-4 w-4 mr-2" />
               Save
             </Button>
-            <Button 
-              onClick={handleComplete} 
-              size="sm"
-              variant="default"
-              disabled={isCompleted}
-              className={isCompleted ? "bg-green-600 hover:bg-green-700" : ""}
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              {isCompleted ? "Completed" : "Complete"}
-            </Button>
           </div>
         </div>
 
-        <div className="mb-2 flex items-center gap-3">
-          <DocumentTitle 
-            title={documentTitle} 
-            onTitleChange={setDocumentTitle} 
-          />
-          {isCompleted && (
-            <span className="inline-flex items-center text-sm text-green-600 font-medium">
-              <CheckCircle className="h-4 w-4 mr-1" /> Completed
-            </span>
-          )}
+        <div className="mb-2 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <DocumentTitle 
+              title={documentTitle} 
+              onTitleChange={setDocumentTitle} 
+            />
+            {isCompleted && (
+              <span className="inline-flex items-center text-sm text-green-600 font-medium">
+                <CheckCircle className="h-4 w-4 mr-1" /> Completed
+              </span>
+            )}
+          </div>
+          <Button 
+            onClick={handleComplete} 
+            size="sm"
+            variant="default"
+            disabled={isCompleted}
+            className={isCompleted ? "bg-green-600 hover:bg-green-700" : ""}
+          >
+            <CheckCircle className="h-4 w-4 mr-2" />
+            {isCompleted ? "Completed" : "Complete"}
+          </Button>
         </div>
         <p className="text-sm text-muted-foreground">{assignment.course}</p>
         

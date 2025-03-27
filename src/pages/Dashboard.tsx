@@ -23,16 +23,19 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { useDocuments } from '@/store/DocumentStore';
+import { useAuth } from '@/store/AuthContext';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { documents, addDocument } = useDocuments();
+  const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [moduleNumber, setModuleNumber] = useState('');
   const [dueDate, setDueDate] = useState<Date | undefined>(undefined);
   const [file, setFile] = useState<File | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
 
   const handleCreateAssignment = () => {
     setIsDialogOpen(true);
@@ -44,7 +47,7 @@ const Dashboard = () => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!title) {
       toast({
         title: "Missing information",
@@ -54,30 +57,42 @@ const Dashboard = () => {
       return;
     }
 
-    // Add the new document to our store
-    const newDocumentId = addDocument({
-      title,
-      moduleNumber,
-      dueDate,
-      snippet: `A new assignment about ${title}`,
-      referencesCount: 0,
-      content: ''
-    });
+    try {
+      setIsCreating(true);
+      
+      // Add the new document to our store
+      const newDocumentId = await addDocument({
+        title,
+        moduleNumber,
+        dueDate,
+        snippet: `A new assignment about ${title}`,
+        referencesCount: 0,
+        content: '<p>Start writing your document here...</p>'
+      });
 
-    toast({
-      title: "Assignment created",
-      description: "Your new assignment has been created successfully.",
-    });
+      toast({
+        title: "Assignment created",
+        description: "Your new assignment has been created successfully.",
+      });
 
-    // Close the dialog and reset form
-    setIsDialogOpen(false);
-    setTitle('');
-    setModuleNumber('');
-    setDueDate(undefined);
-    setFile(null);
+      // Close the dialog and reset form
+      setIsDialogOpen(false);
+      setTitle('');
+      setModuleNumber('');
+      setDueDate(undefined);
+      setFile(null);
 
-    // Navigate to document editor with the new ID
-    navigate(`/documents/${newDocumentId}`);
+      // Navigate to document editor with the new ID
+      navigate(`/documents/${newDocumentId}`);
+    } catch (error: any) {
+      toast({
+        title: "Error creating document",
+        description: error.message || "There was a problem creating your document.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -227,8 +242,10 @@ const Dashboard = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSubmit}>Create</Button>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isCreating}>Cancel</Button>
+            <Button onClick={handleSubmit} disabled={isCreating}>
+              {isCreating ? 'Creating...' : 'Create'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -43,6 +43,7 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
     async function loadDocuments() {
       try {
         setLoading(true);
+        console.log("Loading documents for user:", user.id);
         const { data, error } = await supabase
           .from('documents')
           .select('*')
@@ -50,8 +51,11 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
           .order('last_modified', { ascending: false });
 
         if (error) {
+          console.error("Error loading documents:", error);
           throw error;
         }
+
+        console.log("Documents loaded:", data);
 
         // Transform from Supabase format to our app format
         const transformedDocs: Document[] = data.map((doc: SupabaseDocument) => ({
@@ -67,6 +71,7 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
 
         setDocuments(transformedDocs);
       } catch (error: any) {
+        console.error("Document loading error:", error);
         toast({
           title: "Error loading documents",
           description: error.message,
@@ -92,18 +97,21 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const now = new Date().toISOString();
+      console.log("Creating document:", document, "for user:", user.id);
       
       // Prepare document for Supabase
       const newDoc = {
         title: document.title,
         moduleNumber: document.moduleNumber,
         dueDate: document.dueDate?.toISOString(),
-        lastModified: now,
+        last_modified: now, // Note: Using snake_case for Supabase column
         snippet: document.snippet,
-        referencesCount: document.referencesCount,
+        references_count: document.referencesCount, // Note: Using snake_case for Supabase column
         content: document.content || '',
         user_id: user.id,
       };
+      
+      console.log("Sending to Supabase:", newDoc);
       
       const { data, error } = await supabase
         .from('documents')
@@ -112,23 +120,27 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
         .single();
       
       if (error) {
+        console.error("Error creating document:", error);
         throw error;
       }
+      
+      console.log("Document created:", data);
       
       const addedDoc: Document = {
         id: data.id,
         title: data.title,
         moduleNumber: data.moduleNumber,
         dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
-        lastModified: new Date(data.lastModified),
+        lastModified: new Date(data.last_modified),
         snippet: data.snippet,
-        referencesCount: data.referencesCount,
+        referencesCount: data.references_count,
         content: data.content,
       };
       
       setDocuments(prev => [addedDoc, ...prev]);
       return data.id;
     } catch (error: any) {
+      console.error("Document creation error:", error);
       toast({
         title: "Error creating document",
         description: error.message,

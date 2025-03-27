@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,7 +15,7 @@ interface Project {
   referencesCount: number;
 }
 
-// Mock data for demo
+// Mock data for demo (reduced from 4 to 1 project)
 const MOCK_PROJECTS: Project[] = [
   {
     id: '1',
@@ -24,28 +23,7 @@ const MOCK_PROJECTS: Project[] = [
     snippet: 'This paper explores the potential of renewable energy sources in developing countries, with a focus on solar and wind power implementations in rural areas.',
     lastModified: new Date('2023-05-15'),
     referencesCount: 12,
-  },
-  {
-    id: '2',
-    title: 'Impact of Social Media on Mental Health',
-    snippet: 'An analysis of the effects of social media platforms on the mental well-being of university students, examining both positive and negative outcomes.',
-    lastModified: new Date('2023-06-22'),
-    referencesCount: 8,
-  },
-  {
-    id: '3',
-    title: 'Ethical Considerations in AI Development',
-    snippet: 'This research paper discusses the ethical implications of artificial intelligence and proposes a framework for responsible AI development and deployment.',
-    lastModified: new Date('2023-04-10'),
-    referencesCount: 15,
-  },
-  {
-    id: '4',
-    title: 'Climate Change Adaptation Strategies',
-    snippet: 'An examination of various adaptation strategies for communities facing immediate climate change impacts, with case studies from coastal regions.',
-    lastModified: new Date('2023-07-05'),
-    referencesCount: 10,
-  },
+  }
 ];
 
 interface MyWorkListProps {

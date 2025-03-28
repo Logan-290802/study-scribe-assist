@@ -29,8 +29,8 @@ const App = () => {
               <Toaster />
               <Sonner />
               <Routes>
-                {/* Redirect root path to dashboard */}
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                {/* Redirect root path to auth page */}
+                <Route path="/" element={<Navigate to="/auth" replace />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/dashboard" element={
                   <ProtectedRoute>

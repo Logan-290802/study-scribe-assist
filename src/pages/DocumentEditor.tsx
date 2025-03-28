@@ -2,19 +2,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Save } from 'lucide-react';
-import TextEditor from '@/components/editor/TextEditor';
-import AiChat, { Reference } from '@/components/ai/AiChat';
-import DocumentTitle from '@/components/editor/DocumentTitle';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
-import ReferenceManager from '@/components/references/ReferenceManager';
-import ExportPanel from '@/components/export/ExportPanel';
 import { useDocuments } from '@/store/DocumentStore';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/store/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
+import { Reference } from '@/components/ai/AiChat';
+import DocumentHeader from '@/components/document/DocumentHeader';
+import EditorArea from '@/components/document/EditorArea';
+import DocumentToolsPanel from '@/components/document/DocumentToolsPanel';
+import ChatSidebar from '@/components/document/ChatSidebar';
 
 const DocumentEditor = () => {
   const { id } = useParams<{ id: string }>();
@@ -297,9 +294,9 @@ const DocumentEditor = () => {
       <Layout>
         <div className="flex flex-col items-center justify-center h-full">
           <h1 className="text-2xl font-bold mb-4">Document not found</h1>
-          <Button onClick={() => navigate('/dashboard')}>
+          <button onClick={() => navigate('/dashboard')}>
             Return to Dashboard
-          </Button>
+          </button>
         </div>
       </Layout>
     );
@@ -308,119 +305,41 @@ const DocumentEditor = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-6 space-y-6 max-w-full">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => navigate('/dashboard')}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-            <DocumentTitle 
-              title={documentTitle}
-              onTitleChange={setDocumentTitle}
-            />
-          </div>
-          <Button onClick={handleSave} disabled={isSaving}>
-            <Save className="h-4 w-4 mr-2" />
-            {isSaving ? 'Saving...' : 'Save'}
-          </Button>
-        </div>
+        <DocumentHeader 
+          documentTitle={documentTitle}
+          onTitleChange={setDocumentTitle}
+          onSave={handleSave}
+          isSaving={isSaving}
+        />
         
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Main content column - takes 3/4 of the space on large screens */}
           <div className="lg:col-span-3 space-y-6">
-            <Card>
-              <CardContent className="p-4">
-                <TextEditor
-                  content={documentContent}
-                  onChange={setDocumentContent}
-                  onAiAction={handleAiAction}
-                />
-              </CardContent>
-            </Card>
+            <EditorArea 
+              content={documentContent}
+              onChange={setDocumentContent}
+              onAiAction={handleAiAction}
+            />
             
-            <Card>
-              <CardContent className="p-4">
-                <Tabs defaultValue="references" className="w-full">
-                  <TabsList className="mb-4 w-full justify-start">
-                    <TabsTrigger value="references" className="text-base">References ({references.length})</TabsTrigger>
-                    <TabsTrigger value="export" className="text-base">Export Options</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="references" className="mt-0">
-                    <ReferenceManager
-                      references={references}
-                      onAddReference={handleAddReference}
-                      onDeleteReference={handleDeleteReference}
-                    />
-                  </TabsContent>
-                  
-                  <TabsContent value="export" className="mt-0">
-                    <ExportPanel 
-                      documentTitle={documentTitle}
-                      documentContent={documentContent}
-                      references={references}
-                      aiChatHistory={aiChatHistory}
-                    />
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
+            <DocumentToolsPanel
+              references={references}
+              documentTitle={documentTitle}
+              documentContent={documentContent}
+              aiChatHistory={aiChatHistory}
+              onAddReference={handleAddReference}
+              onDeleteReference={handleDeleteReference}
+            />
           </div>
           
           {/* Sidebar - takes 1/4 of the space on large screens */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-24">
-              <CardContent className="p-4">
-                <AiChat
-                  onAddReference={handleAddReference}
-                  documentId={id}
-                  onNewMessage={(message) => {
-                    const newMessage = { role: 'user' as const, content: message };
-                    setAiChatHistory([...aiChatHistory, newMessage]);
-                    
-                    // Save to Supabase
-                    if (id && user) {
-                      supabase.from('ai_chat_history').insert({
-                        document_id: id,
-                        user_id: user.id,
-                        role: 'user',
-                        content: message,
-                        timestamp: new Date().toISOString(),
-                      }).then(({ error }) => {
-                        if (error) console.error('Error saving chat message:', error);
-                      });
-                    }
-                    
-                    // Simulate AI response (in a real app, this would call an API)
-                    setTimeout(() => {
-                      const aiResponse = { 
-                        role: 'assistant' as const, 
-                        content: `I'll help you with "${message}". Here's what I found...` 
-                      };
-                      
-                      setAiChatHistory(prevHistory => [...prevHistory, aiResponse]);
-                      
-                      // Save AI response to Supabase
-                      if (id && user) {
-                        supabase.from('ai_chat_history').insert({
-                          document_id: id,
-                          user_id: user.id,
-                          role: 'assistant',
-                          content: aiResponse.content,
-                          timestamp: new Date().toISOString(),
-                        }).then(({ error }) => {
-                          if (error) console.error('Error saving AI response:', error);
-                        });
-                      }
-                    }, 1000);
-                  }}
-                />
-              </CardContent>
-            </Card>
+            <ChatSidebar 
+              documentId={id || ''}
+              onAddReference={handleAddReference}
+              chatHistory={aiChatHistory}
+              setChatHistory={setAiChatHistory}
+              userId={user?.id}
+            />
           </div>
         </div>
       </div>

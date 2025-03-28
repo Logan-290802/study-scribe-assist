@@ -14,6 +14,7 @@ import ExportPanel from '@/components/export/ExportPanel';
 import { useDocuments } from '@/store/DocumentStore';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/store/AuthContext';
+import { Card, CardContent } from '@/components/ui/card';
 
 const DocumentEditor = () => {
   const { id } = useParams<{ id: string }>();
@@ -306,7 +307,7 @@ const DocumentEditor = () => {
 
   return (
     <Layout>
-      <div className="space-y-4">
+      <div className="container mx-auto px-4 py-6 space-y-6 max-w-full">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button 
@@ -328,82 +329,98 @@ const DocumentEditor = () => {
           </Button>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 space-y-4">
-            <TextEditor
-              content={documentContent}
-              onChange={setDocumentContent}
-              onAiAction={handleAiAction}
-            />
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Main content column - takes 3/4 of the space on large screens */}
+          <div className="lg:col-span-3 space-y-6">
+            <Card>
+              <CardContent className="p-4">
+                <TextEditor
+                  content={documentContent}
+                  onChange={setDocumentContent}
+                  onAiAction={handleAiAction}
+                />
+              </CardContent>
+            </Card>
             
-            <Tabs defaultValue="references" className="mt-4">
-              <TabsList className="mb-2">
-                <TabsTrigger value="references">References ({references.length})</TabsTrigger>
-                <TabsTrigger value="export">Export Options</TabsTrigger>
-              </TabsList>
-              <TabsContent value="references" className="p-4 border rounded-md">
-                <ReferenceManager
-                  references={references}
-                  onAddReference={handleAddReference}
-                  onDeleteReference={handleDeleteReference}
-                />
-              </TabsContent>
-              <TabsContent value="export" className="p-4 border rounded-md">
-                <ExportPanel 
-                  documentTitle={documentTitle}
-                  documentContent={documentContent}
-                  references={references}
-                  aiChatHistory={aiChatHistory}
-                />
-              </TabsContent>
-            </Tabs>
+            <Card>
+              <CardContent className="p-4">
+                <Tabs defaultValue="references" className="w-full">
+                  <TabsList className="mb-4 w-full justify-start">
+                    <TabsTrigger value="references" className="text-base">References ({references.length})</TabsTrigger>
+                    <TabsTrigger value="export" className="text-base">Export Options</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="references" className="mt-0">
+                    <ReferenceManager
+                      references={references}
+                      onAddReference={handleAddReference}
+                      onDeleteReference={handleDeleteReference}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="export" className="mt-0">
+                    <ExportPanel 
+                      documentTitle={documentTitle}
+                      documentContent={documentContent}
+                      references={references}
+                      aiChatHistory={aiChatHistory}
+                    />
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
           </div>
           
+          {/* Sidebar - takes 1/4 of the space on large screens */}
           <div className="lg:col-span-1">
-            <AiChat
-              onAddReference={handleAddReference}
-              documentId={id}
-              onNewMessage={(message) => {
-                const newMessage = { role: 'user' as const, content: message };
-                setAiChatHistory([...aiChatHistory, newMessage]);
-                
-                // Save to Supabase
-                if (id && user) {
-                  supabase.from('ai_chat_history').insert({
-                    document_id: id,
-                    user_id: user.id,
-                    role: 'user',
-                    content: message,
-                    timestamp: new Date().toISOString(),
-                  }).then(({ error }) => {
-                    if (error) console.error('Error saving chat message:', error);
-                  });
-                }
-                
-                // Simulate AI response (in a real app, this would call an API)
-                setTimeout(() => {
-                  const aiResponse = { 
-                    role: 'assistant' as const, 
-                    content: `I'll help you with "${message}". Here's what I found...` 
-                  };
-                  
-                  setAiChatHistory(prevHistory => [...prevHistory, aiResponse]);
-                  
-                  // Save AI response to Supabase
-                  if (id && user) {
-                    supabase.from('ai_chat_history').insert({
-                      document_id: id,
-                      user_id: user.id,
-                      role: 'assistant',
-                      content: aiResponse.content,
-                      timestamp: new Date().toISOString(),
-                    }).then(({ error }) => {
-                      if (error) console.error('Error saving AI response:', error);
-                    });
-                  }
-                }, 1000);
-              }}
-            />
+            <Card className="sticky top-24">
+              <CardContent className="p-4">
+                <AiChat
+                  onAddReference={handleAddReference}
+                  documentId={id}
+                  onNewMessage={(message) => {
+                    const newMessage = { role: 'user' as const, content: message };
+                    setAiChatHistory([...aiChatHistory, newMessage]);
+                    
+                    // Save to Supabase
+                    if (id && user) {
+                      supabase.from('ai_chat_history').insert({
+                        document_id: id,
+                        user_id: user.id,
+                        role: 'user',
+                        content: message,
+                        timestamp: new Date().toISOString(),
+                      }).then(({ error }) => {
+                        if (error) console.error('Error saving chat message:', error);
+                      });
+                    }
+                    
+                    // Simulate AI response (in a real app, this would call an API)
+                    setTimeout(() => {
+                      const aiResponse = { 
+                        role: 'assistant' as const, 
+                        content: `I'll help you with "${message}". Here's what I found...` 
+                      };
+                      
+                      setAiChatHistory(prevHistory => [...prevHistory, aiResponse]);
+                      
+                      // Save AI response to Supabase
+                      if (id && user) {
+                        supabase.from('ai_chat_history').insert({
+                          document_id: id,
+                          user_id: user.id,
+                          role: 'assistant',
+                          content: aiResponse.content,
+                          timestamp: new Date().toISOString(),
+                        }).then(({ error }) => {
+                          if (error) console.error('Error saving AI response:', error);
+                        });
+                      }
+                    }, 1000);
+                  }}
+                />
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

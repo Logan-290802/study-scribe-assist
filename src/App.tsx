@@ -13,6 +13,7 @@ import DocumentEditor from "./pages/DocumentEditor";
 import { DocumentProvider } from "./store/DocumentStore";
 import { AuthProvider } from "./store/AuthContext";
 import Auth from "./pages/Auth";
+import ProfileSetup from "./pages/ProfileSetup";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { useState } from "react";
 
@@ -32,6 +33,11 @@ const App = () => {
                 {/* Redirect root path to auth page */}
                 <Route path="/" element={<Navigate to="/auth" replace />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/profile-setup" element={
+                  <ProtectedRoute>
+                    <ProfileSetup />
+                  </ProtectedRoute>
+                } />
                 <Route path="/dashboard" element={
                   <ProtectedRoute>
                     <Dashboard />

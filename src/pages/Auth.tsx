@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -45,7 +46,8 @@ const Auth = () => {
     try {
       setIsLoading(true);
       await signUp(email, password);
-      // Don't navigate - wait for email verification
+      // Redirect to profile setup after successful signup
+      navigate('/profile-setup', { replace: true });
     } catch (error) {
       console.error('Error signing up:', error);
     } finally {

@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function signUp(email: string, password: string) {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
       });
@@ -64,10 +64,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error;
       }
 
-      toast({
-        title: "Verification email sent",
-        description: "Please check your email to verify your account",
-      });
+      // Check if we need email verification
+      if (data.user && !data.user.email_confirmed_at) {
+        toast({
+          title: "Verification email sent",
+          description: "Please check your email to verify your account",
+        });
+      } else {
+        toast({
+          title: "Account created",
+          description: "Your account has been created successfully!",
+        });
+      }
     } catch (error: any) {
       toast({
         title: "Error signing up",

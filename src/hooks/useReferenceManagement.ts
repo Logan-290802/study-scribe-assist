@@ -1,19 +1,35 @@
 
+import { useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/supabase';
 import { Reference } from '@/components/ai/AiChat';
+import { Document } from '@/types/document.types';
 
 export const useReferenceManagement = (
   documentId: string | undefined, 
   userId: string | undefined,
   references: Reference[],
   setReferences: React.Dispatch<React.SetStateAction<Reference[]>>,
-  updateDocument: (id: string, updates: any) => Promise<void>
+  updateDocument: (id: string, updates: Partial<Omit<Document, 'id'>>) => Promise<void>
 ) => {
   const { toast } = useToast();
   
+  // Reset references when document ID changes
+  useEffect(() => {
+    if (!documentId) {
+      setReferences([]);
+    }
+  }, [documentId, setReferences]);
+  
   const handleAddReference = async (reference: Reference) => {
-    if (!documentId || !userId) return;
+    if (!documentId || !userId) {
+      toast({
+        title: "Cannot add reference",
+        description: "Document must be saved before adding references.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     try {
       const { data, error } = await supabase
@@ -68,7 +84,14 @@ export const useReferenceManagement = (
   };
   
   const handleDeleteReference = async (referenceId: string) => {
-    if (!documentId || !userId) return;
+    if (!documentId || !userId) {
+      toast({
+        title: "Cannot delete reference",
+        description: "Document must be saved before managing references.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     try {
       const { error } = await supabase

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Document } from '@/types/document.types';
@@ -171,12 +170,9 @@ export const useDocumentOperations = (
     try {
       setIsOperationInProgress(true);
       
-      // Only include archived field if it's true to avoid schema errors
-      const update = archived ? { archived: true } : {};
-      
       const { error } = await supabase
         .from('documents')
-        .update(update)
+        .update({ archived })
         .eq('id', id)
         .eq('user_id', userId);
       

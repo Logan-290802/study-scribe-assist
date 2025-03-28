@@ -1,8 +1,8 @@
 
 import React, { useState } from 'react';
-import { BookOpen, Library, Wrench, User, Settings, Home, ChevronRight, ChevronLeft } from 'lucide-react';
+import { BookOpen, Library, Wrench, User, Settings, Home, ChevronRight, ChevronLeft, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Sidebar, 
   SidebarProvider, 
@@ -17,6 +17,15 @@ import {
   SidebarGroupLabel,
   SidebarGroupContent
 } from '@/components/ui/sidebar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from '@/store/AuthContext';
+import { useToast } from '@/components/ui/use-toast';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -24,7 +33,28 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const { toast } = useToast();
+  
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account."
+      });
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast({
+        title: "Error logging out",
+        description: "There was a problem logging you out.",
+        variant: "destructive"
+      });
+    }
+  };
   
   return (
     <SidebarProvider defaultOpen={false} open={sidebarOpen} onOpenChange={setSidebarOpen}>
@@ -42,16 +72,29 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               </div>
               
               <div className="hidden md:flex items-center gap-3">
-                <SidebarTrigger />
-                
-                <div className="flex items-center border rounded-full px-3 py-1.5 bg-white">
-                  <User className="h-4 w-4 text-gray-500 mr-2" />
-                  <span className="text-sm hidden sm:inline">Student</span>
-                </div>
-                
-                <button className="p-2 text-gray-500 hover:text-gray-800 transition-colors md:ml-2">
-                  <Settings className="h-5 w-5" />
-                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <div className="flex items-center border rounded-full px-3 py-1.5 bg-white cursor-pointer hover:bg-gray-50 transition-colors">
+                      <User className="h-4 w-4 text-gray-500 mr-2" />
+                      <span className="text-sm hidden sm:inline">Student</span>
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuItem className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Account Settings</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Accessibility Settings</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-500 focus:text-red-500">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>
@@ -59,7 +102,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         
         <div className="flex flex-1 relative w-full">
           <Sidebar variant="floating">
-            <SidebarRail />
+            <SidebarRail className="after:!bg-transparent" />
             <SidebarHeader>
               <div className="flex items-center justify-between px-2 py-1.5">
                 <div 

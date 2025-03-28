@@ -15,8 +15,8 @@ const EditorArea: React.FC<EditorAreaProps> = ({
   onAiAction
 }) => {
   return (
-    <Card>
-      <CardContent className="p-4">
+    <Card className="h-full">
+      <CardContent className="p-4 min-h-[500px]">
         <TextEditor
           content={content}
           onChange={onChange}

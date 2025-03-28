@@ -61,8 +61,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   };
 
   return (
-    <Card className="sticky top-24">
-      <CardContent className="p-4">
+    <Card className="h-full sticky top-24">
+      <CardContent className="p-4 h-full">
         <AiChat
           onAddReference={onAddReference}
           documentId={documentId}

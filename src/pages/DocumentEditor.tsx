@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
@@ -6,7 +5,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { useDocuments } from '@/store/DocumentStore';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/store/AuthContext';
-import { Card, CardContent } from '@/components/ui/card';
 import { Reference } from '@/components/ai/AiChat';
 import DocumentHeader from '@/components/document/DocumentHeader';
 import EditorArea from '@/components/document/EditorArea';
@@ -30,7 +28,6 @@ const DocumentEditor = () => {
   ]);
   const [isSaving, setIsSaving] = useState(false);
   
-  // Update state when document changes
   useEffect(() => {
     if (document) {
       setDocumentTitle(document.title);
@@ -38,7 +35,6 @@ const DocumentEditor = () => {
     }
   }, [document]);
   
-  // Load references from Supabase
   useEffect(() => {
     if (!id || !user) return;
 
@@ -55,7 +51,6 @@ const DocumentEditor = () => {
         }
         
         if (data) {
-          // Transform data to match our Reference type
           const transformedRefs: Reference[] = data.map(ref => ({
             id: ref.id,
             title: ref.title,
@@ -77,7 +72,6 @@ const DocumentEditor = () => {
     fetchReferences();
   }, [id, user]);
   
-  // Load chat history from Supabase
   useEffect(() => {
     if (!id || !user) return;
 
@@ -95,7 +89,6 @@ const DocumentEditor = () => {
         }
         
         if (data && data.length > 0) {
-          // Transform data to match our chat history format
           const history = data.map(msg => ({
             role: msg.role as 'user' | 'assistant',
             content: msg.content,
@@ -117,7 +110,6 @@ const DocumentEditor = () => {
     try {
       setIsSaving(true);
       
-      // Update document in Supabase
       await updateDocument(id, {
         title: documentTitle,
         content: documentContent,
@@ -141,12 +133,10 @@ const DocumentEditor = () => {
   };
 
   const handleAiAction = (action: string, selection: string) => {
-    // Add the user's request to the chat history
     const userQuery = `Please ${action} the following text: "${selection}"`;
     const newMessage = { role: 'user' as const, content: userQuery };
     setAiChatHistory([...aiChatHistory, newMessage]);
     
-    // Save message to Supabase
     if (id && user) {
       supabase.from('ai_chat_history').insert({
         document_id: id,
@@ -159,7 +149,6 @@ const DocumentEditor = () => {
       });
     }
     
-    // Simulate AI response (in a real app, this would call an API)
     setTimeout(() => {
       let response;
       switch (action) {
@@ -179,7 +168,6 @@ const DocumentEditor = () => {
       const aiResponse = { role: 'assistant' as const, content: response };
       setAiChatHistory(prevHistory => [...prevHistory, aiResponse]);
       
-      // Save AI response to Supabase
       if (id && user) {
         supabase.from('ai_chat_history').insert({
           document_id: id,
@@ -198,7 +186,6 @@ const DocumentEditor = () => {
     if (!id || !user) return;
     
     try {
-      // Add reference to Supabase
       const { data, error } = await supabase
         .from('references')
         .insert({
@@ -219,7 +206,6 @@ const DocumentEditor = () => {
         throw error;
       }
       
-      // Add the reference with the generated ID
       const newReference: Reference = {
         id: data.id,
         title: data.title,
@@ -233,7 +219,6 @@ const DocumentEditor = () => {
       
       setReferences([...references, newReference]);
       
-      // Update document references count
       await updateDocument(id, {
         referencesCount: references.length + 1,
       });
@@ -256,7 +241,6 @@ const DocumentEditor = () => {
     if (!id || !user) return;
     
     try {
-      // Delete reference from Supabase
       const { error } = await supabase
         .from('references')
         .delete()
@@ -267,10 +251,8 @@ const DocumentEditor = () => {
         throw error;
       }
       
-      // Remove from local state
       setReferences(references.filter(ref => ref.id !== referenceId));
       
-      // Update document references count
       await updateDocument(id, {
         referencesCount: references.length - 1,
       });
@@ -312,9 +294,8 @@ const DocumentEditor = () => {
           isSaving={isSaving}
         />
         
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Main content column - takes 3/4 of the space on large screens */}
-          <div className="lg:col-span-3 space-y-6">
+        <div className="grid grid-cols-12 gap-6">
+          <div className="col-span-12 lg:col-span-8 space-y-6">
             <EditorArea 
               content={documentContent}
               onChange={setDocumentContent}
@@ -331,8 +312,7 @@ const DocumentEditor = () => {
             />
           </div>
           
-          {/* Sidebar - takes 1/4 of the space on large screens */}
-          <div className="lg:col-span-1">
+          <div className="col-span-12 lg:col-span-4">
             <ChatSidebar 
               documentId={id || ''}
               onAddReference={handleAddReference}

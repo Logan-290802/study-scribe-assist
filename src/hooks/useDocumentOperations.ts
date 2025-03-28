@@ -171,9 +171,12 @@ export const useDocumentOperations = (
     try {
       setIsOperationInProgress(true);
       
+      // Only include archived field if it's true to avoid schema errors
+      const update = archived ? { archived: true } : {};
+      
       const { error } = await supabase
         .from('documents')
-        .update({ archived })
+        .update(update)
         .eq('id', id)
         .eq('user_id', userId);
       

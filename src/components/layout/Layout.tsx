@@ -45,7 +45,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         title: "Logged out successfully",
         description: "You have been logged out of your account."
       });
-      navigate('/auth');
+      
+      // Force navigation to auth page
+      navigate('/auth', { replace: true });
     } catch (error) {
       console.error('Error logging out:', error);
       toast({

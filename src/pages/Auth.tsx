@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,9 +15,11 @@ const Auth = () => {
   const navigate = useNavigate();
 
   // If user is already logged in, redirect to dashboard
-  React.useEffect(() => {
+  useEffect(() => {
+    console.log("Auth page checking user:", user?.id);
     if (user) {
-      navigate('/dashboard');
+      console.log("User is logged in, redirecting to dashboard");
+      navigate('/dashboard', { replace: true });
     }
   }, [user, navigate]);
 
@@ -29,7 +30,7 @@ const Auth = () => {
     try {
       setIsLoading(true);
       await signIn(email, password);
-      navigate('/dashboard');
+      // Navigation handled by the useEffect above
     } catch (error) {
       console.error('Error signing in:', error);
     } finally {

@@ -8,7 +8,6 @@ import UploadedFile from './chat/UploadedFile';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/store/AuthContext';
 import { v4 as uuidv4 } from '@/lib/utils/uuid';
-import { ChatInputProvider } from '@/contexts/ChatInputContext';
 
 interface Message {
   id: string;
@@ -321,73 +320,71 @@ export const AiChat: React.FC<AiChatProps> = ({
   };
 
   return (
-    <ChatInputProvider>
-      <div className="flex flex-col h-full border rounded-md overflow-hidden glass-card">
-        <div className="p-3 border-b bg-gray-50/80 backdrop-blur-sm flex items-center gap-2">
-          <Bot className="w-5 h-5 text-blue-500" />
-          <h3 className="font-medium">AI Research Assistant</h3>
-        </div>
+    <div className="flex flex-col h-full border rounded-md overflow-hidden glass-card">
+      <div className="p-3 border-b bg-gray-50/80 backdrop-blur-sm flex items-center gap-2">
+        <Bot className="w-5 h-5 text-blue-500" />
+        <h3 className="font-medium">AI Research Assistant</h3>
+      </div>
+      
+      <div className="flex-grow overflow-y-auto p-4 space-y-4 thin-scrollbar">
+        {messages.map((message) => (
+          <ChatMessage
+            key={message.id}
+            id={message.id}
+            role={message.role}
+            content={message.content}
+            timestamp={message.timestamp}
+            onAddReference={message.role === 'assistant' && message.content.includes('reference') ? addSampleReference : undefined}
+          />
+        ))}
         
-        <div className="flex-grow overflow-y-auto p-4 space-y-4 thin-scrollbar">
-          {messages.map((message) => (
-            <ChatMessage
-              key={message.id}
-              id={message.id}
-              role={message.role}
-              content={message.content}
-              timestamp={message.timestamp}
-              onAddReference={message.role === 'assistant' && message.content.includes('reference') ? addSampleReference : undefined}
-            />
-          ))}
-          
-          {isLoading && (
-            <div className="flex justify-start animate-fade-in">
-              <div className="bg-gray-100 text-gray-800 rounded-lg rounded-tl-none max-w-[85%] p-3">
-                <div className="flex space-x-2">
-                  <div className="w-2 h-2 rounded-full bg-gray-300 animate-pulse"></div>
-                  <div className="w-2 h-2 rounded-full bg-gray-300 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-2 h-2 rounded-full bg-gray-300 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                </div>
+        {isLoading && (
+          <div className="flex justify-start animate-fade-in">
+            <div className="bg-gray-100 text-gray-800 rounded-lg rounded-tl-none max-w-[85%] p-3">
+              <div className="flex space-x-2">
+                <div className="w-2 h-2 rounded-full bg-gray-300 animate-pulse"></div>
+                <div className="w-2 h-2 rounded-full bg-gray-300 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-2 h-2 rounded-full bg-gray-300 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
               </div>
             </div>
-          )}
-          
-          {uploadedPdf && (
-            <UploadedFile 
-              file={uploadedPdf} 
-              onRemove={() => setUploadedPdf(null)} 
-            />
-          )}
-          
-          <div ref={messagesEndRef} />
-        </div>
+          </div>
+        )}
         
-        <div className="p-3 border-t">
-          <ChatInput 
-            onSendMessage={handleSendMessage}
-            onUploadFile={triggerFileUpload}
-            isLoading={isLoading}
-            disabled={!user}
-            placeholder={user ? "Ask your AI research assistant..." : "Sign in to chat with AI assistant"}
+        {uploadedPdf && (
+          <UploadedFile 
+            file={uploadedPdf} 
+            onRemove={() => setUploadedPdf(null)} 
           />
-          
-          <ChatActions
-            onSearchClick={handleSearchAction}
-            onCitationsClick={handleCitationsAction}
-            onSummarizeClick={handleSummarizeAction}
-            disabled={!user || isLoading}
-          />
-          
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept="application/pdf"
-            className="hidden"
-          />
-        </div>
+        )}
+        
+        <div ref={messagesEndRef} />
       </div>
-    </ChatInputProvider>
+      
+      <div className="p-3 border-t">
+        <ChatInput 
+          onSendMessage={handleSendMessage}
+          onUploadFile={triggerFileUpload}
+          isLoading={isLoading}
+          disabled={!user}
+          placeholder={user ? "Ask your AI research assistant..." : "Sign in to chat with AI assistant"}
+        />
+        
+        <ChatActions
+          onSearchClick={handleSearchAction}
+          onCitationsClick={handleCitationsAction}
+          onSummarizeClick={handleSummarizeAction}
+          disabled={!user || isLoading}
+        />
+        
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          accept="application/pdf"
+          className="hidden"
+        />
+      </div>
+    </div>
   );
 };
 

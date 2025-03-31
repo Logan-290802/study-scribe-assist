@@ -20,7 +20,7 @@ import { EditorToolbar } from './EditorToolbar';
 import { HeadingNavigator } from './HeadingNavigator';
 import { HeadingWithId } from './extensions/HeadingWithId';
 import TextSelectionMenu from './TextSelectionMenu';
-import { ChatInputProvider } from '@/contexts/ChatInputContext';
+import { useChatInput } from '@/contexts/ChatInputContext';
 
 interface TextEditorProps {
   content: string;
@@ -30,6 +30,7 @@ interface TextEditorProps {
 
 export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange, onAiAction }) => {
   const [headings, setHeadings] = useState<{ id: string; level: number; text: string }[]>([]);
+  const { setInputValue } = useChatInput();
   
   const editor = useEditor({
     extensions: [
@@ -114,7 +115,15 @@ export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange, onAiA
 
   const handleSelectionAction = (action: 'research' | 'critique' | 'expand', selectedText: string) => {
     if (onAiAction) {
-      onAiAction(action, selectedText);
+      // Instead of directly calling onAiAction, populate the chat input
+      const actionPrompts = {
+        'research': `Research this: "${selectedText}"`,
+        'critique': `Critique this: "${selectedText}"`,
+        'expand': `Expand on this: "${selectedText}"`
+      };
+      
+      // Set the input value in the chat input
+      setInputValue(actionPrompts[action]);
     }
   };
 
@@ -123,18 +132,16 @@ export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange, onAiA
   }
 
   return (
-    <ChatInputProvider>
-      <div className="flex flex-col h-full border rounded-md overflow-hidden glass-card">
-        <div className="flex items-center border-b">
-          <EditorToolbar editor={editor} />
-          <HeadingNavigator headings={headings} onHeadingClick={scrollToHeading} />
-        </div>
-        <div className="flex-grow overflow-auto thin-scrollbar">
-          <EditorContent editor={editor} className="h-full" />
-          <TextSelectionMenu onAction={handleSelectionAction} />
-        </div>
+    <div className="flex flex-col h-full border rounded-md overflow-hidden glass-card">
+      <div className="flex items-center border-b">
+        <EditorToolbar editor={editor} />
+        <HeadingNavigator headings={headings} onHeadingClick={scrollToHeading} />
       </div>
-    </ChatInputProvider>
+      <div className="flex-grow overflow-auto thin-scrollbar">
+        <EditorContent editor={editor} className="h-full" />
+        <TextSelectionMenu onAction={handleSelectionAction} />
+      </div>
+    </div>
   );
 };
 

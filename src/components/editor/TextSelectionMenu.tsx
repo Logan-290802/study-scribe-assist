@@ -75,6 +75,9 @@ const TextSelectionMenu: React.FC<TextSelectionMenuProps> = ({ onAction }) => {
     // Set the input value in the chat input
     setInputValue(actionPrompts[action]);
     
+    // Also call the onAction prop to maintain compatibility
+    onAction(action, selectedText);
+    
     // Hide the menu
     setIsVisible(false);
   };

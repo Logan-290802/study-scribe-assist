@@ -10,6 +10,7 @@ import { useDocumentData } from '@/hooks/useDocumentData';
 import { useDocumentAiChat } from '@/hooks/useDocumentAiChat';
 import { useReferenceManagement } from '@/hooks/useReferenceManagement';
 import { aiServiceManager } from '@/services/ai/AiServiceManager';
+import { ChatInputProvider } from '@/contexts/ChatInputContext';
 
 const DocumentEditor = () => {
   const navigate = useNavigate();
@@ -80,43 +81,45 @@ const DocumentEditor = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-6 space-y-6 max-w-full mb-64 pb-20">
-        <DocumentHeader 
-          documentTitle={documentTitle}
-          onTitleChange={setDocumentTitle}
-          onSave={handleSave}
-          isSaving={isSaving}
-        />
-        
-        <div className="grid grid-cols-12 gap-6">
-          <div className="col-span-12 lg:col-span-8 space-y-6">
-            <EditorArea 
-              content={documentContent}
-              onChange={setDocumentContent}
-              onAiAction={handleAiAction}
-            />
-            
-            <DocumentToolsPanel
-              references={references}
-              documentTitle={documentTitle}
-              documentContent={documentContent}
-              aiChatHistory={aiChatHistory}
-              onAddReference={handleAddReference}
-              onDeleteReference={handleDeleteReference}
-            />
-          </div>
+      <ChatInputProvider>
+        <div className="container mx-auto px-4 py-6 space-y-6 max-w-full mb-64 pb-20">
+          <DocumentHeader 
+            documentTitle={documentTitle}
+            onTitleChange={setDocumentTitle}
+            onSave={handleSave}
+            isSaving={isSaving}
+          />
           
-          <div className="col-span-12 lg:col-span-4">
-            <ChatSidebar 
-              documentId={id || ''}
-              onAddReference={handleAddReference}
-              chatHistory={aiChatHistory}
-              setChatHistory={setAiChatHistory}
-              userId={user?.id}
-            />
+          <div className="grid grid-cols-12 gap-6">
+            <div className="col-span-12 lg:col-span-8 space-y-6">
+              <EditorArea 
+                content={documentContent}
+                onChange={setDocumentContent}
+                onAiAction={handleAiAction}
+              />
+              
+              <DocumentToolsPanel
+                references={references}
+                documentTitle={documentTitle}
+                documentContent={documentContent}
+                aiChatHistory={aiChatHistory}
+                onAddReference={handleAddReference}
+                onDeleteReference={handleDeleteReference}
+              />
+            </div>
+            
+            <div className="col-span-12 lg:col-span-4">
+              <ChatSidebar 
+                documentId={id || ''}
+                onAddReference={handleAddReference}
+                chatHistory={aiChatHistory}
+                setChatHistory={setAiChatHistory}
+                userId={user?.id}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      </ChatInputProvider>
     </Layout>
   );
 };

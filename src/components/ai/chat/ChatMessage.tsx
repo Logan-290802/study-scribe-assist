@@ -36,7 +36,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             : "bg-gray-100 text-gray-800 rounded-tl-none"
         )}
       >
-        <div className="whitespace-pre-line">{content}</div>
+        {content}
         
         {role === 'assistant' && containsReference && onAddReference && (
           <div className="mt-2 flex gap-2">

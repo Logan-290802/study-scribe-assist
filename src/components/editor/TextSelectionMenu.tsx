@@ -1,16 +1,17 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, BookOpen, Sparkles, ThumbsDown } from 'lucide-react';
+import { Search, ThumbsDown, Sparkles, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TextSelectionMenuProps {
-  onAction: (action: 'research' | 'expand' | 'critique', selectedText: string) => void;
+  onAction: (action: 'research' | 'critique' | 'expand', selectedText: string) => void;
 }
 
 const TextSelectionMenu: React.FC<TextSelectionMenuProps> = ({ onAction }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const [selectedText, setSelectedText] = useState('');
+  const [processingAction, setProcessingAction] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -63,6 +64,17 @@ const TextSelectionMenu: React.FC<TextSelectionMenuProps> = ({ onAction }) => {
     };
   }, []);
 
+  const handleActionClick = (action: 'research' | 'critique' | 'expand') => {
+    setProcessingAction(action);
+    onAction(action, selectedText);
+    
+    // Hide the menu after a short delay
+    setTimeout(() => {
+      setIsVisible(false);
+      setProcessingAction(null);
+    }, 300);
+  };
+
   if (!isVisible) return null;
 
   return (
@@ -76,36 +88,54 @@ const TextSelectionMenu: React.FC<TextSelectionMenuProps> = ({ onAction }) => {
     >
       <div className="flex">
         <button 
-          onClick={() => {
-            onAction('research', selectedText);
-            setIsVisible(false);
-          }}
-          className="flex flex-col items-center justify-center p-2 rounded-md hover:bg-blue-50 transition-colors"
+          onClick={() => handleActionClick('research')}
+          disabled={processingAction !== null}
+          className={cn(
+            "flex flex-col items-center justify-center p-2 rounded-md hover:bg-blue-50 transition-colors",
+            processingAction === 'research' ? "bg-blue-50" : "",
+            processingAction !== null && processingAction !== 'research' ? "opacity-50 cursor-not-allowed" : ""
+          )}
         >
-          <Search className="h-4 w-4 text-blue-600 mb-1" />
+          {processingAction === 'research' ? (
+            <Loader2 className="h-4 w-4 text-blue-600 mb-1 animate-spin" />
+          ) : (
+            <Search className="h-4 w-4 text-blue-600 mb-1" />
+          )}
           <span className="text-xs">Research</span>
         </button>
         
         <button 
-          onClick={() => {
-            onAction('expand', selectedText);
-            setIsVisible(false);
-          }}
-          className="flex flex-col items-center justify-center p-2 rounded-md hover:bg-green-50 transition-colors"
+          onClick={() => handleActionClick('critique')}
+          disabled={processingAction !== null}
+          className={cn(
+            "flex flex-col items-center justify-center p-2 rounded-md hover:bg-amber-50 transition-colors",
+            processingAction === 'critique' ? "bg-amber-50" : "",
+            processingAction !== null && processingAction !== 'critique' ? "opacity-50 cursor-not-allowed" : ""
+          )}
         >
-          <Sparkles className="h-4 w-4 text-green-600 mb-1" />
-          <span className="text-xs">Expand</span>
+          {processingAction === 'critique' ? (
+            <Loader2 className="h-4 w-4 text-amber-600 mb-1 animate-spin" />
+          ) : (
+            <ThumbsDown className="h-4 w-4 text-amber-600 mb-1" />
+          )}
+          <span className="text-xs">Critique</span>
         </button>
         
         <button 
-          onClick={() => {
-            onAction('critique', selectedText);
-            setIsVisible(false);
-          }}
-          className="flex flex-col items-center justify-center p-2 rounded-md hover:bg-amber-50 transition-colors"
+          onClick={() => handleActionClick('expand')}
+          disabled={processingAction !== null}
+          className={cn(
+            "flex flex-col items-center justify-center p-2 rounded-md hover:bg-green-50 transition-colors",
+            processingAction === 'expand' ? "bg-green-50" : "",
+            processingAction !== null && processingAction !== 'expand' ? "opacity-50 cursor-not-allowed" : ""
+          )}
         >
-          <ThumbsDown className="h-4 w-4 text-amber-600 mb-1" />
-          <span className="text-xs">Critique</span>
+          {processingAction === 'expand' ? (
+            <Loader2 className="h-4 w-4 text-green-600 mb-1 animate-spin" />
+          ) : (
+            <Sparkles className="h-4 w-4 text-green-600 mb-1" />
+          )}
+          <span className="text-xs">Expand</span>
         </button>
       </div>
     </div>

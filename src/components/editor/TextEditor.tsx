@@ -24,7 +24,7 @@ import TextSelectionMenu from './TextSelectionMenu';
 interface TextEditorProps {
   content: string;
   onChange: (content: string) => void;
-  onAiAction?: (action: 'research' | 'expand' | 'critique', selectedText: string) => void;
+  onAiAction?: (action: 'research' | 'critique' | 'expand', selectedText: string) => void;
 }
 
 export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange, onAiAction }) => {
@@ -111,7 +111,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange, onAiA
     }
   };
 
-  const handleSelectionAction = (action: 'research' | 'expand' | 'critique', selectedText: string) => {
+  const handleSelectionAction = (action: 'research' | 'critique' | 'expand', selectedText: string) => {
     if (onAiAction) {
       onAiAction(action, selectedText);
     }

@@ -1,6 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { aiServiceManager } from '@/services/ai/AiServiceManager';
+import { toast } from '@/hooks/use-toast';
 
 export const useDocumentAiChat = (documentId: string | undefined, userId: string | undefined) => {
   const [aiChatHistory, setAiChatHistory] = useState<{ role: 'user' | 'assistant'; content: string }[]>([
@@ -40,54 +42,144 @@ export const useDocumentAiChat = (documentId: string | undefined, userId: string
     fetchChatHistory();
   }, [documentId, userId]);
 
-  const handleAiAction = (action: string, selection: string) => {
-    const userQuery = `Please ${action} the following text: "${selection}"`;
-    const newMessage = { role: 'user' as const, content: userQuery };
-    setAiChatHistory([...aiChatHistory, newMessage]);
+  const handleAiAction = async (action: string, selection: string) => {
+    let userQuery = '';
     
-    if (documentId && userId) {
-      supabase.from('ai_chat_history').insert({
-        document_id: documentId,
-        user_id: userId,
-        role: 'user',
-        content: userQuery,
-        timestamp: new Date().toISOString(),
-      }).then(({ error }) => {
-        if (error) console.error('Error saving chat message:', error);
-      });
+    switch (action) {
+      case 'research':
+        userQuery = `Please research the following text: "${selection}"`;
+        break;
+      case 'critique':
+        userQuery = `Please critique the following text: "${selection}"`;
+        break;
+      case 'expand':
+        userQuery = `Please expand on the following text: "${selection}"`;
+        break;
+      default:
+        userQuery = `Please ${action} the following text: "${selection}"`;
     }
     
-    setTimeout(() => {
-      let response;
+    const newMessage = { role: 'user' as const, content: userQuery };
+    setAiChatHistory(prevHistory => [...prevHistory, newMessage]);
+    
+    if (documentId && userId) {
+      try {
+        const { error } = await supabase.from('ai_chat_history').insert({
+          document_id: documentId,
+          user_id: userId,
+          role: 'user',
+          content: userQuery,
+          timestamp: new Date().toISOString(),
+        });
+        
+        if (error) throw error;
+      } catch (error) {
+        console.error('Error saving chat message:', error);
+      }
+    }
+    
+    // Show a toast notification for the action
+    toast({
+      title: `AI ${action} in progress...`,
+      description: `Processing your ${action} request for the selected text.`,
+      duration: 3000,
+    });
+    
+    try {
+      // Process with AI service
+      let aiAction: 'research' | 'critique' | 'expand';
+      
       switch (action) {
-        case 'elaborate':
-          response = `I've expanded on your selection by adding more context and details. "${selection}" could be enhanced with additional supporting evidence...`;
-          break;
-        case 'summarize':
-          response = `Here's a concise summary of your text: The main point of "${selection}" is...`;
-          break;
         case 'research':
-          response = `Based on my research about "${selection}", here are some relevant facts and sources: ...`;
+          aiAction = 'research';
+          break;
+        case 'critique':
+          aiAction = 'critique';
+          break;
+        case 'expand':
+          aiAction = 'expand';
           break;
         default:
-          response = `I've analyzed "${selection}" as requested.`;
+          aiAction = 'research';
       }
       
-      const aiResponse = { role: 'assistant' as const, content: response };
+      const aiResult = await aiServiceManager.processTextWithAi(selection, aiAction);
+      
+      // Format the AI response based on the action
+      let responsePrefix = '';
+      switch (action) {
+        case 'research':
+          responsePrefix = '📚 **Research Results**\n\n';
+          break;
+        case 'critique':
+          responsePrefix = '🧐 **Critique Analysis**\n\n';
+          break;
+        case 'expand':
+          responsePrefix = '📝 **Expanded Exploration**\n\n';
+          break;
+        default:
+          responsePrefix = '';
+      }
+      
+      const formattedResponse = `${responsePrefix}${aiResult.content}${aiResult.source ? `\n\n*Source: ${aiResult.source}*` : ''}`;
+      
+      const aiResponse = { 
+        role: 'assistant' as const, 
+        content: formattedResponse
+      };
+      
       setAiChatHistory(prevHistory => [...prevHistory, aiResponse]);
       
+      // Save AI response to Supabase
+      if (documentId && userId) {
+        const { error } = await supabase.from('ai_chat_history').insert({
+          document_id: documentId,
+          user_id: userId,
+          role: 'assistant',
+          content: formattedResponse,
+          timestamp: new Date().toISOString(),
+        });
+        
+        if (error) throw error;
+      }
+      
+      toast({
+        title: `${action.charAt(0).toUpperCase() + action.slice(1)} complete`,
+        description: 'Your AI assistant has processed your request.',
+        duration: 3000,
+      });
+      
+    } catch (error) {
+      console.error(`Error during AI ${action}:`, error);
+      
+      // Create error response
+      const errorResponse = { 
+        role: 'assistant' as const, 
+        content: `I encountered an error while processing your ${action} request. Please try again later.`
+      };
+      
+      setAiChatHistory(prevHistory => [...prevHistory, errorResponse]);
+      
+      // Save error response to Supabase
       if (documentId && userId) {
         supabase.from('ai_chat_history').insert({
           document_id: documentId,
           user_id: userId,
           role: 'assistant',
-          content: response,
+          content: errorResponse.content,
           timestamp: new Date().toISOString(),
         }).then(({ error }) => {
-          if (error) console.error('Error saving AI response:', error);
+          if (error) console.error('Error saving AI error response:', error);
         });
       }
-    }, 1000);
+      
+      toast({
+        title: 'Error',
+        description: `Failed to process your ${action} request.`,
+        variant: 'destructive',
+        duration: 3000,
+      });
+    }
   };
 
   return {

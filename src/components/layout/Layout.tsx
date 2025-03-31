@@ -60,7 +60,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   
   return (
     <SidebarProvider defaultOpen={false} open={sidebarOpen} onOpenChange={setSidebarOpen}>
-      <div className="min-h-screen flex flex-col animate-fade-in w-full">
+      <div className="flex flex-col min-h-screen animate-fade-in w-full relative">
         <header className="border-b shadow-sm bg-white/70 backdrop-blur-md sticky top-0 z-10 w-full">
           <div className="w-full px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
@@ -150,14 +150,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             </SidebarContent>
           </Sidebar>
           
-          <main className="flex-grow py-6 w-full">
+          <main className="flex-grow py-6 w-full pb-20">
             <div className="w-full px-4 sm:px-6 lg:px-8">
               {children}
             </div>
           </main>
         </div>
         
-        <footer className="border-t py-4 bg-white/70 backdrop-blur-md w-full">
+        <footer className="border-t py-4 bg-white/70 backdrop-blur-md w-full fixed bottom-0 left-0">
           <div className="w-full px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center">
               <div className="text-sm text-gray-500">

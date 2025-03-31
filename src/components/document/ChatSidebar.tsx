@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import AiChat, { Reference } from '@/components/ai/AiChat';
+import { AiChat, Reference } from '@/components/ai';
 import { supabase } from '@/lib/supabase';
 
 interface ChatSidebarProps {

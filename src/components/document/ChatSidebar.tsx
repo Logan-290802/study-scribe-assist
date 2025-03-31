@@ -35,29 +35,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
         if (error) console.error('Error saving chat message:', error);
       });
     }
-    
-    // Simulate AI response (in a real app, this would call an API)
-    setTimeout(() => {
-      const aiResponse = { 
-        role: 'assistant' as const, 
-        content: `I'll help you with "${message}". Here's what I found...` 
-      };
-      
-      setChatHistory(prevHistory => [...prevHistory, aiResponse]);
-      
-      // Save AI response to Supabase
-      if (documentId && userId) {
-        supabase.from('ai_chat_history').insert({
-          document_id: documentId,
-          user_id: userId,
-          role: 'assistant',
-          content: aiResponse.content,
-          timestamp: new Date().toISOString(),
-        }).then(({ error }) => {
-          if (error) console.error('Error saving AI response:', error);
-        });
-      }
-    }, 1000);
   };
 
   return (
@@ -67,6 +44,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
           onAddReference={onAddReference}
           documentId={documentId}
           onNewMessage={handleNewMessage}
+          chatHistory={chatHistory}
         />
       </CardContent>
     </Card>

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Bot } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -21,6 +20,7 @@ export interface AiChatProps {
   onAddReference: (reference: Reference) => void;
   onNewMessage?: (message: string) => void;
   documentId?: string;
+  chatHistory?: { role: 'user' | 'assistant'; content: string }[];
 }
 
 export interface Reference {
@@ -34,7 +34,12 @@ export interface Reference {
   content?: string;
 }
 
-export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage, documentId }) => {
+export const AiChat: React.FC<AiChatProps> = ({ 
+  onAddReference, 
+  onNewMessage, 
+  documentId,
+  chatHistory 
+}) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -50,6 +55,21 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage, do
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
 
+  useEffect(() => {
+    if (chatHistory && chatHistory.length > 0) {
+      const convertedMessages = chatHistory.map((item, index) => ({
+        id: index.toString(),
+        role: item.role,
+        content: item.content,
+        timestamp: new Date()
+      }));
+      
+      if (convertedMessages.length > 0) {
+        setMessages([messages[0], ...convertedMessages]);
+      }
+    }
+  }, [chatHistory]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -61,7 +81,6 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage, do
   const handleSendMessage = (input: string) => {
     if (!input.trim()) return;
 
-    // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -71,14 +90,11 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage, do
     
     setMessages((prev) => [...prev, userMessage]);
     
-    // Call onNewMessage prop if provided
     if (onNewMessage) {
       onNewMessage(input);
     } else {
-      // If no onNewMessage prop is provided, handle the message internally
       setIsLoading(true);
 
-      // Simulate AI response
       setTimeout(() => {
         handleAiResponse(input);
       }, 1500);
@@ -89,14 +105,12 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage, do
     let aiResponse: Message;
     
     if (input.toLowerCase().includes('reference') || input.toLowerCase().includes('citation')) {
-      // Generate sample reference
       aiResponse = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: "I found this reference that might be helpful for your research on cognitive learning theory:\n\n**Sweller, J., van Merriënboer, J. J. G., & Paas, F. (2019). Cognitive Architecture and Instructional Design: 20 Years Later. Educational Psychology Review, 31(2), 261–292.**\n\nWould you like me to add this to your references list?",
         timestamp: new Date(),
       };
-      
     } else if (input.toLowerCase().includes('summarize') || input.toLowerCase().includes('summary')) {
       aiResponse = {
         id: (Date.now() + 1).toString(),
@@ -124,7 +138,6 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage, do
     setMessages((prev) => [...prev, aiResponse]);
     setIsLoading(false);
     
-    // Save message to Supabase if authenticated and document ID provided
     if (user && documentId) {
       saveChatMessageToSupabase({
         role: 'assistant',
@@ -168,7 +181,6 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage, do
     
     onAddReference(newReference);
     
-    // Add confirmation message
     const confirmationMessage: Message = {
       id: Date.now().toString(),
       role: 'assistant',
@@ -178,7 +190,6 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage, do
     
     setMessages((prev) => [...prev, confirmationMessage]);
     
-    // Save message to Supabase if authenticated and document ID provided
     if (user && documentId) {
       saveChatMessageToSupabase({
         role: 'assistant',
@@ -195,7 +206,6 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage, do
       if (file.type === 'application/pdf') {
         setUploadedPdf(file);
         
-        // Create a message about the uploaded PDF
         const userMessage: Message = {
           id: Date.now().toString(),
           role: 'user',
@@ -206,13 +216,10 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage, do
         setMessages((prev) => [...prev, userMessage]);
         setIsLoading(true);
         
-        // If authenticated and document ID provided, upload to Supabase Storage
         if (user && documentId) {
           try {
-            // Create a unique file path
             const filePath = `documents/${documentId}/${Date.now()}_${file.name}`;
             
-            // Upload file to Supabase Storage
             const { data, error } = await supabase.storage
               .from('uploads')
               .upload(filePath, file);
@@ -221,7 +228,6 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage, do
               throw error;
             }
             
-            // Get public URL for the file
             const { data: urlData } = supabase.storage
               .from('uploads')
               .getPublicUrl(filePath);
@@ -229,7 +235,6 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage, do
             if (urlData) {
               setUploadedFileUrl(urlData.publicUrl);
               
-              // Save file metadata to Supabase
               await supabase.from('file_uploads').insert({
                 name: file.name,
                 size: file.size,
@@ -240,7 +245,6 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage, do
                 created_at: new Date().toISOString(),
               });
               
-              // Save chat message to Supabase
               saveChatMessageToSupabase({
                 role: 'user',
                 content: userMessage.content,
@@ -253,7 +257,6 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage, do
           }
         }
         
-        // Simulate processing time
         setTimeout(() => {
           const aiResponse: Message = {
             id: (Date.now() + 1).toString(),
@@ -264,7 +267,6 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage, do
           
           setMessages((prev) => [...prev, aiResponse]);
           
-          // Save AI response to Supabase if authenticated and document ID provided
           if (user && documentId) {
             saveChatMessageToSupabase({
               role: 'assistant',
@@ -274,7 +276,6 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage, do
             });
           }
           
-          // Simulate completion after another delay
           setTimeout(() => {
             const completionMessage: Message = {
               id: (Date.now() + 2).toString(),
@@ -286,7 +287,6 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage, do
             setMessages((prev) => [...prev, completionMessage]);
             setIsLoading(false);
             
-            // Save AI completion response to Supabase if authenticated and document ID provided
             if (user && documentId) {
               saveChatMessageToSupabase({
                 role: 'assistant',
@@ -298,7 +298,6 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage, do
           }, 2000);
         }, 1500);
       } else {
-        // Handle non-PDF files
         alert('Please upload a PDF file');
       }
     }
@@ -377,7 +376,6 @@ export const AiChat: React.FC<AiChatProps> = ({ onAddReference, onNewMessage, do
           disabled={!user || isLoading}
         />
         
-        {/* Hidden file input */}
         <input
           type="file"
           ref={fileInputRef}

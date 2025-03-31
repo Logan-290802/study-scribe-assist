@@ -59,6 +59,7 @@ export const useDocumentAiChat = (documentId: string | undefined, userId: string
         userQuery = `Please ${action} the following text: "${selection}"`;
     }
     
+    // Add the user query to chat history immediately
     const newMessage = { role: 'user' as const, content: userQuery };
     setAiChatHistory(prevHistory => [...prevHistory, newMessage]);
     

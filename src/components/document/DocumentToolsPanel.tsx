@@ -25,7 +25,7 @@ const DocumentToolsPanel: React.FC<DocumentToolsPanelProps> = ({
   onDeleteReference
 }) => {
   return (
-    <Card className="mb-24">
+    <Card className="mb-32">
       <CardContent className="p-4">
         <Tabs defaultValue="references" className="w-full">
           <TabsList className="mb-4 w-full justify-start">

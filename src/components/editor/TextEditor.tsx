@@ -20,6 +20,7 @@ import { EditorToolbar } from './EditorToolbar';
 import { HeadingNavigator } from './HeadingNavigator';
 import { HeadingWithId } from './extensions/HeadingWithId';
 import TextSelectionMenu from './TextSelectionMenu';
+import { ChatInputProvider } from '@/contexts/ChatInputContext';
 
 interface TextEditorProps {
   content: string;
@@ -122,16 +123,18 @@ export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange, onAiA
   }
 
   return (
-    <div className="flex flex-col h-full border rounded-md overflow-hidden glass-card">
-      <div className="flex items-center border-b">
-        <EditorToolbar editor={editor} />
-        <HeadingNavigator headings={headings} onHeadingClick={scrollToHeading} />
+    <ChatInputProvider>
+      <div className="flex flex-col h-full border rounded-md overflow-hidden glass-card">
+        <div className="flex items-center border-b">
+          <EditorToolbar editor={editor} />
+          <HeadingNavigator headings={headings} onHeadingClick={scrollToHeading} />
+        </div>
+        <div className="flex-grow overflow-auto thin-scrollbar">
+          <EditorContent editor={editor} className="h-full" />
+          <TextSelectionMenu onAction={handleSelectionAction} />
+        </div>
       </div>
-      <div className="flex-grow overflow-auto thin-scrollbar">
-        <EditorContent editor={editor} className="h-full" />
-        <TextSelectionMenu onAction={handleSelectionAction} />
-      </div>
-    </div>
+    </ChatInputProvider>
   );
 };
 

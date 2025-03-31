@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { BookOpen, Library, Wrench, User, Settings, Home, ChevronRight, ChevronLeft, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -46,7 +45,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         description: "You have been logged out of your account."
       });
       
-      // Force navigation to auth page
       navigate('/auth', { replace: true });
     } catch (error) {
       console.error('Error logging out:', error);
@@ -150,14 +148,14 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             </SidebarContent>
           </Sidebar>
           
-          <main className="flex-grow py-6 w-full pb-20">
+          <main className="flex-grow py-6 w-full">
             <div className="w-full px-4 sm:px-6 lg:px-8">
               {children}
             </div>
           </main>
         </div>
         
-        <footer className="border-t py-4 bg-white/70 backdrop-blur-md w-full fixed bottom-0 left-0">
+        <footer className="border-t py-4 bg-white/70 backdrop-blur-md w-full">
           <div className="w-full px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center">
               <div className="text-sm text-gray-500">

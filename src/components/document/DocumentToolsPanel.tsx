@@ -25,7 +25,7 @@ const DocumentToolsPanel: React.FC<DocumentToolsPanelProps> = ({
   onDeleteReference
 }) => {
   return (
-    <Card className="mb-32">
+    <Card className="mb-40">
       <CardContent className="p-4">
         <Tabs defaultValue="references" className="w-full">
           <TabsList className="mb-4 w-full justify-start">
@@ -33,24 +33,22 @@ const DocumentToolsPanel: React.FC<DocumentToolsPanelProps> = ({
             <TabsTrigger value="export" className="text-base">Export Options</TabsTrigger>
           </TabsList>
           
-          <ScrollArea className="max-h-[400px]">
-            <TabsContent value="references" className="mt-0">
-              <ReferenceManager
-                references={references}
-                onAddReference={onAddReference}
-                onDeleteReference={onDeleteReference}
-              />
-            </TabsContent>
-            
-            <TabsContent value="export" className="mt-0">
-              <ExportPanel 
-                documentTitle={documentTitle}
-                documentContent={documentContent}
-                references={references}
-                aiChatHistory={aiChatHistory}
-              />
-            </TabsContent>
-          </ScrollArea>
+          <TabsContent value="references" className="mt-0">
+            <ReferenceManager
+              references={references}
+              onAddReference={onAddReference}
+              onDeleteReference={onDeleteReference}
+            />
+          </TabsContent>
+          
+          <TabsContent value="export" className="mt-0">
+            <ExportPanel 
+              documentTitle={documentTitle}
+              documentContent={documentContent}
+              references={references}
+              aiChatHistory={aiChatHistory}
+            />
+          </TabsContent>
         </Tabs>
       </CardContent>
     </Card>

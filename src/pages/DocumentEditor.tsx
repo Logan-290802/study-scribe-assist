@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
@@ -61,7 +62,7 @@ const DocumentEditor = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-6 space-y-6 max-w-full mb-40">
+      <div className="container mx-auto px-4 py-6 space-y-6 max-w-full mb-64 pb-20">
         <DocumentHeader 
           documentTitle={documentTitle}
           onTitleChange={setDocumentTitle}

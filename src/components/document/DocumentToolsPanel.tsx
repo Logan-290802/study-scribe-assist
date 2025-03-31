@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import ReferenceManager from '@/components/references/ReferenceManager';
 import ExportPanel from '@/components/export/ExportPanel';
 import { Reference } from '@/components/ai/AiChat';
@@ -24,7 +25,7 @@ const DocumentToolsPanel: React.FC<DocumentToolsPanelProps> = ({
   onDeleteReference
 }) => {
   return (
-    <Card>
+    <Card className="mb-24">
       <CardContent className="p-4">
         <Tabs defaultValue="references" className="w-full">
           <TabsList className="mb-4 w-full justify-start">
@@ -32,22 +33,24 @@ const DocumentToolsPanel: React.FC<DocumentToolsPanelProps> = ({
             <TabsTrigger value="export" className="text-base">Export Options</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="references" className="mt-0">
-            <ReferenceManager
-              references={references}
-              onAddReference={onAddReference}
-              onDeleteReference={onDeleteReference}
-            />
-          </TabsContent>
-          
-          <TabsContent value="export" className="mt-0">
-            <ExportPanel 
-              documentTitle={documentTitle}
-              documentContent={documentContent}
-              references={references}
-              aiChatHistory={aiChatHistory}
-            />
-          </TabsContent>
+          <ScrollArea className="max-h-[400px]">
+            <TabsContent value="references" className="mt-0">
+              <ReferenceManager
+                references={references}
+                onAddReference={onAddReference}
+                onDeleteReference={onDeleteReference}
+              />
+            </TabsContent>
+            
+            <TabsContent value="export" className="mt-0">
+              <ExportPanel 
+                documentTitle={documentTitle}
+                documentContent={documentContent}
+                references={references}
+                aiChatHistory={aiChatHistory}
+              />
+            </TabsContent>
+          </ScrollArea>
         </Tabs>
       </CardContent>
     </Card>

@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/supabase';
-import { Reference } from '@/components/ai/AiChat';
+import { Reference } from '@/components/ai';
 import { Document } from '@/types/document.types';
 
 export const useReferenceManagement = (

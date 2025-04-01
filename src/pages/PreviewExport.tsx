@@ -1,7 +1,7 @@
 
 import React from 'react';
 import Layout from '@/components/layout/Layout';
-import { Reference } from '@/components/ai/AiChat';
+import { Reference } from '@/components/ai';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Download, FileText, History, Printer } from 'lucide-react';
 import { Link } from 'react-router-dom';

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Reference } from '../ai/AiChat';
+import { Reference } from '../ai';
 import { Library, Plus, X, Copy, Edit, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

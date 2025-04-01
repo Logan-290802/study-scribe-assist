@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDocuments } from '@/store/DocumentStore';
 import { useAuth } from '@/store/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/supabase';
-import { Reference } from '@/components/ai/AiChat';
+import { Reference } from '@/components/ai';
 
 export const useDocumentData = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,7 +19,6 @@ export const useDocumentData = () => {
   const [references, setReferences] = useState<Reference[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   
-  // Initialize from document data
   useEffect(() => {
     if (document) {
       setDocumentTitle(document.title);
@@ -28,7 +26,6 @@ export const useDocumentData = () => {
     }
   }, [document]);
   
-  // Load references from Supabase
   useEffect(() => {
     if (!id || !user) return;
 
@@ -66,7 +63,6 @@ export const useDocumentData = () => {
     fetchReferences();
   }, [id, user]);
   
-  // Save document
   const handleSave = async () => {
     if (!id || !user) return;
     

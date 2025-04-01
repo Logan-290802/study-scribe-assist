@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ReferenceManager from '@/components/references/ReferenceManager';
 import ExportPanel from '@/components/export/ExportPanel';
 import AiApiKeysForm from '@/components/tools/AiApiKeysForm';
-import { Reference } from '@/components/ai/AiChat';
+import { Reference } from '@/components/ai';
 import { Settings } from 'lucide-react';
 import { aiServiceManager } from '@/services/ai/AiServiceManager';
 

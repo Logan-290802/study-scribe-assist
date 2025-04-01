@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Download, File, FileText, History, CheckCircle, Loader2, Eye } from 'lucide-react';
-import { Reference } from '../ai/AiChat';
+import { Reference } from '../ai';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 

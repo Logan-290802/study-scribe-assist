@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import DocumentHeader from '@/components/document/DocumentHeader';
@@ -64,7 +64,7 @@ const DocumentEditor = () => {
   return (
     <Layout>
       <ChatInputProvider>
-        <div className="container mx-auto px-4 py-6 space-y-6 max-w-full">
+        <div className="container mx-auto px-4 py-6 space-y-6 max-w-full h-full">
           <DocumentHeader 
             documentTitle={documentTitle}
             onTitleChange={setDocumentTitle}
@@ -72,13 +72,15 @@ const DocumentEditor = () => {
             isSaving={isSaving}
           />
           
-          <div className="grid grid-cols-12 gap-6">
-            <div className="col-span-12 lg:col-span-8 space-y-6">
-              <EditorArea 
-                content={documentContent}
-                onChange={setDocumentContent}
-                onAiAction={handleAiAction}
-              />
+          <div className="grid grid-cols-12 gap-6 h-[calc(100vh-200px)]">
+            <div className="col-span-12 lg:col-span-8 space-y-6 flex flex-col">
+              <div className="flex-grow overflow-hidden">
+                <EditorArea 
+                  content={documentContent}
+                  onChange={setDocumentContent}
+                  onAiAction={handleAiAction}
+                />
+              </div>
               
               <DocumentToolsPanel
                 references={references}
@@ -90,7 +92,7 @@ const DocumentEditor = () => {
               />
             </div>
             
-            <div className="col-span-12 lg:col-span-4">
+            <div className="col-span-12 lg:col-span-4 h-full">
               <ChatSidebar 
                 documentId={id || ''}
                 onAddReference={handleAddReference}

@@ -132,13 +132,13 @@ export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange, onAiA
   }
 
   return (
-    <div className="flex flex-col h-full border rounded-md overflow-hidden glass-card">
+    <div className="flex flex-col border rounded-md overflow-hidden glass-card">
       <div className="flex items-center border-b">
         <EditorToolbar editor={editor} />
         <HeadingNavigator headings={headings} onHeadingClick={scrollToHeading} />
       </div>
-      <div className="flex-grow overflow-auto thin-scrollbar">
-        <EditorContent editor={editor} className="h-full" />
+      <div className="prose-lg max-w-none">
+        <EditorContent editor={editor} className="min-h-[400px]" />
         <TextSelectionMenu onAction={handleSelectionAction} />
       </div>
     </div>

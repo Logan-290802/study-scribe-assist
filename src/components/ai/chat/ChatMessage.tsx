@@ -18,7 +18,13 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   timestamp,
   onAddReference
 }) => {
-  const containsReference = content.includes('reference');
+  const containsReference = 
+    content.toLowerCase().includes('reference') || 
+    content.toLowerCase().includes('citation');
+
+  const handleCopyContent = () => {
+    navigator.clipboard.writeText(content);
+  };
 
   return (
     <div
@@ -36,18 +42,24 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
             : "bg-gray-100 text-gray-800 rounded-tl-none"
         )}
       >
-        {content}
+        <div className="whitespace-pre-line">{content}</div>
         
-        {role === 'assistant' && containsReference && onAddReference && (
+        {role === 'assistant' && (
           <div className="mt-2 flex gap-2">
+            {containsReference && onAddReference && (
+              <button 
+                onClick={onAddReference}
+                className="text-xs py-1 px-2 bg-white text-blue-600 rounded border border-blue-200 hover:bg-blue-50 transition-colors flex items-center gap-1"
+              >
+                <BookText className="w-3 h-3" />
+                Add to References
+              </button>
+            )}
+            
             <button 
-              onClick={onAddReference}
-              className="text-xs py-1 px-2 bg-white text-blue-600 rounded border border-blue-200 hover:bg-blue-50 transition-colors flex items-center gap-1"
+              onClick={handleCopyContent}
+              className="text-xs py-1 px-2 bg-white text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors flex items-center gap-1"
             >
-              <BookText className="w-3 h-3" />
-              Add to References
-            </button>
-            <button className="text-xs py-1 px-2 bg-white text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors flex items-center gap-1">
               <Clipboard className="w-3 h-3" />
               Copy
             </button>

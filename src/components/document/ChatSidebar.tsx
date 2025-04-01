@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { AiChat, Reference } from '@/components/ai';
 import { supabase } from '@/lib/supabase';
@@ -19,6 +19,39 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   setChatHistory,
   userId
 }) => {
+  // Load chat history from Supabase when component mounts
+  useEffect(() => {
+    if (!documentId || !userId) return;
+
+    const fetchChatHistory = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('ai_chat_history')
+          .select('*')
+          .eq('document_id', documentId)
+          .eq('user_id', userId)
+          .order('timestamp', { ascending: true });
+        
+        if (error) {
+          throw error;
+        }
+        
+        if (data && data.length > 0) {
+          const history = data.map(msg => ({
+            role: msg.role as 'user' | 'assistant',
+            content: msg.content,
+          }));
+          
+          setChatHistory(history);
+        }
+      } catch (error) {
+        console.error('Error fetching chat history:', error);
+      }
+    };
+
+    fetchChatHistory();
+  }, [documentId, userId, setChatHistory]);
+  
   const handleNewMessage = (message: string) => {
     const newMessage = { role: 'user' as const, content: message };
     setChatHistory([...chatHistory, newMessage]);

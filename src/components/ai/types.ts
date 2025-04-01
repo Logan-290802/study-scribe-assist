@@ -10,7 +10,7 @@ export interface Reference {
   content?: string;
 }
 
-export interface Message {
+export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;

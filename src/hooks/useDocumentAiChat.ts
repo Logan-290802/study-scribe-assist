@@ -2,9 +2,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { aiServiceManager } from '@/services/ai/AiServiceManager';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 
 export const useDocumentAiChat = (documentId: string | undefined, userId: string | undefined) => {
+  const { toast } = useToast();
   const [aiChatHistory, setAiChatHistory] = useState<{ role: 'user' | 'assistant'; content: string }[]>([
     { role: 'assistant', content: 'Hello! I\'m your AI research assistant. How can I help you today?' }
   ]);
@@ -43,6 +44,15 @@ export const useDocumentAiChat = (documentId: string | undefined, userId: string
   }, [documentId, userId]);
 
   const handleAiAction = async (action: string, selection: string) => {
+    if (!selection.trim()) {
+      toast({
+        title: `No text selected`,
+        description: `Please select some text first to perform this action.`,
+        duration: 3000,
+      });
+      return;
+    }
+
     let userQuery = '';
     
     switch (action) {

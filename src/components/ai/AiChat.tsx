@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Bot } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import ChatMessageList from './chat/ChatMessageList';
 import ChatControls from './chat/ChatControls';
 import { useAuth } from '@/store/AuthContext';

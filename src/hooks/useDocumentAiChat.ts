@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { aiServiceManager } from '@/services/ai/AiServiceManager';
@@ -57,6 +58,8 @@ export const useDocumentAiChat = (documentId: string | undefined, userId: string
     fetchChatHistory();
   }, [documentId, userId]);
 
+  // This function is now only called when the ChatInput component sends the message
+  // The TextSelectionMenu only populates the input field but doesn't trigger this directly
   const handleAiAction = async (action: string, selection: string) => {
     if (!selection.trim()) {
       toast({

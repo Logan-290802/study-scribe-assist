@@ -72,7 +72,7 @@ const TextSelectionMenu: React.FC<TextSelectionMenuProps> = ({ onAction }) => {
       'expand': `Develop and elaborate on this idea: "${selectedText}". Provide deeper context, examples, and related concepts.`
     };
     
-    // Set the input value in the chat input
+    // Set the input value in the chat input without sending
     setInputValue(actionPrompts[action]);
     
     // Also call the onAction prop to maintain compatibility

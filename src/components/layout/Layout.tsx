@@ -155,19 +155,6 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
           </main>
         </div>
-        
-        <footer className="border-t py-4 bg-white/70 backdrop-blur-md w-full fixed bottom-0 left-0 right-0 z-10">
-          <div className="w-full px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center">
-              <div className="text-sm text-gray-500">
-                &copy; {new Date().getFullYear()} StudyScribe
-              </div>
-              <div className="text-sm text-gray-500">
-                AI Transparency • Privacy • Terms
-              </div>
-            </div>
-          </div>
-        </footer>
       </div>
     </SidebarProvider>
   );

@@ -82,7 +82,7 @@ const DocumentEditor = () => {
   return (
     <Layout>
       <ChatInputProvider>
-        <div className="container mx-auto px-4 py-6 space-y-6 max-w-full pb-14">
+        <div className="container mx-auto px-4 py-6 space-y-6 max-w-full">
           <DocumentHeader 
             documentTitle={documentTitle}
             onTitleChange={setDocumentTitle}

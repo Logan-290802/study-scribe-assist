@@ -70,7 +70,7 @@ const Index = () => {
 
   return (
     <Layout>
-      <div className="pb-14">
+      <div>
         {!isSupabaseConfigured && (
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />

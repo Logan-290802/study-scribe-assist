@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import DocumentHeader from '@/components/document/DocumentHeader';
@@ -9,7 +9,6 @@ import ChatSidebar from '@/components/document/ChatSidebar';
 import { useDocumentData } from '@/hooks/useDocumentData';
 import { useDocumentAiChat } from '@/hooks/useDocumentAiChat';
 import { useReferenceManagement } from '@/hooks/useReferenceManagement';
-import { aiServiceManager } from '@/services/ai/AiServiceManager';
 import { ChatInputProvider } from '@/contexts/ChatInputContext';
 
 const DocumentEditor = () => {
@@ -48,23 +47,6 @@ const DocumentEditor = () => {
     setReferences, 
     document?.id ? handleSave : () => Promise.resolve()
   );
-  
-  // Initialize AI services with API keys from localStorage
-  useEffect(() => {
-    const perplexityKey = localStorage.getItem('perplexity_api_key');
-    const openaiKey = localStorage.getItem('openai_api_key');
-    const claudeKey = localStorage.getItem('claude_api_key');
-    
-    const manager = (aiServiceManager as any);
-    if (manager && typeof manager.constructor === 'function') {
-      // Reinitialize with the saved keys
-      Object.assign(manager, new manager.constructor({
-        perplexity: perplexityKey || undefined,
-        openai: openaiKey || undefined,
-        claude: claudeKey || undefined
-      }));
-    }
-  }, []);
 
   if (!document) {
     return (

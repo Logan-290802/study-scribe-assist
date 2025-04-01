@@ -10,13 +10,21 @@ interface TableInfo {
   column_default: string | null;
 }
 
+// Modified interface for column information that doesn't require table_name
+interface ColumnInfo {
+  column_name: string;
+  data_type: string;
+  is_nullable: string;
+  column_default: string | null;
+}
+
 // Function to check if all required tables exist
 export const checkDatabaseTables = async () => {
   const results = {
     documents: false,
     references: false,
     ai_chat_history: false,
-    columnsInfo: {} as Record<string, TableInfo[]>,
+    columnsInfo: {} as Record<string, ColumnInfo[]>,
     foreignKeys: {} as Record<string, any[]>
   };
   
@@ -50,7 +58,8 @@ export const checkDatabaseTables = async () => {
           if (columnsError) {
             console.error(`Error getting columns for ${tableName}:`, columnsError);
           } else if (columns) {
-            results.columnsInfo[tableName] = columns;
+            // Store as ColumnInfo[] which doesn't require table_name
+            results.columnsInfo[tableName] = columns as ColumnInfo[];
           }
           
           // Check foreign keys

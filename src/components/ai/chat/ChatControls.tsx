@@ -1,26 +1,19 @@
 
 import React, { useRef } from 'react';
 import ChatInput from './ChatInput';
-import ChatActions from './ChatActions';
 
 interface ChatControlsProps {
   onSendMessage: (message: string) => void;
   onFileUpload: (file: File) => void;
   isLoading: boolean;
   isDisabled: boolean;
-  onSearchAction: () => void;
-  onCitationsAction: () => void;
-  onSummarizeAction: () => void;
 }
 
 const ChatControls: React.FC<ChatControlsProps> = ({
   onSendMessage,
   onFileUpload,
   isLoading,
-  isDisabled,
-  onSearchAction,
-  onCitationsAction,
-  onSummarizeAction
+  isDisabled
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -42,13 +35,6 @@ const ChatControls: React.FC<ChatControlsProps> = ({
         isLoading={isLoading}
         disabled={isDisabled}
         placeholder={!isDisabled ? "Ask your AI research assistant..." : "Sign in to chat with AI assistant"}
-      />
-      
-      <ChatActions
-        onSearchClick={onSearchAction}
-        onCitationsClick={onCitationsAction}
-        onSummarizeClick={onSummarizeAction}
-        disabled={isDisabled || isLoading}
       />
       
       <input

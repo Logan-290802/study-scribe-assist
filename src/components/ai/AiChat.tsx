@@ -31,18 +31,6 @@ export const AiChat: React.FC<AiChatProps> = ({
     onNewMessage
   });
 
-  const handleSearchAction = () => {
-    handleSendMessage("Can you help me research the latest findings on cognitive load theory?");
-  };
-
-  const handleCitationsAction = () => {
-    handleSendMessage("Can you suggest some key references for my paper on educational psychology?");
-  };
-
-  const handleSummarizeAction = () => {
-    handleSendMessage("Can you summarize the main theories of learning?");
-  };
-
   return (
     <div className="flex flex-col h-full border rounded-md overflow-hidden glass-card">
       <div className="p-3 border-b bg-gray-50/80 backdrop-blur-sm flex items-center gap-2">
@@ -63,9 +51,6 @@ export const AiChat: React.FC<AiChatProps> = ({
         onFileUpload={handleFileChange}
         isLoading={isLoading}
         isDisabled={!user}
-        onSearchAction={handleSearchAction}
-        onCitationsAction={handleCitationsAction}
-        onSummarizeAction={handleSummarizeAction}
       />
     </div>
   );

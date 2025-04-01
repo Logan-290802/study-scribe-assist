@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { SendHorizontal, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useChatInput } from '@/contexts/ChatInputContext';

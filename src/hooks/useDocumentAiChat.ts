@@ -16,6 +16,25 @@ export const useDocumentAiChat = (documentId: string | undefined, userId: string
 
     const fetchChatHistory = async () => {
       try {
+        // First check if the table exists
+        const { data: tablesData, error: tablesError } = await supabase
+          .from('information_schema.tables')
+          .select('table_name')
+          .eq('table_schema', 'public')
+          .eq('table_name', 'ai_chat_history');
+          
+        if (tablesError) {
+          console.error('Error checking for table:', tablesError);
+          return;
+        }
+        
+        // If table doesn't exist, don't try to query it
+        if (!tablesData || tablesData.length === 0) {
+          console.info('ai_chat_history table does not exist yet');
+          return;
+        }
+        
+        // Table exists, so we can query it
         const { data, error } = await supabase
           .from('ai_chat_history')
           .select('*')
@@ -73,17 +92,32 @@ export const useDocumentAiChat = (documentId: string | undefined, userId: string
     const newMessage = { role: 'user' as const, content: userQuery };
     setAiChatHistory(prevHistory => [...prevHistory, newMessage]);
     
+    // Check if table exists before trying to save
     if (documentId && userId) {
       try {
-        const { error } = await supabase.from('ai_chat_history').insert({
-          document_id: documentId,
-          user_id: userId,
-          role: 'user',
-          content: userQuery,
-          timestamp: new Date().toISOString(),
-        });
-        
-        if (error) throw error;
+        // Check if table exists first
+        const { data: tablesData, error: tablesError } = await supabase
+          .from('information_schema.tables')
+          .select('table_name')
+          .eq('table_schema', 'public')
+          .eq('table_name', 'ai_chat_history');
+          
+        if (tablesError) {
+          console.error('Error checking for table:', tablesError);
+        } else if (tablesData && tablesData.length > 0) {
+          // Table exists, so we can insert data
+          const { error } = await supabase.from('ai_chat_history').insert({
+            document_id: documentId,
+            user_id: userId,
+            role: 'user',
+            content: userQuery,
+            timestamp: new Date().toISOString(),
+          });
+          
+          if (error) throw error;
+        } else {
+          console.info('ai_chat_history table does not exist yet');
+        }
       } catch (error) {
         console.error('Error saving chat message:', error);
       }
@@ -141,17 +175,28 @@ export const useDocumentAiChat = (documentId: string | undefined, userId: string
       
       setAiChatHistory(prevHistory => [...prevHistory, aiResponse]);
       
-      // Save AI response to Supabase
+      // Save AI response to Supabase if table exists
       if (documentId && userId) {
-        const { error } = await supabase.from('ai_chat_history').insert({
-          document_id: documentId,
-          user_id: userId,
-          role: 'assistant',
-          content: formattedResponse,
-          timestamp: new Date().toISOString(),
-        });
-        
-        if (error) throw error;
+        const { data: tablesData, error: tablesError } = await supabase
+          .from('information_schema.tables')
+          .select('table_name')
+          .eq('table_schema', 'public')
+          .eq('table_name', 'ai_chat_history');
+          
+        if (tablesError) {
+          console.error('Error checking for table:', tablesError);
+        } else if (tablesData && tablesData.length > 0) {
+          // Table exists, so we can insert data
+          const { error } = await supabase.from('ai_chat_history').insert({
+            document_id: documentId,
+            user_id: userId,
+            role: 'assistant',
+            content: formattedResponse,
+            timestamp: new Date().toISOString(),
+          });
+          
+          if (error) throw error;
+        }
       }
       
       toast({
@@ -171,17 +216,27 @@ export const useDocumentAiChat = (documentId: string | undefined, userId: string
       
       setAiChatHistory(prevHistory => [...prevHistory, errorResponse]);
       
-      // Save error response to Supabase
+      // Save error response to Supabase if table exists
       if (documentId && userId) {
-        supabase.from('ai_chat_history').insert({
-          document_id: documentId,
-          user_id: userId,
-          role: 'assistant',
-          content: errorResponse.content,
-          timestamp: new Date().toISOString(),
-        }).then(({ error }) => {
-          if (error) console.error('Error saving AI error response:', error);
-        });
+        const { data: tablesData, error: tablesError } = await supabase
+          .from('information_schema.tables')
+          .select('table_name')
+          .eq('table_schema', 'public')
+          .eq('table_name', 'ai_chat_history');
+          
+        if (tablesError) {
+          console.error('Error checking for table:', tablesError);
+        } else if (tablesData && tablesData.length > 0) {
+          supabase.from('ai_chat_history').insert({
+            document_id: documentId,
+            user_id: userId,
+            role: 'assistant',
+            content: errorResponse.content,
+            timestamp: new Date().toISOString(),
+          }).then(({ error }) => {
+            if (error) console.error('Error saving AI error response:', error);
+          });
+        }
       }
       
       toast({

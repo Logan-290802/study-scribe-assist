@@ -6,13 +6,15 @@ import {
   createReferenceResponse,
   createSummaryResponse,
   createPdfAnalysisResponse,
+  createImageAnalysisResponse,
   createGeneralResponse,
   createProcessingPdfMessage,
+  createProcessingImageMessage,
   createSampleReference,
   createReferenceAddedMessage,
   saveChatMessageToSupabase
 } from './ai-chat/messageUtils';
-import { handlePdfUpload } from './ai-chat/fileUtils';
+import { handleFileUpload, ALLOWED_FILE_TYPES } from './ai-chat/fileUtils';
 
 interface UseAiChatProps {
   documentId?: string;
@@ -32,7 +34,7 @@ export const useAiChat = ({
   const { toast } = useToast();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [uploadedPdf, setUploadedPdf] = useState<File | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   // Initialize with external chat history if provided
   useState(() => {
@@ -85,9 +87,9 @@ export const useAiChat = ({
         aiResponse = createReferenceResponse();
       } else if (input.toLowerCase().includes('summarize') || input.toLowerCase().includes('summary')) {
         aiResponse = createSummaryResponse();
-      } else if (uploadedPdf) {
-        aiResponse = createPdfAnalysisResponse(uploadedPdf.name);
-        setUploadedPdf(null);
+      } else if (uploadedFile) {
+        aiResponse = createPdfAnalysisResponse(uploadedFile.name);
+        setUploadedFile(null);
       } else {
         aiResponse = createGeneralResponse();
       }
@@ -139,17 +141,53 @@ export const useAiChat = ({
 
   const handleFileChange = async (file: File) => {
     try {
-      if (file.type === 'application/pdf') {
-        setUploadedPdf(file);
+      setUploadedFile(file);
+      
+      const userMessage = createUserMessage(`I've uploaded a file: "${file.name}". Can you analyze it for me?`);
+      setMessages((prev) => [...prev, userMessage]);
+      setIsLoading(true);
+      
+      if (userId && documentId) {
+        await saveChatMessageToSupabase({
+          role: 'user',
+          content: userMessage.content,
+          document_id: documentId,
+          user_id: userId,
+        }, (error) => {
+          toast({
+            title: "Error",
+            description: "Failed to save chat message",
+            variant: "destructive",
+          });
+        });
         
-        const userMessage = createUserMessage(`I've uploaded a PDF: "${file.name}". Can you analyze it for me?`);
-        setMessages((prev) => [...prev, userMessage]);
-        setIsLoading(true);
+        try {
+          await handleFileUpload(file, documentId, userId);
+        } catch (error) {
+          console.error('Error uploading file:', error);
+          toast({
+            title: "Upload Error",
+            description: "Failed to upload file to storage",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+      }
+      
+      // Processing message after short delay
+      setTimeout(() => {
+        const isImage = file.type.startsWith('image/');
+        const processingMessage = isImage 
+          ? createProcessingImageMessage(file.name)
+          : createProcessingPdfMessage(file.name);
+        
+        setMessages((prev) => [...prev, processingMessage]);
         
         if (userId && documentId) {
-          await saveChatMessageToSupabase({
-            role: 'user',
-            content: userMessage.content,
+          saveChatMessageToSupabase({
+            role: 'assistant',
+            content: processingMessage.content,
             document_id: documentId,
             user_id: userId,
           }, (error) => {
@@ -159,19 +197,22 @@ export const useAiChat = ({
               variant: "destructive",
             });
           });
-          
-          await handlePdfUpload(file, documentId, userId);
         }
         
-        // Processing message after short delay
+        // Analysis message after longer delay
         setTimeout(() => {
-          const processingMessage = createProcessingPdfMessage(file.name);
-          setMessages((prev) => [...prev, processingMessage]);
+          const isImage = file.type.startsWith('image/');
+          const analysisMessage = isImage
+            ? createImageAnalysisResponse(file.name)
+            : createPdfAnalysisResponse(file.name);
+            
+          setMessages((prev) => [...prev, analysisMessage]);
+          setIsLoading(false);
           
           if (userId && documentId) {
             saveChatMessageToSupabase({
               role: 'assistant',
-              content: processingMessage.content,
+              content: analysisMessage.content,
               document_id: documentId,
               user_id: userId,
             }, (error) => {
@@ -182,36 +223,8 @@ export const useAiChat = ({
               });
             });
           }
-          
-          // Analysis message after longer delay
-          setTimeout(() => {
-            const analysisMessage = createPdfAnalysisResponse(file.name);
-            setMessages((prev) => [...prev, analysisMessage]);
-            setIsLoading(false);
-            
-            if (userId && documentId) {
-              saveChatMessageToSupabase({
-                role: 'assistant',
-                content: analysisMessage.content,
-                document_id: documentId,
-                user_id: userId,
-              }, (error) => {
-                toast({
-                  title: "Error",
-                  description: "Failed to save chat message",
-                  variant: "destructive",
-                });
-              });
-            }
-          }, 2000);
-        }, 1500);
-      } else {
-        toast({
-          title: "Invalid file format",
-          description: "Please upload a PDF file",
-          variant: "destructive",
-        });
-      }
+        }, 2000);
+      }, 1500);
     } catch (error) {
       console.error('Error handling file:', error);
       setIsLoading(false);
@@ -226,8 +239,8 @@ export const useAiChat = ({
   return {
     messages,
     isLoading,
-    uploadedPdf,
-    setUploadedPdf,
+    uploadedFile,
+    setUploadedFile,
     handleSendMessage,
     handleFileChange,
     addSampleReference

@@ -7,16 +7,16 @@ import { ChatMessage as ChatMessageType } from '../types';
 interface ChatMessageListProps {
   messages: ChatMessageType[];
   isLoading: boolean;
-  uploadedPdf: File | null;
-  onRemoveUploadedPdf: () => void;
+  uploadedFile: File | null;
+  onRemoveUploadedFile: () => void;
   onAddReference?: () => void;
 }
 
 const ChatMessageList: React.FC<ChatMessageListProps> = ({
   messages,
   isLoading,
-  uploadedPdf,
-  onRemoveUploadedPdf,
+  uploadedFile,
+  onRemoveUploadedFile,
   onAddReference
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -54,10 +54,10 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
         </div>
       )}
       
-      {uploadedPdf && (
+      {uploadedFile && (
         <UploadedFile 
-          file={uploadedPdf} 
-          onRemove={onRemoveUploadedPdf} 
+          file={uploadedFile} 
+          onRemove={onRemoveUploadedFile} 
         />
       )}
       

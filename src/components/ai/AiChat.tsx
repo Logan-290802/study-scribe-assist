@@ -18,8 +18,8 @@ export const AiChat: React.FC<AiChatProps> = ({
   const {
     messages,
     isLoading,
-    uploadedPdf,
-    setUploadedPdf,
+    uploadedFile,
+    setUploadedFile,
     handleSendMessage,
     handleFileChange,
     addSampleReference
@@ -41,8 +41,8 @@ export const AiChat: React.FC<AiChatProps> = ({
       <ChatMessageList
         messages={messages}
         isLoading={isLoading}
-        uploadedPdf={uploadedPdf}
-        onRemoveUploadedPdf={() => setUploadedPdf(null)}
+        uploadedFile={uploadedFile}
+        onRemoveUploadedFile={() => setUploadedFile(null)}
         onAddReference={addSampleReference}
       />
       

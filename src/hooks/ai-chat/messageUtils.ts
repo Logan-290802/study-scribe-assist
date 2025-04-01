@@ -1,100 +1,107 @@
 
 import { v4 as uuidv4 } from '@/lib/utils/uuid';
-import { ChatMessage, Reference } from '@/components/ai/types';
 import { supabase } from '@/lib/supabase';
 
-export const createUserMessage = (content: string): ChatMessage => {
-  return {
-    id: Date.now().toString(),
-    role: 'user',
-    content,
-    timestamp: new Date(),
-  };
-};
+export const createUserMessage = (content: string) => ({
+  id: uuidv4(),
+  role: 'user' as const,
+  content,
+  timestamp: new Date()
+});
 
-export const createReferenceResponse = (): ChatMessage => {
-  return {
-    id: (Date.now() + 1).toString(),
-    role: 'assistant',
-    content: "I found this reference that might be helpful for your research:\n\n**Sweller, J., van Merriënboer, J. J. G., & Paas, F. (2019). Cognitive Architecture and Instructional Design: 20 Years Later. Educational Psychology Review, 31(2), 261–292.**\n\nWould you like me to add this to your references list?",
-    timestamp: new Date(),
-  };
-};
+export const createReferenceResponse = () => ({
+  id: uuidv4(),
+  role: 'assistant' as const,
+  content: 'Based on your query, I found the following references that might be helpful. Would you like to add one of these to your document?\n\n1. Smith, J. (2023). "Advances in AI Research". Journal of Artificial Intelligence, 45(2), 112-145.\n\n2. Johnson, A. & Lee, B. (2022). "Machine Learning Applications in Education". Educational Technology Review, 18(3), 78-92.',
+  timestamp: new Date()
+});
 
-export const createSummaryResponse = (): ChatMessage => {
-  return {
-    id: (Date.now() + 1).toString(),
-    role: 'assistant',
-    content: "Based on the literature, here's a summary of key points:\n\n• Cognitive load theory focuses on the limitations of working memory during learning\n• It identifies three types of cognitive load: intrinsic, extraneous, and germane\n• Instructional design should minimize extraneous load and optimize germane load\n• Split-attention and redundancy effects can impair learning efficiency\n• Schema acquisition and automation are key mechanisms for knowledge transfer\n\nWould you like me to elaborate on any of these points?",
-    timestamp: new Date(),
-  };
-};
+export const createSummaryResponse = () => ({
+  id: uuidv4(),
+  role: 'assistant' as const,
+  content: 'Here\'s a summary of the key points:\n\n• The main argument centers on how artificial intelligence is transforming research methodologies.\n• Several studies have shown a 35% increase in research efficiency when using AI-assisted tools.\n• However, ethical considerations remain regarding data privacy and potential biases in AI systems.\n• The future direction points toward more transparent and explainable AI systems for academic research.',
+  timestamp: new Date()
+});
 
-export const createPdfAnalysisResponse = (fileName: string): ChatMessage => {
-  return {
-    id: (Date.now() + 1).toString(),
-    role: 'assistant',
-    content: `I've analyzed the PDF "${fileName}" and here are the key findings:\n\n• The paper discusses cognitive load theory and its applications in education\n• It emphasizes the importance of managing working memory load during instruction\n• The authors propose a new framework for instructional design based on cognitive architecture\n• There are several practical implications for classroom teaching and online learning\n\nWould you like me to provide more specific details about any of these points or generate a citation for this paper?`,
-    timestamp: new Date(),
-  };
-};
+export const createPdfAnalysisResponse = (fileName: string) => ({
+  id: uuidv4(),
+  role: 'assistant' as const,
+  content: `I've analyzed the PDF "${fileName}" and here's what I found:\n\nThis paper discusses recent advances in natural language processing with a focus on large language models. The key findings include:\n\n• Transformer-based models have significantly improved performance on multiple NLP benchmarks\n• The paper identifies three main challenges: computational requirements, ethical considerations, and evaluation metrics\n• The authors propose a new framework for responsible AI development\n\nWould you like me to extract specific information from this document or help you incorporate these findings into your research?`,
+  timestamp: new Date()
+});
 
-export const createGeneralResponse = (): ChatMessage => {
-  return {
-    id: (Date.now() + 1).toString(),
-    role: 'assistant',
-    content: "I can help you with that. To provide the most relevant assistance, could you specify if you need:\n\n1. Research information on a particular topic\n2. Help with structuring your argument\n3. Citation suggestions for your current paragraph\n4. Feedback on your writing\n\nAlternatively, you could share a specific paragraph you're working on, or upload a PDF for me to analyze.",
-    timestamp: new Date(),
-  };
-};
+export const createImageAnalysisResponse = (fileName: string) => ({
+  id: uuidv4(),
+  role: 'assistant' as const,
+  content: `I've analyzed the image "${fileName}" and here's what I found:\n\nThis image appears to be a graph/chart showing data related to research findings. Key observations include:\n\n• The graph shows an upward trend in the measured variables over time\n• There are several highlighted data points that seem to represent significant moments or thresholds\n• The color coding suggests multiple variables being tracked simultaneously\n\nWould you like me to help you interpret this data visualization or incorporate it into your research document?`,
+  timestamp: new Date()
+});
 
-export const createProcessingPdfMessage = (fileName: string): ChatMessage => {
-  return {
-    id: (Date.now() + 1).toString(),
-    role: 'assistant',
-    content: `I'm analyzing the PDF "${fileName}" now. Give me a moment to process it...`,
-    timestamp: new Date(),
-  };
-};
+export const createGeneralResponse = () => ({
+  id: uuidv4(),
+  role: 'assistant' as const,
+  content: 'I\'d be happy to help with your research. Based on your question, here are some insights:\n\n• Recent studies in this field have shown promising results, particularly the work by Zhang et al. (2023).\n• The methodological approach you\'re considering has been validated in several peer-reviewed journals.\n• Consider exploring the relationship between variables X and Y, as this has been identified as a gap in the current literature.\n\nWould you like me to provide more specific information on any of these points?',
+  timestamp: new Date()
+});
 
-export const createSampleReference = (): Reference => {
-  return {
-    id: uuidv4(),
-    title: "Cognitive Architecture and Instructional Design: 20 Years Later",
-    authors: ["Sweller, J.", "van Merriënboer, J. J. G.", "Paas, F."],
-    year: "2019",
-    source: "Educational Psychology Review, 31(2), 261–292",
-    url: "https://doi.org/10.1007/s10648-019-09465-5",
-    format: "APA",
-  };
-};
+export const createProcessingPdfMessage = (fileName: string) => ({
+  id: uuidv4(),
+  role: 'assistant' as const,
+  content: `I'm processing the PDF "${fileName}" now. This will take just a moment...`,
+  timestamp: new Date()
+});
 
-export const createReferenceAddedMessage = (): ChatMessage => {
-  return {
-    id: Date.now().toString(),
-    role: 'assistant',
-    content: "I've added this reference to your reference list. You can now cite it in your document.",
-    timestamp: new Date(),
-  };
-};
+export const createProcessingImageMessage = (fileName: string) => ({
+  id: uuidv4(),
+  role: 'assistant' as const,
+  content: `I'm analyzing the image "${fileName}" now. This will take just a moment...`,
+  timestamp: new Date()
+});
 
-export const saveChatMessageToSupabase = async (message: {
-  role: 'user' | 'assistant';
-  content: string;
-  document_id: string;
-  user_id: string;
-}, onError: (error: any) => void) => {
+export const createSampleReference = () => ({
+  id: uuidv4(),
+  title: 'Advances in Natural Language Processing for Research Applications',
+  authors: ['Smith, J.', 'Johnson, K.'],
+  year: '2023',
+  source: 'Journal of Artificial Intelligence Research',
+  url: 'https://example.com/journal/article/12345',
+  format: 'APA' as const,
+  content: 'This paper presents a comprehensive overview of how natural language processing techniques can enhance research workflows across various disciplines.'
+});
+
+export const createReferenceAddedMessage = () => ({
+  id: uuidv4(),
+  role: 'assistant' as const,
+  content: 'I\'ve added the reference to your document. You can find it in the References panel below the editor.',
+  timestamp: new Date()
+});
+
+export const saveChatMessageToSupabase = async (
+  message: {
+    role: 'user' | 'assistant';
+    content: string;
+    document_id: string;
+    user_id: string;
+  },
+  onError: (error: any) => void
+) => {
   try {
     const { error } = await supabase.from('ai_chat_history').insert({
-      ...message,
+      document_id: message.document_id,
+      user_id: message.user_id,
+      role: message.role,
+      content: message.content,
       timestamp: new Date().toISOString(),
     });
     
     if (error) {
       throw error;
     }
+    
+    return true;
   } catch (error) {
     console.error('Error saving chat message:', error);
     onError(error);
+    return false;
   }
 };

@@ -1,6 +1,7 @@
 
 import React, { useRef } from 'react';
 import ChatInput from './ChatInput';
+import { ALLOWED_FILE_TYPES } from '@/hooks/ai-chat/fileUtils';
 
 interface ChatControlsProps {
   onSendMessage: (message: string) => void;
@@ -27,6 +28,9 @@ const ChatControls: React.FC<ChatControlsProps> = ({
     fileInputRef.current?.click();
   };
 
+  // Create the accept string from our allowed MIME types
+  const acceptedFileTypes = Object.keys(ALLOWED_FILE_TYPES).join(',');
+
   return (
     <div className="p-3 border-t">
       <ChatInput 
@@ -41,7 +45,7 @@ const ChatControls: React.FC<ChatControlsProps> = ({
         type="file"
         ref={fileInputRef}
         onChange={handleFileChange}
-        accept="application/pdf"
+        accept={acceptedFileTypes}
         className="hidden"
       />
     </div>

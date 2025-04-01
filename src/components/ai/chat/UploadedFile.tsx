@@ -1,20 +1,28 @@
 
 import React from 'react';
-import { File, X } from 'lucide-react';
+import { File, X, Image as ImageIcon } from 'lucide-react';
 
 interface UploadedFileProps {
-  file: File | { name: string; path?: string };
+  file: File | { name: string; path?: string; type?: string };
   onRemove: () => void;
 }
 
 export const UploadedFile: React.FC<UploadedFileProps> = ({ file, onRemove }) => {
-  // Get file name from the file object (works for both File and custom file object)
+  // Get file name and type from the file object
   const fileName = file.name;
+  const fileType = 'type' in file ? file.type : '';
+  
+  // Determine if file is an image
+  const isImage = fileType && fileType.startsWith('image/');
 
   return (
     <div className="flex justify-center animate-fade-in">
       <div className="bg-blue-50 border border-blue-200 text-blue-800 rounded-lg p-3 flex items-center gap-2">
-        <File className="h-5 w-5 text-blue-500" />
+        {isImage ? (
+          <ImageIcon className="h-5 w-5 text-blue-500" />
+        ) : (
+          <File className="h-5 w-5 text-blue-500" />
+        )}
         <span className="text-sm font-medium">{fileName}</span>
         <button 
           onClick={onRemove}

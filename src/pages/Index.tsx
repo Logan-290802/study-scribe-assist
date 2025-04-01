@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
@@ -27,14 +26,9 @@ const Index = () => {
   const [documentTitle, setDocumentTitle] = useState('My Research Paper');
   const [documentContent, setDocumentContent] = useState(initialContent);
   const [references, setReferences] = useState<Reference[]>([]);
-  const [aiChatHistory, setAiChatHistory] = useState<{ role: 'user' | 'assistant'; content: string }[]>([
-    { role: 'assistant', content: 'Hello! I\'m your AI research assistant. How can I help you today?' }
-  ]);
+  const [aiChatHistory, setAiChatHistory] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
   const [isSupabaseConfigured, setIsSupabaseConfigured] = useState(true);
 
-  // No need to check environment variables, we're using hardcoded values
-  // This check is here just to maintain compatibility with the code that expects it
-  // In a real app, we would check environment variables, but we already have the values hardcoded
   React.useEffect(() => {
     if (!supabaseUrl || !supabaseAnonKey) {
       setIsSupabaseConfigured(false);
@@ -50,8 +44,6 @@ const Index = () => {
   };
 
   const handleAiAction = (action: string, selectedText: string) => {
-    // The actual implementation is in the AiChat component
-    // Here we just need to add the action to aiChatHistory so it appears in export
     let actionDescription = '';
     switch (action) {
       case 'research':

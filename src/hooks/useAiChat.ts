@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { ChatMessage, Reference } from '@/components/ai/types';
@@ -31,14 +30,7 @@ export const useAiChat = ({
   onNewMessage
 }: UseAiChatProps) => {
   const { toast } = useToast();
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: 'Hello! I\'m your AI research assistant. I can help you search for information, suggest references, and assist with your academic writing. What can I help you with today?',
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedPdf, setUploadedPdf] = useState<File | null>(null);
 
@@ -53,7 +45,7 @@ export const useAiChat = ({
       }));
       
       if (convertedMessages.length > 0) {
-        setMessages([messages[0], ...convertedMessages]);
+        setMessages(convertedMessages);
       }
     }
   });

@@ -17,6 +17,8 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
+export interface Message extends ChatMessage {}
+
 export interface AiChatProps {
   onAddReference: (reference: Reference) => void;
   onNewMessage?: (message: string) => void;

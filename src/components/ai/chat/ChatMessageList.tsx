@@ -2,10 +2,10 @@
 import React, { useRef, useEffect } from 'react';
 import ChatMessage from './ChatMessage';
 import UploadedFile from './UploadedFile';
-import { Message } from '../types';
+import { ChatMessage as ChatMessageType } from '../types';
 
 interface ChatMessageListProps {
-  messages: Message[];
+  messages: ChatMessageType[];
   isLoading: boolean;
   uploadedPdf: File | null;
   onRemoveUploadedPdf: () => void;

@@ -10,7 +10,7 @@ import { useDocumentData } from '@/hooks/useDocumentData';
 import { useDocumentAiChat } from '@/hooks/useDocumentAiChat';
 import { useReferenceManagement } from '@/hooks/useReferenceManagement';
 import { ChatInputProvider } from '@/contexts/ChatInputContext';
-import { checkDatabaseTables, testDatabaseOperations } from '@/utils/databaseCheck';
+import { checkDatabaseTables, testDatabaseOperations } from '@/utils/database';
 import { useToast } from '@/components/ui/use-toast';
 
 const DocumentEditor = () => {

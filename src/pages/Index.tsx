@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
@@ -69,62 +70,64 @@ const Index = () => {
 
   return (
     <Layout>
-      {!isSupabaseConfigured && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Configuration Required</AlertTitle>
-          <AlertDescription>
-            <p className="mb-2">Supabase environment variables are missing. To use all features of this application, please:</p>
-            <ol className="list-decimal ml-5 mb-2 space-y-1">
-              <li>Create a Supabase project at <a href="https://app.supabase.io" target="_blank" rel="noreferrer" className="underline">supabase.io</a></li>
-              <li>Add the following environment variables to your project:</li>
-              <ul className="list-disc ml-5">
-                <li>VITE_SUPABASE_URL - Your Supabase project URL</li>
-                <li>VITE_SUPABASE_ANON_KEY - Your Supabase project anon/public key</li>
-              </ul>
-            </ol>
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      <DocumentTitle title={documentTitle} onTitleChange={setDocumentTitle} />
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="flex flex-col space-y-6">
-          <div className="h-[500px]">
-            <TextEditor 
-              content={documentContent} 
-              onChange={setDocumentContent} 
-              onAiAction={handleAiAction}
+      <div className="pb-14">
+        {!isSupabaseConfigured && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Configuration Required</AlertTitle>
+            <AlertDescription>
+              <p className="mb-2">Supabase environment variables are missing. To use all features of this application, please:</p>
+              <ol className="list-decimal ml-5 mb-2 space-y-1">
+                <li>Create a Supabase project at <a href="https://app.supabase.io" target="_blank" rel="noreferrer" className="underline">supabase.io</a></li>
+                <li>Add the following environment variables to your project:</li>
+                <ul className="list-disc ml-5">
+                  <li>VITE_SUPABASE_URL - Your Supabase project URL</li>
+                  <li>VITE_SUPABASE_ANON_KEY - Your Supabase project anon/public key</li>
+                </ul>
+              </ol>
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        <DocumentTitle title={documentTitle} onTitleChange={setDocumentTitle} />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="flex flex-col space-y-6">
+            <div className="h-[500px]">
+              <TextEditor 
+                content={documentContent} 
+                onChange={setDocumentContent} 
+                onAiAction={handleAiAction}
+              />
+            </div>
+            
+            <ReferenceManager 
+              references={references} 
+              onAddReference={handleAddReference}
+              onDeleteReference={handleDeleteReference}
+            />
+            
+            <ExportPanel 
+              documentContent={documentContent}
+              documentTitle={documentTitle}
+              references={references}
+              aiChatHistory={aiChatHistory}
             />
           </div>
           
-          <ReferenceManager 
-            references={references} 
-            onAddReference={handleAddReference}
-            onDeleteReference={handleDeleteReference}
-          />
-          
-          <ExportPanel 
-            documentContent={documentContent}
-            documentTitle={documentTitle}
-            references={references}
-            aiChatHistory={aiChatHistory}
-          />
+          <div className="h-[500px]">
+            <AiChat onAddReference={handleAddReference} />
+          </div>
         </div>
         
-        <div className="h-[500px]">
-          <AiChat onAddReference={handleAddReference} />
+        <div className="mt-8 text-center">
+          <Link to="/dashboard">
+            <Button>
+              Go to Dashboard
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
         </div>
-      </div>
-      
-      <div className="mt-8 text-center">
-        <Link to="/dashboard">
-          <Button>
-            Go to Dashboard
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </Link>
       </div>
     </Layout>
   );

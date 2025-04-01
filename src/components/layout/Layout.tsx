@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { BookOpen, Library, Wrench, User, Settings, Home, ChevronRight, ChevronLeft, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -155,7 +156,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </main>
         </div>
         
-        <footer className="border-t py-4 bg-white/70 backdrop-blur-md w-full">
+        <footer className="border-t py-4 bg-white/70 backdrop-blur-md w-full fixed bottom-0 left-0 right-0 z-10">
           <div className="w-full px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center">
               <div className="text-sm text-gray-500">

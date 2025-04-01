@@ -67,9 +67,9 @@ const TextSelectionMenu: React.FC<TextSelectionMenuProps> = ({ onAction }) => {
 
   const handleActionClick = (action: 'research' | 'critique' | 'expand') => {
     const actionPrompts = {
-      'research': `Research this: "${selectedText}"`,
-      'critique': `Critique this: "${selectedText}"`,
-      'expand': `Expand on this: "${selectedText}"`
+      'research': `Find scholarly information about "${selectedText}". Include key concepts, historical context, and relevant research.`,
+      'critique': `Evaluate this text for clarity, logic, and effectiveness: "${selectedText}". Identify strengths and weaknesses, and suggest specific improvements.`,
+      'expand': `Develop and elaborate on this idea: "${selectedText}". Provide deeper context, examples, and related concepts.`
     };
     
     // Set the input value in the chat input

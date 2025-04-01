@@ -23,11 +23,18 @@ export class PerplexityService extends AiService {
           messages: [
             {
               role: 'system',
-              content: 'You are a helpful research assistant. Provide accurate, well-sourced information with citations.'
+              content: 'You are a scholarly research assistant with expertise in finding accurate, well-sourced information. When presented with a topic or question, provide comprehensive research with factual information, key concepts, historical context, different perspectives, and current developments. Always cite your sources clearly with authors, publication dates, and accessible links where available.'
             },
             {
               role: 'user',
-              content: `Research the following highlighted text and provide relevant information, sources, and context: '${text}'. Summarize key findings and cite sources where possible.`
+              content: `Research the following topic thoroughly and provide comprehensive information: '${text}'. Include: 
+              - Key concepts and definitions
+              - Historical context and development
+              - Major scholarly perspectives 
+              - Recent research findings
+              - Practical applications or implications
+              
+              Organize your response clearly and cite all sources properly.`
             }
           ],
           temperature: 0.2,
@@ -56,18 +63,36 @@ export class PerplexityService extends AiService {
     return {
       content: `Research findings for "${text.substring(0, 30)}...": 
       
-According to recent studies, this concept has been explored in multiple academic papers. Smith et al. (2022) found significant correlations between these factors, while Johnson's research (2021) highlights alternative interpretations.
+## Key Concepts
+- The concept of ${text} has its roots in [specific field/discipline]
+- It encompasses several core principles including [principle 1], [principle 2], and [principle 3]
+- The fundamental framework was established by [historical figure/researcher] in [year]
 
-Key findings:
-• The concept has historical roots dating back to the 1980s
-• Recent technological developments have transformed understanding
-• Multiple perspectives exist on its practical applications
-• Ongoing research continues to refine the theoretical framework
+## Historical Development
+- Early work began in the [decade/period] when [historical context]
+- A significant breakthrough occurred in [year] when [researcher] published [important finding]
+- The field evolved through three distinct phases: [phase 1] (years), [phase 2] (years), and [phase 3] (years)
 
-Sources:
-1. Smith, J. et al. (2022). "Comprehensive Analysis of Conceptual Frameworks." Journal of Applied Research, 15(2), 112-128.
-2. Johnson, T. (2021). "Alternative Perspectives on Theoretical Applications." Academic Review, 33(4), 78-95.
-3. International Research Foundation (2023). "State of the Field Report." Retrieved from: https://example.org/research/report2023`,
+## Major Scholarly Perspectives
+- The [Name] School of thought argues that [perspective 1]
+- In contrast, [Alternative] theorists propose that [perspective 2]
+- Recent interdisciplinary approaches suggest [perspective 3]
+
+## Current Research
+- Smith et al. (2023) found that [recent finding 1]
+- Jones and Zhang (2022) demonstrated [recent finding 2]
+- Ongoing work at [institution] is exploring [cutting-edge direction]
+
+## Applications & Implications
+- This concept has been applied successfully in [field 1] to [specific application]
+- Potential future applications include [emerging application]
+- Ethical considerations include [consideration 1] and [consideration 2]
+
+## Sources
+1. Smith, J. et al. (2023). "Comprehensive Analysis of [Topic]." Journal of [Field], 15(2), 112-128. https://doi.org/10.xxxx/xxxxx
+2. Jones, T. & Zhang, L. (2022). "[Title of Paper]." [Journal], 33(4), 78-95. https://doi.org/10.xxxx/xxxxx
+3. [Historical Figure] (Year). "[Title of Seminal Work]." [Publisher].
+4. [Institution] Research Group (2023). "[Report Title]." Retrieved from: https://institution.edu/research`,
       source: 'Perplexity AI (Mock)'
     };
   }

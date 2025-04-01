@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { aiServiceManager } from '@/services/ai/AiServiceManager';
@@ -10,13 +9,11 @@ export const useDocumentAiChat = (documentId: string | undefined, userId: string
     { role: 'assistant', content: 'Hello! I\'m your AI research assistant. How can I help you today?' }
   ]);
 
-  // Load chat history from Supabase
   useEffect(() => {
     if (!documentId || !userId) return;
 
     const fetchChatHistory = async () => {
       try {
-        // First check if the table exists
         const { data: tablesData, error: tablesError } = await supabase
           .from('information_schema.tables')
           .select('table_name')
@@ -28,13 +25,11 @@ export const useDocumentAiChat = (documentId: string | undefined, userId: string
           return;
         }
         
-        // If table doesn't exist, don't try to query it
         if (!tablesData || tablesData.length === 0) {
           console.info('ai_chat_history table does not exist yet');
           return;
         }
         
-        // Table exists, so we can query it
         const { data, error } = await supabase
           .from('ai_chat_history')
           .select('*')
@@ -76,26 +71,23 @@ export const useDocumentAiChat = (documentId: string | undefined, userId: string
     
     switch (action) {
       case 'research':
-        userQuery = `Please research the following text: "${selection}"`;
+        userQuery = `Find scholarly information about "${selection}". Include key concepts, historical context, and relevant research.`;
         break;
       case 'critique':
-        userQuery = `Please critique the following text: "${selection}"`;
+        userQuery = `Evaluate this text for clarity, logic, and effectiveness: "${selection}". Identify strengths and weaknesses, and suggest specific improvements.`;
         break;
       case 'expand':
-        userQuery = `Please expand on the following text: "${selection}"`;
+        userQuery = `Develop and elaborate on this idea: "${selection}". Provide deeper context, examples, and related concepts.`;
         break;
       default:
         userQuery = `Please ${action} the following text: "${selection}"`;
     }
     
-    // Add the user query to chat history immediately
     const newMessage = { role: 'user' as const, content: userQuery };
     setAiChatHistory(prevHistory => [...prevHistory, newMessage]);
     
-    // Check if table exists before trying to save
     if (documentId && userId) {
       try {
-        // Check if table exists first
         const { data: tablesData, error: tablesError } = await supabase
           .from('information_schema.tables')
           .select('table_name')
@@ -105,7 +97,6 @@ export const useDocumentAiChat = (documentId: string | undefined, userId: string
         if (tablesError) {
           console.error('Error checking for table:', tablesError);
         } else if (tablesData && tablesData.length > 0) {
-          // Table exists, so we can insert data
           const { error } = await supabase.from('ai_chat_history').insert({
             document_id: documentId,
             user_id: userId,
@@ -123,15 +114,19 @@ export const useDocumentAiChat = (documentId: string | undefined, userId: string
       }
     }
     
-    // Show a toast notification for the action
+    const actionTitles = {
+      'research': 'Researching topic',
+      'critique': 'Analyzing writing',
+      'expand': 'Developing concept'
+    };
+    
     toast({
-      title: `AI ${action} in progress...`,
+      title: actionTitles[action as keyof typeof actionTitles] || `AI ${action} in progress...`,
       description: `Processing your ${action} request for the selected text.`,
       duration: 3000,
     });
     
     try {
-      // Process with AI service
       let aiAction: 'research' | 'critique' | 'expand';
       
       switch (action) {
@@ -150,17 +145,16 @@ export const useDocumentAiChat = (documentId: string | undefined, userId: string
       
       const aiResult = await aiServiceManager.processTextWithAi(selection, aiAction);
       
-      // Format the AI response based on the action
       let responsePrefix = '';
       switch (action) {
         case 'research':
-          responsePrefix = '📚 **Research Results**\n\n';
+          responsePrefix = '📚 **Research Findings**\n\n';
           break;
         case 'critique':
-          responsePrefix = '🧐 **Critique Analysis**\n\n';
+          responsePrefix = '🧐 **Writing Analysis**\n\n';
           break;
         case 'expand':
-          responsePrefix = '📝 **Expanded Exploration**\n\n';
+          responsePrefix = '✨ **Concept Development**\n\n';
           break;
         default:
           responsePrefix = '';
@@ -175,32 +169,14 @@ export const useDocumentAiChat = (documentId: string | undefined, userId: string
       
       setAiChatHistory(prevHistory => [...prevHistory, aiResponse]);
       
-      // Save AI response to Supabase if table exists
-      if (documentId && userId) {
-        const { data: tablesData, error: tablesError } = await supabase
-          .from('information_schema.tables')
-          .select('table_name')
-          .eq('table_schema', 'public')
-          .eq('table_name', 'ai_chat_history');
-          
-        if (tablesError) {
-          console.error('Error checking for table:', tablesError);
-        } else if (tablesData && tablesData.length > 0) {
-          // Table exists, so we can insert data
-          const { error } = await supabase.from('ai_chat_history').insert({
-            document_id: documentId,
-            user_id: userId,
-            role: 'assistant',
-            content: formattedResponse,
-            timestamp: new Date().toISOString(),
-          });
-          
-          if (error) throw error;
-        }
-      }
+      const successTitles = {
+        'research': 'Research complete',
+        'critique': 'Analysis complete',
+        'expand': 'Concept developed'
+      };
       
       toast({
-        title: `${action.charAt(0).toUpperCase() + action.slice(1)} complete`,
+        title: successTitles[action as keyof typeof successTitles] || `${action.charAt(0).toUpperCase() + action.slice(1)} complete`,
         description: 'Your AI assistant has processed your request.',
         duration: 3000,
       });
@@ -208,7 +184,6 @@ export const useDocumentAiChat = (documentId: string | undefined, userId: string
     } catch (error) {
       console.error(`Error during AI ${action}:`, error);
       
-      // Create error response
       const errorResponse = { 
         role: 'assistant' as const, 
         content: `I encountered an error while processing your ${action} request. Please try again later.`
@@ -216,7 +191,6 @@ export const useDocumentAiChat = (documentId: string | undefined, userId: string
       
       setAiChatHistory(prevHistory => [...prevHistory, errorResponse]);
       
-      // Save error response to Supabase if table exists
       if (documentId && userId) {
         const { data: tablesData, error: tablesError } = await supabase
           .from('information_schema.tables')

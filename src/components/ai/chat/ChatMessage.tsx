@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { BookText, Clipboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ChatMessageProps {
@@ -18,14 +17,6 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   timestamp,
   onAddReference
 }) => {
-  const containsReference = 
-    content.toLowerCase().includes('reference') || 
-    content.toLowerCase().includes('citation');
-
-  const handleCopyContent = () => {
-    navigator.clipboard.writeText(content);
-  };
-
   return (
     <div
       key={id}
@@ -43,28 +34,6 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
         )}
       >
         <div className="whitespace-pre-line">{content}</div>
-        
-        {role === 'assistant' && (
-          <div className="mt-2 flex gap-2">
-            {containsReference && onAddReference && (
-              <button 
-                onClick={onAddReference}
-                className="text-xs py-1 px-2 bg-white text-blue-600 rounded border border-blue-200 hover:bg-blue-50 transition-colors flex items-center gap-1"
-              >
-                <BookText className="w-3 h-3" />
-                Add to References
-              </button>
-            )}
-            
-            <button 
-              onClick={handleCopyContent}
-              className="text-xs py-1 px-2 bg-white text-gray-600 rounded border border-gray-200 hover:bg-gray-50 transition-colors flex items-center gap-1"
-            >
-              <Clipboard className="w-3 h-3" />
-              Copy
-            </button>
-          </div>
-        )}
         
         <div className="text-xs mt-1 opacity-70">
           {timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

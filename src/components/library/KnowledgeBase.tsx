@@ -19,6 +19,17 @@ import {
   Download
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/components/ui/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ReferenceSource {
   id: string;
@@ -113,14 +124,17 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
     year: 'all'
   });
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [referenceToDelete, setReferenceToDelete] = useState<string | null>(null);
+  const [sources, setSources] = useState<ReferenceSource[]>(MOCK_SOURCES);
+  const { toast } = useToast();
   
   // Get unique values for filter dropdowns
-  const disciplines = ['all', ...Array.from(new Set(MOCK_SOURCES.map(s => s.discipline)))];
-  const types = ['all', ...Array.from(new Set(MOCK_SOURCES.map(s => s.type)))];
-  const years = ['all', ...Array.from(new Set(MOCK_SOURCES.map(s => s.year))).sort((a, b) => parseInt(b) - parseInt(a))];
+  const disciplines = ['all', ...Array.from(new Set(sources.map(s => s.discipline)))];
+  const types = ['all', ...Array.from(new Set(sources.map(s => s.type)))];
+  const years = ['all', ...Array.from(new Set(sources.map(s => s.year))).sort((a, b) => parseInt(b) - parseInt(a))];
   
   // Filter sources based on search query and filters
-  const filteredSources = MOCK_SOURCES.filter(source => {
+  const filteredSources = sources.filter(source => {
     // Search filter
     const matchesSearch = 
       source.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -164,18 +178,54 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
   };
   
   const handleToggleFavorite = (id: string) => {
-    // In a real app, this would toggle favorite status
-    console.log(`Toggle favorite for source ${id}`);
+    setSources(prevSources => 
+      prevSources.map(source => 
+        source.id === id 
+          ? { ...source, isFavorite: !source.isFavorite } 
+          : source
+      )
+    );
+    
+    const source = sources.find(s => s.id === id);
+    if (source) {
+      toast({
+        title: source.isFavorite ? "Removed from favorites" : "Added to favorites",
+        description: `"${source.title}" has been ${source.isFavorite ? "removed from" : "added to"} your favorites.`,
+      });
+    }
   };
   
-  const handleDeleteSource = (id: string) => {
-    // In a real app, this would delete the source
-    console.log(`Delete source ${id}`);
+  const confirmDelete = (id: string) => {
+    setReferenceToDelete(id);
+  };
+  
+  const handleDeleteConfirmed = () => {
+    if (referenceToDelete) {
+      const sourceToDelete = sources.find(s => s.id === referenceToDelete);
+      setSources(prevSources => prevSources.filter(source => source.id !== referenceToDelete));
+      
+      toast({
+        title: "Reference deleted",
+        description: sourceToDelete ? `"${sourceToDelete.title}" has been deleted.` : "The reference has been deleted.",
+      });
+      
+      setReferenceToDelete(null);
+    }
+  };
+  
+  const handleDeleteCancelled = () => {
+    setReferenceToDelete(null);
   };
   
   const handleDownloadPdf = (id: string) => {
     // In a real app, this would download the PDF
-    console.log(`Download PDF for source ${id}`);
+    const source = sources.find(s => s.id === id);
+    if (source) {
+      toast({
+        title: "Download started",
+        description: `Downloading "${source.title}" PDF.`,
+      });
+    }
   };
 
   return (
@@ -284,9 +334,17 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
                     <CardContent className="p-5">
                       <div className="flex justify-between items-start">
                         <div className="flex items-start gap-2">
-                          {source.isFavorite && (
-                            <Star className="h-4 w-4 text-yellow-400 mt-1 flex-shrink-0" />
-                          )}
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className={`h-5 w-5 p-0 ${source.isFavorite ? 'text-yellow-400' : 'text-gray-400'}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleFavorite(source.id);
+                            }}
+                          >
+                            <Star className="h-4 w-4" />
+                          </Button>
                           <h3 className="font-medium text-md line-clamp-2">{source.title}</h3>
                         </div>
                         <Popover>
@@ -321,7 +379,7 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
                                 variant="ghost" 
                                 size="sm" 
                                 className="justify-start text-red-600" 
-                                onClick={() => handleDeleteSource(source.id)}
+                                onClick={() => confirmDelete(source.id)}
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Delete
@@ -417,9 +475,17 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
                   <TableRow key={source.id}>
                     <TableCell>
                       <div className="flex items-start gap-2">
-                        {source.isFavorite && (
-                          <Star className="h-4 w-4 text-yellow-400 mt-1 flex-shrink-0" />
-                        )}
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className={`h-5 w-5 p-0 ${source.isFavorite ? 'text-yellow-400' : 'text-gray-400'}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleFavorite(source.id);
+                          }}
+                        >
+                          <Star className="h-4 w-4" />
+                        </Button>
                         <div>
                           <HoverCard>
                             <HoverCardTrigger className="font-medium text-blue-700 hover:underline cursor-pointer">
@@ -475,16 +541,16 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="h-8 w-8"
+                          className={`h-8 w-8 ${source.isFavorite ? 'text-yellow-400' : ''}`}
                           onClick={() => handleToggleFavorite(source.id)}
                         >
-                          <Star className={`h-4 w-4 ${source.isFavorite ? 'text-yellow-400' : ''}`} />
+                          <Star className="h-4 w-4" />
                         </Button>
                         <Button 
                           variant="ghost" 
                           size="icon" 
                           className="h-8 w-8 text-red-600" 
-                          onClick={() => handleDeleteSource(source.id)}
+                          onClick={() => confirmDelete(source.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -497,6 +563,23 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
           </div>
         )
       )}
+      
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!referenceToDelete} onOpenChange={() => !referenceToDelete && setReferenceToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this reference from your library.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleDeleteCancelled}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirmed} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

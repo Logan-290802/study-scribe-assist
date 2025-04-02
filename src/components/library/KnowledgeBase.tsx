@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,7 +15,8 @@ import {
   Tag as TagIcon, 
   Plus,
   FileText,
-  Download
+  Download,
+  Copy
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
@@ -30,6 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ReferenceSource {
   id: string;
@@ -46,7 +47,6 @@ interface ReferenceSource {
   isFavorite: boolean;
 }
 
-// Mock data for demo
 const MOCK_SOURCES: ReferenceSource[] = [
   {
     id: '1',
@@ -128,21 +128,17 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
   const [sources, setSources] = useState<ReferenceSource[]>(MOCK_SOURCES);
   const { toast } = useToast();
   
-  // Get unique values for filter dropdowns
   const disciplines = ['all', ...Array.from(new Set(sources.map(s => s.discipline)))];
   const types = ['all', ...Array.from(new Set(sources.map(s => s.type)))];
   const years = ['all', ...Array.from(new Set(sources.map(s => s.year))).sort((a, b) => parseInt(b) - parseInt(a))];
   
-  // Filter sources based on search query and filters
   const filteredSources = sources.filter(source => {
-    // Search filter
     const matchesSearch = 
       source.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       source.authors.some(author => author.toLowerCase().includes(searchQuery.toLowerCase())) ||
       source.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
       source.summary.toLowerCase().includes(searchQuery.toLowerCase());
     
-    // Dropdown filters
     const matchesType = filters.type === 'all' || source.type === filters.type;
     const matchesDiscipline = filters.discipline === 'all' || source.discipline === filters.discipline;
     const matchesYear = filters.year === 'all' || source.year === filters.year;
@@ -150,7 +146,6 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
     return matchesSearch && matchesType && matchesDiscipline && matchesYear;
   });
   
-  // Sort sources based on selected sort option
   const sortedSources = [...filteredSources].sort((a, b) => {
     switch (sortBy) {
       case 'title':
@@ -175,6 +170,12 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
     if (authors.length === 1) return authors[0];
     if (authors.length === 2) return `${authors[0]} & ${authors[1]}`;
     return `${authors[0]} et al.`;
+  };
+  
+  const formatCitation = (source: ReferenceSource): string => {
+    const authorText = source.authors.join(', ');
+    const citation = `${authorText} (${source.year}). ${source.title}. ${source.type === 'journal' ? source.discipline : source.type}.`;
+    return citation;
   };
   
   const handleToggleFavorite = (id: string) => {
@@ -218,13 +219,34 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
   };
   
   const handleDownloadPdf = (id: string) => {
-    // In a real app, this would download the PDF
     const source = sources.find(s => s.id === id);
     if (source) {
       toast({
         title: "Download started",
         description: `Downloading "${source.title}" PDF.`,
       });
+    }
+  };
+  
+  const handleCopyReference = (id: string) => {
+    const source = sources.find(s => s.id === id);
+    if (source) {
+      const formattedCitation = formatCitation(source);
+      navigator.clipboard.writeText(formattedCitation)
+        .then(() => {
+          toast({
+            title: "Reference copied",
+            description: "Citation has been copied to clipboard.",
+          });
+        })
+        .catch(err => {
+          console.error('Could not copy citation: ', err);
+          toast({
+            title: "Copy failed",
+            description: "Could not copy citation to clipboard.",
+            variant: "destructive",
+          });
+        });
     }
   };
 
@@ -355,6 +377,15 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
                           </PopoverTrigger>
                           <PopoverContent className="w-48" align="end">
                             <div className="flex flex-col space-y-1">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="justify-start" 
+                                onClick={() => handleCopyReference(source.id)}
+                              >
+                                <Copy className="mr-2 h-4 w-4" />
+                                Copy Citation
+                              </Button>
                               {source.hasPdf && (
                                 <Button 
                                   variant="ghost" 
@@ -528,6 +559,23 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
                     <TableCell>{source.usageCount}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8"
+                                onClick={() => handleCopyReference(source.id)}
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Copy Citation</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                         {source.hasPdf && (
                           <Button 
                             variant="ghost" 
@@ -564,7 +612,6 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
         )
       )}
       
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!referenceToDelete} onOpenChange={() => !referenceToDelete && setReferenceToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,80 +32,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-
-interface ReferenceSource {
-  id: string;
-  title: string;
-  authors: string[];
-  year: string;
-  type: 'journal' | 'book' | 'website' | 'conference' | 'other';
-  summary: string;
-  tags: string[];
-  hasPdf: boolean;
-  discipline: string;
-  usageCount: number;
-  dateAdded: Date;
-  isFavorite: boolean;
-}
-
-const MOCK_SOURCES: ReferenceSource[] = [
-  {
-    id: '1',
-    title: 'Climate Change Impacts on Global Food Security',
-    authors: ['Wheeler, T.', 'von Braun, J.'],
-    year: '2013',
-    type: 'journal',
-    summary: 'This paper examines the impacts of climate change on food security globally, analyzing potential disruptions to food systems and proposing adaptation strategies.',
-    tags: ['climate change', 'food security', 'agriculture', 'sustainability'],
-    hasPdf: true,
-    discipline: 'Environmental Science',
-    usageCount: 5,
-    dateAdded: new Date('2023-03-15'),
-    isFavorite: true,
-  },
-  {
-    id: '2',
-    title: 'The Psychology of Social Media Addiction',
-    authors: ['Miller, A.', 'Thompson, K.', 'Garcia, L.'],
-    year: '2022',
-    type: 'journal',
-    summary: 'An analysis of psychological factors contributing to social media addiction, examining dopamine responses, behavioral patterns, and potential intervention strategies.',
-    tags: ['psychology', 'social media', 'addiction', 'mental health'],
-    hasPdf: true,
-    discipline: 'Psychology',
-    usageCount: 3,
-    dateAdded: new Date('2023-05-22'),
-    isFavorite: false,
-  },
-  {
-    id: '3',
-    title: 'Ethical Frameworks for Artificial Intelligence Development',
-    authors: ['Roberts, S.', 'Chang, H.'],
-    year: '2021',
-    type: 'book',
-    summary: 'This book provides comprehensive ethical frameworks for AI development, addressing issues of bias, privacy, transparency, and accountability in machine learning systems.',
-    tags: ['ethics', 'artificial intelligence', 'technology', 'philosophy'],
-    hasPdf: false,
-    discipline: 'Computer Science',
-    usageCount: 7,
-    dateAdded: new Date('2023-02-10'),
-    isFavorite: true,
-  },
-  {
-    id: '4',
-    title: 'Economic Implications of Renewable Energy Transitions',
-    authors: ['Patel, R.'],
-    year: '2020',
-    type: 'conference',
-    summary: 'A conference paper analyzing economic costs and benefits of transitioning to renewable energy sources, with case studies from various countries and market sectors.',
-    tags: ['economics', 'renewable energy', 'sustainability', 'policy'],
-    hasPdf: true,
-    discipline: 'Economics',
-    usageCount: 2,
-    dateAdded: new Date('2023-06-05'),
-    isFavorite: false,
-  },
-];
+import { useKnowledgeBaseStore } from '@/store/KnowledgeBaseStore';
+import { KnowledgeBaseReference } from '@/types/knowledgeBase.types';
+import { supabase } from '@/lib/supabase';
 
 type FilterOptions = {
   type: string;
@@ -125,36 +55,41 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
   });
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [referenceToDelete, setReferenceToDelete] = useState<string | null>(null);
-  const [sources, setSources] = useState<ReferenceSource[]>(MOCK_SOURCES);
   const { toast } = useToast();
   
-  const disciplines = ['all', ...Array.from(new Set(sources.map(s => s.discipline)))];
-  const types = ['all', ...Array.from(new Set(sources.map(s => s.type)))];
-  const years = ['all', ...Array.from(new Set(sources.map(s => s.year))).sort((a, b) => parseInt(b) - parseInt(a))];
+  // Use references from our KnowledgeBase store
+  const { references, loading, deleteReference, toggleFavorite } = useKnowledgeBaseStore();
   
-  const filteredSources = sources.filter(source => {
+  // Extract unique values for filters
+  const disciplines = ['all', ...Array.from(new Set(references.map(s => s.discipline)))].filter(Boolean);
+  const types = ['all', ...Array.from(new Set(references.map(s => s.type)))];
+  const years = ['all', ...Array.from(new Set(references.map(s => s.year))).sort((a, b) => parseInt(b) - parseInt(a))];
+  
+  // Filter references based on search and filters
+  const filteredReferences = references.filter(reference => {
     const matchesSearch = 
-      source.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      source.authors.some(author => author.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      source.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      source.summary.toLowerCase().includes(searchQuery.toLowerCase());
+      reference.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      reference.authors.some(author => author.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      reference.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (reference.summary && reference.summary.toLowerCase().includes(searchQuery.toLowerCase()));
     
-    const matchesType = filters.type === 'all' || source.type === filters.type;
-    const matchesDiscipline = filters.discipline === 'all' || source.discipline === filters.discipline;
-    const matchesYear = filters.year === 'all' || source.year === filters.year;
+    const matchesType = filters.type === 'all' || reference.type === filters.type;
+    const matchesDiscipline = filters.discipline === 'all' || reference.discipline === filters.discipline;
+    const matchesYear = filters.year === 'all' || reference.year === filters.year;
     
     return matchesSearch && matchesType && matchesDiscipline && matchesYear;
   });
   
-  const sortedSources = [...filteredSources].sort((a, b) => {
+  // Sort references
+  const sortedReferences = [...filteredReferences].sort((a, b) => {
     switch (sortBy) {
       case 'title':
         return a.title.localeCompare(b.title);
       case 'usage':
-        return b.usageCount - a.usageCount;
+        return b.usage_count - a.usage_count;
       case 'recent':
       default:
-        return b.dateAdded.getTime() - a.dateAdded.getTime();
+        return b.date_added.getTime() - a.date_added.getTime();
     }
   });
   
@@ -167,50 +102,30 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
   };
   
   const formatAuthors = (authors: string[]) => {
+    if (authors.length === 0) return 'Unknown';
     if (authors.length === 1) return authors[0];
     if (authors.length === 2) return `${authors[0]} & ${authors[1]}`;
     return `${authors[0]} et al.`;
   };
   
-  const formatCitation = (source: ReferenceSource): string => {
-    const authorText = source.authors.join(', ');
-    const citation = `${authorText} (${source.year}). ${source.title}. ${source.type === 'journal' ? source.discipline : source.type}.`;
+  const formatCitation = (reference: KnowledgeBaseReference): string => {
+    const authorText = reference.authors.length > 0 ? reference.authors.join(', ') : 'Unknown';
+    const citation = `${authorText} (${reference.year}). ${reference.title}. ${reference.type === 'journal' ? reference.discipline : reference.type}.`;
     return citation;
-  };
-  
-  const handleToggleFavorite = (id: string) => {
-    setSources(prevSources => 
-      prevSources.map(source => 
-        source.id === id 
-          ? { ...source, isFavorite: !source.isFavorite } 
-          : source
-      )
-    );
-    
-    const source = sources.find(s => s.id === id);
-    if (source) {
-      toast({
-        title: source.isFavorite ? "Removed from favorites" : "Added to favorites",
-        description: `"${source.title}" has been ${source.isFavorite ? "removed from" : "added to"} your favorites.`,
-      });
-    }
   };
   
   const confirmDelete = (id: string) => {
     setReferenceToDelete(id);
   };
   
-  const handleDeleteConfirmed = () => {
+  const handleDeleteConfirmed = async () => {
     if (referenceToDelete) {
-      const sourceToDelete = sources.find(s => s.id === referenceToDelete);
-      setSources(prevSources => prevSources.filter(source => source.id !== referenceToDelete));
-      
-      toast({
-        title: "Reference deleted",
-        description: sourceToDelete ? `"${sourceToDelete.title}" has been deleted.` : "The reference has been deleted.",
-      });
-      
-      setReferenceToDelete(null);
+      try {
+        await deleteReference(referenceToDelete);
+        setReferenceToDelete(null);
+      } catch (error) {
+        console.error('Error deleting reference:', error);
+      }
     }
   };
   
@@ -218,20 +133,43 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
     setReferenceToDelete(null);
   };
   
-  const handleDownloadPdf = (id: string) => {
-    const source = sources.find(s => s.id === id);
-    if (source) {
-      toast({
-        title: "Download started",
-        description: `Downloading "${source.title}" PDF.`,
-      });
+  const handleDownloadPdf = async (id: string) => {
+    const reference = references.find(r => r.id === id);
+    if (reference && reference.pdf_path) {
+      try {
+        toast({
+          title: "Download started",
+          description: `Downloading "${reference.title}" PDF.`,
+        });
+        
+        // Get a signed URL for the file
+        const { data, error } = await supabase.storage
+          .from('uploads')
+          .createSignedUrl(reference.pdf_path, 60); // 60 seconds expiry
+          
+        if (error) {
+          throw error;
+        }
+        
+        if (data?.signedUrl) {
+          // Open the URL in a new tab
+          window.open(data.signedUrl, '_blank');
+        }
+      } catch (error) {
+        console.error('Error downloading file:', error);
+        toast({
+          title: "Download failed",
+          description: "There was an error downloading the file.",
+          variant: "destructive",
+        });
+      }
     }
   };
   
   const handleCopyReference = (id: string) => {
-    const source = sources.find(s => s.id === id);
-    if (source) {
-      const formattedCitation = formatCitation(source);
+    const reference = references.find(r => r.id === id);
+    if (reference) {
+      const formattedCitation = formatCitation(reference);
       navigator.clipboard.writeText(formattedCitation)
         .then(() => {
           toast({
@@ -249,6 +187,288 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
         });
     }
   };
+
+  // Render grid view
+  const renderGridView = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {sortedReferences.map((reference) => (
+        <HoverCard key={reference.id} openDelay={200} closeDelay={100}>
+          <HoverCardTrigger asChild>
+            <Card className="hover:shadow-md transition-shadow">
+              <CardContent className="p-5">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-start gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className={`h-5 w-5 p-0 ${reference.is_favorite ? 'text-yellow-400' : 'text-gray-400'}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(reference.id);
+                      }}
+                    >
+                      <Star className="h-4 w-4" />
+                    </Button>
+                    <h3 className="font-medium text-md line-clamp-2">{reference.title}</h3>
+                  </div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-48" align="end">
+                      <div className="flex flex-col space-y-1">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="justify-start" 
+                          onClick={() => handleCopyReference(reference.id)}
+                        >
+                          <Copy className="mr-2 h-4 w-4" />
+                          Copy Citation
+                        </Button>
+                        {reference.has_pdf && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="justify-start" 
+                            onClick={() => handleDownloadPdf(reference.id)}
+                          >
+                            <Download className="mr-2 h-4 w-4" />
+                            Download PDF
+                          </Button>
+                        )}
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="justify-start" 
+                          onClick={() => toggleFavorite(reference.id)}
+                        >
+                          <Star className={`mr-2 h-4 w-4 ${reference.is_favorite ? 'text-yellow-400' : ''}`} />
+                          {reference.is_favorite ? 'Remove Favorite' : 'Add Favorite'}
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="justify-start text-red-600" 
+                          onClick={() => confirmDelete(reference.id)}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                
+                <div className="text-sm text-gray-600 mt-1 mb-2">
+                  {formatAuthors(reference.authors)}, {reference.year}
+                </div>
+                
+                <div className="flex gap-1 mb-3">
+                  <Badge variant="outline" className="text-xs bg-gray-100">
+                    {reference.type}
+                  </Badge>
+                  {reference.discipline && (
+                    <Badge variant="outline" className="text-xs bg-gray-100">
+                      {reference.discipline}
+                    </Badge>
+                  )}
+                </div>
+                
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {reference.tags.slice(0, 3).map(tag => (
+                    <Badge key={tag} variant="secondary" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                  {reference.tags.length > 3 && (
+                    <Badge variant="secondary" className="text-xs">
+                      +{reference.tags.length - 3}
+                    </Badge>
+                  )}
+                </div>
+                
+                <div className="flex justify-between text-xs text-gray-500 mt-3 pt-3 border-t border-gray-200">
+                  <div className="flex items-center">
+                    {reference.has_pdf ? (
+                      <FileText className="h-3 w-3 mr-1 text-blue-500" />
+                    ) : (
+                      <ExternalLink className="h-3 w-3 mr-1" />
+                    )}
+                    {reference.has_pdf ? 'PDF Available' : 'External Source'}
+                  </div>
+                  <div className="flex items-center">
+                    Used in {reference.usage_count} document{reference.usage_count !== 1 ? 's' : ''}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </HoverCardTrigger>
+          <HoverCardContent className="w-80 p-4">
+            <h4 className="font-semibold">{reference.title}</h4>
+            <p className="text-sm text-gray-600 mt-2">
+              <span className="font-medium">Authors:</span> {reference.authors.length > 0 
+                ? reference.authors.join(', ') 
+                : 'Unknown'}
+            </p>
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">Published:</span> {reference.year}, {reference.type}
+            </p>
+            {reference.summary && (
+              <p className="text-sm text-gray-600 mt-2">{reference.summary}</p>
+            )}
+            {reference.tags.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-gray-200">
+                <div className="flex items-center gap-1 mb-2">
+                  <TagIcon className="h-3 w-3 text-gray-500" />
+                  <span className="text-xs text-gray-600">Tags:</span>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {reference.tags.map(tag => (
+                    <Badge key={tag} variant="secondary" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </HoverCardContent>
+        </HoverCard>
+      ))}
+    </div>
+  );
+
+  // Render list view
+  const renderListView = () => (
+    <div className="border rounded-md overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-[400px]">Source</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead>Year</TableHead>
+            <TableHead>Discipline</TableHead>
+            <TableHead>Uses</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {sortedReferences.map((reference) => (
+            <TableRow key={reference.id}>
+              <TableCell>
+                <div className="flex items-start gap-2">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className={`h-5 w-5 p-0 ${reference.is_favorite ? 'text-yellow-400' : 'text-gray-400'}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(reference.id);
+                    }}
+                  >
+                    <Star className="h-4 w-4" />
+                  </Button>
+                  <div>
+                    <HoverCard>
+                      <HoverCardTrigger className="font-medium text-blue-700 hover:underline cursor-pointer">
+                        {reference.title}
+                      </HoverCardTrigger>
+                      <HoverCardContent className="w-80 p-4">
+                        <h4 className="font-semibold">{reference.title}</h4>
+                        <p className="text-sm text-gray-600 mt-2">
+                          <span className="font-medium">Authors:</span> {reference.authors.length > 0 
+                            ? reference.authors.join(', ') 
+                            : 'Unknown'}
+                        </p>
+                        {reference.summary && (
+                          <p className="text-sm text-gray-600 mt-2">{reference.summary}</p>
+                        )}
+                        {reference.tags.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-gray-200">
+                            <div className="flex items-center gap-1 mb-2">
+                              <TagIcon className="h-3 w-3 text-gray-500" />
+                              <span className="text-xs text-gray-600">Tags:</span>
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                              {reference.tags.map(tag => (
+                                <Badge key={tag} variant="secondary" className="text-xs">
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </HoverCardContent>
+                    </HoverCard>
+                    <div className="text-sm text-gray-500">
+                      {formatAuthors(reference.authors)}
+                    </div>
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell>
+                <Badge variant="outline" className="text-xs">
+                  {reference.type}
+                </Badge>
+              </TableCell>
+              <TableCell>{reference.year}</TableCell>
+              <TableCell>{reference.discipline || '-'}</TableCell>
+              <TableCell>{reference.usage_count}</TableCell>
+              <TableCell className="text-right">
+                <div className="flex justify-end gap-1">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          onClick={() => handleCopyReference(reference.id)}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Copy Citation</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  {reference.has_pdf && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8"
+                      onClick={() => handleDownloadPdf(reference.id)}
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className={`h-8 w-8 ${reference.is_favorite ? 'text-yellow-400' : ''}`}
+                    onClick={() => toggleFavorite(reference.id)}
+                  >
+                    <Star className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 text-red-600" 
+                    onClick={() => confirmDelete(reference.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -336,7 +556,12 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
         </div>
       </div>
       
-      {sortedSources.length === 0 ? (
+      {loading ? (
+        <div className="text-center py-12 border rounded-md bg-gray-50">
+          <Book className="mx-auto h-12 w-12 text-gray-400 mb-4 animate-pulse" />
+          <h3 className="text-lg font-medium text-gray-900">Loading references...</h3>
+        </div>
+      ) : sortedReferences.length === 0 ? (
         <div className="text-center py-12 border rounded-md bg-gray-50">
           <Book className="mx-auto h-12 w-12 text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900">No references found</h3>
@@ -347,269 +572,7 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
           </p>
         </div>
       ) : (
-        viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {sortedSources.map((source) => (
-              <HoverCard key={source.id} openDelay={200} closeDelay={100}>
-                <HoverCardTrigger asChild>
-                  <Card className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-5">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-start gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className={`h-5 w-5 p-0 ${source.isFavorite ? 'text-yellow-400' : 'text-gray-400'}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleToggleFavorite(source.id);
-                            }}
-                          >
-                            <Star className="h-4 w-4" />
-                          </Button>
-                          <h3 className="font-medium text-md line-clamp-2">{source.title}</h3>
-                        </div>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-48" align="end">
-                            <div className="flex flex-col space-y-1">
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="justify-start" 
-                                onClick={() => handleCopyReference(source.id)}
-                              >
-                                <Copy className="mr-2 h-4 w-4" />
-                                Copy Citation
-                              </Button>
-                              {source.hasPdf && (
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="justify-start" 
-                                  onClick={() => handleDownloadPdf(source.id)}
-                                >
-                                  <Download className="mr-2 h-4 w-4" />
-                                  Download PDF
-                                </Button>
-                              )}
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="justify-start" 
-                                onClick={() => handleToggleFavorite(source.id)}
-                              >
-                                <Star className={`mr-2 h-4 w-4 ${source.isFavorite ? 'text-yellow-400' : ''}`} />
-                                {source.isFavorite ? 'Remove Favorite' : 'Add Favorite'}
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="justify-start text-red-600" 
-                                onClick={() => confirmDelete(source.id)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </Button>
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                      
-                      <div className="text-sm text-gray-600 mt-1 mb-2">
-                        {formatAuthors(source.authors)}, {source.year}
-                      </div>
-                      
-                      <div className="flex gap-1 mb-3">
-                        <Badge variant="outline" className="text-xs bg-gray-100">
-                          {source.type}
-                        </Badge>
-                        <Badge variant="outline" className="text-xs bg-gray-100">
-                          {source.discipline}
-                        </Badge>
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {source.tags.slice(0, 3).map(tag => (
-                          <Badge key={tag} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                        {source.tags.length > 3 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{source.tags.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                      
-                      <div className="flex justify-between text-xs text-gray-500 mt-3 pt-3 border-t border-gray-200">
-                        <div className="flex items-center">
-                          {source.hasPdf ? (
-                            <FileText className="h-3 w-3 mr-1 text-blue-500" />
-                          ) : (
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                          )}
-                          {source.hasPdf ? 'PDF Available' : 'External Source'}
-                        </div>
-                        <div className="flex items-center">
-                          Used in {source.usageCount} document{source.usageCount !== 1 ? 's' : ''}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </HoverCardTrigger>
-                <HoverCardContent className="w-80 p-4">
-                  <h4 className="font-semibold">{source.title}</h4>
-                  <p className="text-sm text-gray-600 mt-2">
-                    <span className="font-medium">Authors:</span> {source.authors.join(', ')}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    <span className="font-medium">Published:</span> {source.year}, {source.type}
-                  </p>
-                  <p className="text-sm text-gray-600 mt-2">{source.summary}</p>
-                  <div className="mt-3 pt-3 border-t border-gray-200">
-                    <div className="flex items-center gap-1 mb-2">
-                      <TagIcon className="h-3 w-3 text-gray-500" />
-                      <span className="text-xs text-gray-600">Tags:</span>
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {source.tags.map(tag => (
-                        <Badge key={tag} variant="secondary" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                </HoverCardContent>
-              </HoverCard>
-            ))}
-          </div>
-        ) : (
-          <div className="border rounded-md overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[400px]">Source</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Year</TableHead>
-                  <TableHead>Discipline</TableHead>
-                  <TableHead>Uses</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortedSources.map((source) => (
-                  <TableRow key={source.id}>
-                    <TableCell>
-                      <div className="flex items-start gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className={`h-5 w-5 p-0 ${source.isFavorite ? 'text-yellow-400' : 'text-gray-400'}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleToggleFavorite(source.id);
-                          }}
-                        >
-                          <Star className="h-4 w-4" />
-                        </Button>
-                        <div>
-                          <HoverCard>
-                            <HoverCardTrigger className="font-medium text-blue-700 hover:underline cursor-pointer">
-                              {source.title}
-                            </HoverCardTrigger>
-                            <HoverCardContent className="w-80 p-4">
-                              <h4 className="font-semibold">{source.title}</h4>
-                              <p className="text-sm text-gray-600 mt-2">
-                                <span className="font-medium">Authors:</span> {source.authors.join(', ')}
-                              </p>
-                              <p className="text-sm text-gray-600 mt-2">{source.summary}</p>
-                              <div className="mt-3 pt-3 border-t border-gray-200">
-                                <div className="flex items-center gap-1 mb-2">
-                                  <TagIcon className="h-3 w-3 text-gray-500" />
-                                  <span className="text-xs text-gray-600">Tags:</span>
-                                </div>
-                                <div className="flex flex-wrap gap-1">
-                                  {source.tags.map(tag => (
-                                    <Badge key={tag} variant="secondary" className="text-xs">
-                                      {tag}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              </div>
-                            </HoverCardContent>
-                          </HoverCard>
-                          <div className="text-sm text-gray-500">
-                            {formatAuthors(source.authors)}
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-xs">
-                        {source.type}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{source.year}</TableCell>
-                    <TableCell>{source.discipline}</TableCell>
-                    <TableCell>{source.usageCount}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-8 w-8"
-                                onClick={() => handleCopyReference(source.id)}
-                              >
-                                <Copy className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Copy Citation</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                        {source.hasPdf && (
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8"
-                            onClick={() => handleDownloadPdf(source.id)}
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        )}
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className={`h-8 w-8 ${source.isFavorite ? 'text-yellow-400' : ''}`}
-                          onClick={() => handleToggleFavorite(source.id)}
-                        >
-                          <Star className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-red-600" 
-                          onClick={() => confirmDelete(source.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )
+        viewMode === 'grid' ? renderGridView() : renderListView()
       )}
       
       <AlertDialog open={!!referenceToDelete} onOpenChange={() => !referenceToDelete && setReferenceToDelete(null)}>

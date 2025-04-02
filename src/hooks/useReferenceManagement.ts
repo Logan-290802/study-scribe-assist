@@ -4,6 +4,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/supabase';
 import { Reference } from '@/components/ai';
 import { Document } from '@/types/document.types';
+import { useKnowledgeBaseStore } from '@/store/KnowledgeBaseStore';
 
 export const useReferenceManagement = (
   documentId: string | undefined, 
@@ -13,6 +14,7 @@ export const useReferenceManagement = (
   updateDocument: (id: string, updates: Partial<Omit<Document, 'id'>>) => Promise<void>
 ) => {
   const { toast } = useToast();
+  const { addReference: addKnowledgeBaseReference } = useKnowledgeBaseStore();
   
   // Reset references when document ID changes
   useEffect(() => {
@@ -68,6 +70,28 @@ export const useReferenceManagement = (
       await updateDocument(documentId, {
         referencesCount: references.length + 1,
       });
+      
+      // Also add to knowledge base
+      try {
+        await addKnowledgeBaseReference({
+          title: reference.title,
+          authors: reference.authors,
+          year: reference.year,
+          type: 'journal',
+          summary: reference.content || '',
+          tags: [reference.source],
+          has_pdf: false,
+          discipline: reference.source,
+          is_favorite: false,
+          user_id: userId,
+          document_id: documentId,
+          citation_format: reference.format,
+          source_url: reference.url
+        });
+      } catch (knowledgeBaseError) {
+        console.error('Error adding to knowledge base:', knowledgeBaseError);
+        // Continue even if knowledge base addition fails
+      }
       
       toast({
         title: "Reference added",

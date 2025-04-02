@@ -9,10 +9,10 @@ export const createUserMessage = (content: string) => ({
   timestamp: new Date()
 });
 
-export const createReferenceResponse = (customContent?: string) => ({
+export const createReferenceResponse = () => ({
   id: uuidv4(),
   role: 'assistant' as const,
-  content: customContent || 'Based on your query, I found the following references that might be helpful. Would you like to add one of these to your document?\n\n1. Smith, J. (2023). "Advances in AI Research". Journal of Artificial Intelligence, 45(2), 112-145.\n\n2. Johnson, A. & Lee, B. (2022). "Machine Learning Applications in Education". Educational Technology Review, 18(3), 78-92.',
+  content: 'Based on your query, I found the following references that might be helpful. Would you like to add one of these to your document?\n\n1. Smith, J. (2023). "Advances in AI Research". Journal of Artificial Intelligence, 45(2), 112-145.\n\n2. Johnson, A. & Lee, B. (2022). "Machine Learning Applications in Education". Educational Technology Review, 18(3), 78-92.',
   timestamp: new Date()
 });
 

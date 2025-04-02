@@ -1,7 +1,6 @@
 
 import { useToast } from '@/components/ui/use-toast';
 import { ChatMessage } from '@/components/ai/types';
-import { KnowledgeBaseReference } from '@/types/knowledgeBase.types';
 import { 
   createUserMessage, 
   createReferenceResponse, 
@@ -18,7 +17,6 @@ interface UseMessageHandlerProps {
   uploadedFile: File | null;
   setUploadedFile: React.Dispatch<React.SetStateAction<File | null>>;
   onNewMessage?: (message: string) => void;
-  knowledgeBaseReferences?: KnowledgeBaseReference[];
 }
 
 export const useMessageHandler = ({
@@ -28,8 +26,7 @@ export const useMessageHandler = ({
   setIsLoading,
   uploadedFile,
   setUploadedFile,
-  onNewMessage,
-  knowledgeBaseReferences = []
+  onNewMessage
 }: UseMessageHandlerProps) => {
   const { toast } = useToast();
 
@@ -65,24 +62,7 @@ export const useMessageHandler = ({
       let aiResponse: ChatMessage;
       
       if (input.toLowerCase().includes('reference') || input.toLowerCase().includes('citation')) {
-        // Use knowledge base references if available
-        if (knowledgeBaseReferences && knowledgeBaseReferences.length > 0) {
-          // Sort by most recently added
-          const recentRefs = [...knowledgeBaseReferences]
-            .sort((a, b) => b.date_added.getTime() - a.date_added.getTime())
-            .slice(0, 2);
-            
-          const refsContent = recentRefs.map(ref => {
-            const authors = ref.authors.length > 0 
-              ? ref.authors.join(', ') 
-              : 'Unknown';
-            return `${authors} (${ref.year}). "${ref.title}". ${ref.type === 'journal' ? ref.discipline : ref.type}.`;
-          }).join('\n\n');
-          
-          aiResponse = createReferenceResponse(refsContent);
-        } else {
-          aiResponse = createReferenceResponse();
-        }
+        aiResponse = createReferenceResponse();
       } else if (input.toLowerCase().includes('summarize') || input.toLowerCase().includes('summary')) {
         aiResponse = createSummaryResponse();
       } else if (uploadedFile) {

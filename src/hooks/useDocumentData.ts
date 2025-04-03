@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDocuments } from '@/store/DocumentStore';
 import { useAuth } from '@/store/AuthContext';
@@ -18,6 +19,7 @@ export const useDocumentData = () => {
   const [documentContent, setDocumentContent] = useState(document?.content || '');
   const [references, setReferences] = useState<Reference[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   
   useEffect(() => {
     if (document) {
@@ -63,7 +65,8 @@ export const useDocumentData = () => {
     fetchReferences();
   }, [id, user]);
   
-  const handleSave = async () => {
+  // Implement autosave functionality
+  const handleSave = useCallback(async () => {
     if (!id || !user) return;
     
     try {
@@ -75,10 +78,7 @@ export const useDocumentData = () => {
         snippet: documentContent.substring(0, 150) + '...',
       });
       
-      toast({
-        title: "Document saved",
-        description: "Your document has been saved successfully.",
-      });
+      setLastSaved(new Date());
     } catch (error) {
       console.error('Error saving document:', error);
       toast({
@@ -89,7 +89,18 @@ export const useDocumentData = () => {
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [id, user, documentTitle, documentContent, updateDocument, toast]);
+  
+  // Autosave when content or title changes (with debounce)
+  useEffect(() => {
+    if (!id || !user) return;
+    
+    const saveTimeout = setTimeout(() => {
+      handleSave();
+    }, 2000); // 2 second debounce
+    
+    return () => clearTimeout(saveTimeout);
+  }, [documentTitle, documentContent, handleSave, id, user]);
   
   return {
     id,
@@ -102,6 +113,7 @@ export const useDocumentData = () => {
     references,
     setReferences,
     isSaving,
-    handleSave
+    handleSave,
+    lastSaved
   };
 };

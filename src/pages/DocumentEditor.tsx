@@ -28,7 +28,8 @@ const DocumentEditor = () => {
     references,
     setReferences,
     isSaving,
-    handleSave
+    handleSave,
+    lastSaved
   } = useDocumentData();
   
   // AI chat functionality
@@ -89,6 +90,7 @@ const DocumentEditor = () => {
             onTitleChange={setDocumentTitle}
             onSave={handleSave}
             isSaving={isSaving}
+            lastSaved={lastSaved}
           />
           
           <div className="grid grid-cols-12 gap-6 h-[calc(100vh-200px)]">

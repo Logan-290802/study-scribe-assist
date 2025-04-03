@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { Reference } from '@/components/ai/types';
 
@@ -20,17 +19,24 @@ export interface KnowledgeBaseItem {
 export const fetchKnowledgeBaseItems = async (userId: string): Promise<KnowledgeBaseItem[]> => {
   try {
     // Check if table exists first
-    const { data: tables, error: tableError } = await supabase
+    const { data, error: checkError } = await supabase
       .from('knowledge_base')
-      .select('*')
+      .select('id')
       .limit(1);
     
-    if (tableError && tableError.message.includes('does not exist')) {
-      console.warn('Knowledge base table does not exist yet. Please create it using the Supabase dashboard.');
-      return [];
+    if (checkError && checkError.message.includes('does not exist')) {
+      console.warn('Knowledge base table does not exist yet. Creating table...');
+      
+      // Create the table if it doesn't exist
+      const { error: createError } = await supabase.rpc('create_knowledge_base_if_not_exists');
+      
+      if (createError) {
+        console.warn('Could not auto-create table, please create it manually:', createError);
+        return [];
+      }
     }
     
-    const { data, error } = await supabase
+    const { data: items, error } = await supabase
       .from('knowledge_base')
       .select('*')
       .eq('user_id', userId)
@@ -41,7 +47,7 @@ export const fetchKnowledgeBaseItems = async (userId: string): Promise<Knowledge
       return [];
     }
     
-    return data || [];
+    return items || [];
   } catch (error) {
     console.error('Error fetching knowledge base items:', error);
     return [];
@@ -53,17 +59,24 @@ export const addKnowledgeBaseItem = async (
 ): Promise<KnowledgeBaseItem | null> => {
   try {
     // Check if table exists first
-    const { data: tables, error: tableError } = await supabase
+    const { data, error: checkError } = await supabase
       .from('knowledge_base')
-      .select('*')
+      .select('id')
       .limit(1);
     
-    if (tableError && tableError.message.includes('does not exist')) {
-      console.warn('Knowledge base table does not exist yet. Please create it using the Supabase dashboard.');
-      return null;
+    if (checkError && checkError.message.includes('does not exist')) {
+      console.warn('Knowledge base table does not exist yet. Creating table...');
+      
+      // Create the table if it doesn't exist
+      const { error: createError } = await supabase.rpc('create_knowledge_base_if_not_exists');
+      
+      if (createError) {
+        console.warn('Could not auto-create table, please create it manually:', createError);
+        return null;
+      }
     }
     
-    const { data, error } = await supabase
+    const { data: newItem, error } = await supabase
       .from('knowledge_base')
       .insert(item)
       .select()
@@ -74,7 +87,7 @@ export const addKnowledgeBaseItem = async (
       return null;
     }
     
-    return data;
+    return newItem;
   } catch (error) {
     console.error('Error adding knowledge base item:', error);
     return null;
@@ -141,4 +154,12 @@ export const convertReferenceToKnowledgeBaseItem = (
     format: reference.format,
     user_id: userId,
   };
+};
+
+export const getFilePublicUrl = (filePath: string): string => {
+  const { data } = supabase.storage
+    .from('uploads')
+    .getPublicUrl(filePath);
+  
+  return data.publicUrl;
 };

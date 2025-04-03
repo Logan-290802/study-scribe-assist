@@ -1,45 +1,55 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DocumentTitle from '@/components/editor/DocumentTitle';
+import { Save, Clock } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 
 interface DocumentHeaderProps {
   documentTitle: string;
   onTitleChange: (title: string) => void;
-  onSave: () => void;
+  onSave: () => Promise<void>;
   isSaving: boolean;
+  lastSaved?: Date | null;
 }
 
 const DocumentHeader: React.FC<DocumentHeaderProps> = ({
   documentTitle,
   onTitleChange,
   onSave,
-  isSaving
+  isSaving,
+  lastSaved
 }) => {
-  const navigate = useNavigate();
+  const handleSaveClick = () => {
+    onSave();
+  };
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between bg-white border-b p-4 rounded-t-md">
+      <DocumentTitle
+        title={documentTitle}
+        onTitleChange={onTitleChange}
+      />
+      
       <div className="flex items-center gap-4">
+        {lastSaved && (
+          <div className="flex items-center text-sm text-gray-500">
+            <Clock className="h-3 w-3 mr-1" />
+            <span>
+              {isSaving ? 'Saving...' : `Saved ${formatDistanceToNow(lastSaved, { addSuffix: true })}`}
+            </span>
+          </div>
+        )}
+        
         <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => navigate('/dashboard')}
+          onClick={handleSaveClick}
+          disabled={isSaving}
+          className="flex items-center gap-1"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
+          <Save className="h-4 w-4" />
+          {isSaving ? 'Saving...' : 'Save'}
         </Button>
-        <DocumentTitle 
-          title={documentTitle}
-          onTitleChange={onTitleChange}
-        />
       </div>
-      <Button onClick={onSave} disabled={isSaving}>
-        <Save className="h-4 w-4 mr-2" />
-        {isSaving ? 'Saving...' : 'Save'}
-      </Button>
     </div>
   );
 };

@@ -3,18 +3,14 @@ import { supabase } from '@/lib/supabase';
 
 export const fetchChatHistoryFromDb = async (documentId: string, userId: string) => {
   try {
-    const { data: tablesData, error: tablesError } = await supabase
-      .from('information_schema.tables')
-      .select('table_name')
-      .eq('table_schema', 'public')
-      .eq('table_name', 'ai_chat_history');
+    // Check if the table exists first by using a direct query approach
+    // Instead of querying information_schema which might not be accessible
+    const { data: checkData, error: checkError } = await supabase
+      .from('ai_chat_history')
+      .select('id')
+      .limit(1);
       
-    if (tablesError) {
-      console.error('Error checking for table:', tablesError);
-      return null;
-    }
-    
-    if (!tablesData || tablesData.length === 0) {
+    if (checkError && checkError.message.includes('does not exist')) {
       console.info('ai_chat_history table does not exist yet');
       return null;
     }
@@ -51,36 +47,31 @@ export const saveChatMessageToDb = async (
   content: string
 ) => {
   try {
-    const { data: tablesData, error: tablesError } = await supabase
-      .from('information_schema.tables')
-      .select('table_name')
-      .eq('table_schema', 'public')
-      .eq('table_name', 'ai_chat_history');
+    // Check if the table exists first by using a direct query approach
+    const { data: checkData, error: checkError } = await supabase
+      .from('ai_chat_history')
+      .select('id')
+      .limit(1);
       
-    if (tablesError) {
-      console.error('Error checking for table:', tablesError);
-      return false;
-    }
-    
-    if (tablesData && tablesData.length > 0) {
-      const { error } = await supabase.from('ai_chat_history').insert({
-        document_id: documentId,
-        user_id: userId,
-        role,
-        content,
-        timestamp: new Date().toISOString(),
-      });
-      
-      if (error) {
-        console.error('Error saving chat message:', error);
-        return false;
-      }
-      
-      return true;
-    } else {
+    if (checkError && checkError.message.includes('does not exist')) {
       console.info('ai_chat_history table does not exist yet');
       return false;
     }
+    
+    const { error } = await supabase.from('ai_chat_history').insert({
+      document_id: documentId,
+      user_id: userId,
+      role,
+      content,
+      timestamp: new Date().toISOString(),
+    });
+    
+    if (error) {
+      console.error('Error saving chat message:', error);
+      return false;
+    }
+    
+    return true;
   } catch (error) {
     console.error('Error saving chat message:', error);
     return false;

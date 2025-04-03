@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from '@/lib/utils/uuid';
 import { supabase } from '@/lib/supabase';
 
@@ -93,15 +92,22 @@ export const saveChatMessageToSupabase = async (
   onError: (error: any) => void
 ) => {
   try {
-    // Check if table exists first
-    const { data: tables, error: tableError } = await supabase
+    // Check if table exists first using a direct query approach
+    const { data, error: checkError } = await supabase
       .from('ai_chat_history')
-      .select('*')
+      .select('id')
       .limit(1);
     
-    if (tableError && tableError.message.includes('does not exist')) {
-      console.warn('ai_chat_history table does not exist yet. Skipping message save.');
-      return false;
+    if (checkError && checkError.message.includes('does not exist')) {
+      console.warn('ai_chat_history table does not exist yet. Creating table...');
+      
+      // Create the table if it doesn't exist
+      const { error: createError } = await supabase.rpc('create_ai_chat_history_if_not_exists');
+      
+      if (createError) {
+        console.warn('Could not auto-create table, please create it manually:', createError);
+        return false;
+      }
     }
     
     const { error } = await supabase.from('ai_chat_history').insert({

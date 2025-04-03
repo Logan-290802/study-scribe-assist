@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { handleFileUpload, checkStorageBucket } from './fileUtils';
-import { convertFileToKnowledgeBaseItem } from '@/services/KnowledgeBaseService';
+import { convertFileToKnowledgeBaseItem, addKnowledgeBaseItem } from '@/services/KnowledgeBaseService';
 import { 
   createUserMessage, 
   createProcessingPdfMessage, 
@@ -70,7 +70,18 @@ export const useFileUpload = ({
           // Upload file to storage
           const { path, fileType } = await handleFileUpload(file, documentId, userId);
           
-          // Add file to knowledge base if the callback is provided
+          // Add file directly to knowledge base
+          if (userId) {
+            const knowledgeBaseItem = convertFileToKnowledgeBaseItem(path, fileType, file.name, userId);
+            await addKnowledgeBaseItem(knowledgeBaseItem);
+            
+            toast({
+              title: "File added to knowledge base",
+              description: `"${file.name}" has been added to your knowledge base.`,
+            });
+          }
+          
+          // Also call the original onAddToKnowledgeBase for backward compatibility
           if (onAddToKnowledgeBase) {
             try {
               await onAddToKnowledgeBase(path, fileType, file.name);

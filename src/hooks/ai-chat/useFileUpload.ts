@@ -19,7 +19,7 @@ interface UseFileUploadProps {
   userId?: string;
   setMessages: React.Dispatch<React.SetStateAction<any[]>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  onAddToKnowledgeBase?: (filePath: string, fileType: string, fileName: string) => Promise<void>;
+  onAddToKnowledgeBase?: (item: any) => Promise<void>;
 }
 
 export const useFileUpload = ({
@@ -88,7 +88,12 @@ export const useFileUpload = ({
           // Also call the original onAddToKnowledgeBase for backward compatibility
           if (onAddToKnowledgeBase) {
             try {
-              await onAddToKnowledgeBase(path, fileType, file.name);
+              const itemForKnowledgeBase = {
+                filePath: path,
+                fileType,
+                fileName: file.name
+              };
+              await onAddToKnowledgeBase(itemForKnowledgeBase);
             } catch (knowledgeBaseError) {
               console.error('Error adding to knowledge base:', knowledgeBaseError);
               // Continue with chat even if knowledge base fails
@@ -192,3 +197,4 @@ export const useFileUpload = ({
     handleFileChange
   };
 };
+

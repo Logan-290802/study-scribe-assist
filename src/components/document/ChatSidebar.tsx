@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { AiChat, Reference } from '@/components/ai';
@@ -77,22 +76,17 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   };
 
   // Function to handle file uploads and add to knowledge base
-  const handleAddToKnowledgeBase = async (filePath: string, fileType: string, fileName: string) => {
+  const handleAddToKnowledgeBase = async (item: any) => {
     if (!userId || !addKnowledgeBaseItem) return;
+    
+    const { filePath, fileType, fileName } = item;
     
     const knowledgeBaseItem = convertFileToKnowledgeBaseItem(filePath, fileType, fileName, userId);
     await addKnowledgeBaseItem(knowledgeBaseItem);
     
     // Also call the original onAddToKnowledgeBase if provided
     if (onAddToKnowledgeBase) {
-      // Create an item object with the format expected by onAddToKnowledgeBase
-      const itemForCallback = {
-        filePath,
-        fileType,
-        fileName
-      };
-      
-      await onAddToKnowledgeBase(itemForCallback);
+      await onAddToKnowledgeBase(item);
     }
   };
 

@@ -24,10 +24,12 @@ export const handleFileUpload = async (
   }
   
   const extension = ALLOWED_FILE_TYPES[fileType as keyof typeof ALLOWED_FILE_TYPES];
-  // Simplify the path structure to avoid potential permissions issues
-  const filePath = `${Date.now()}_${file.name}`;
+  // Include user ID in the file path to help with permissions
+  const filePath = `${userId}/${Date.now()}_${file.name}`;
   
   try {
+    console.log('Attempting to upload file to path:', filePath);
+    
     // Try direct upload without checking or creating bucket first
     const { data, error } = await supabase.storage
       .from('uploads')
@@ -41,12 +43,38 @@ export const handleFileUpload = async (
       
       if (error.message.includes('row-level security policy') || 
           error.message.includes('Unauthorized') || 
-          error.message.includes('403')) {
-        throw new Error(`Storage permission denied. Please contact your administrator to set up storage permissions.`);
+          error.message.includes('403') ||
+          error.message.includes('Permission denied')) {
+        throw new Error(`Storage permission denied. Make sure you've set up the proper storage policies for the uploads bucket.`);
+      }
+      
+      if (error.message.includes('already exists')) {
+        // Try with a different filename if there's a conflict
+        const newFilePath = `${userId}/${Date.now()}_${Math.random().toString(36).substring(2)}_${file.name}`;
+        console.log('Retrying with new file path:', newFilePath);
+        
+        const retryUpload = await supabase.storage
+          .from('uploads')
+          .upload(newFilePath, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+          
+        if (retryUpload.error) {
+          console.error('Retry upload failed:', retryUpload.error);
+          throw retryUpload.error;
+        }
+        
+        return { 
+          path: newFilePath,
+          fileType
+        };
       }
       
       throw error;
     }
+    
+    console.log('File uploaded successfully:', data?.path);
     
     return { 
       path: filePath,
@@ -76,3 +104,4 @@ export const checkStorageBucket = async (): Promise<boolean> => {
     return false;
   }
 };
+

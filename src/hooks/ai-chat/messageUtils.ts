@@ -44,6 +44,13 @@ export const createGeneralResponse = () => ({
   timestamp: new Date()
 });
 
+export const createErrorMessage = (message: string) => ({
+  id: uuidv4(),
+  role: 'assistant' as const,
+  content: message,
+  timestamp: new Date()
+});
+
 export const createProcessingPdfMessage = (fileName: string) => ({
   id: uuidv4(),
   role: 'assistant' as const,
@@ -86,6 +93,17 @@ export const saveChatMessageToSupabase = async (
   onError: (error: any) => void
 ) => {
   try {
+    // Check if table exists first
+    const { data: tables, error: tableError } = await supabase
+      .from('ai_chat_history')
+      .select('*')
+      .limit(1);
+    
+    if (tableError && tableError.message.includes('does not exist')) {
+      console.warn('ai_chat_history table does not exist yet. Skipping message save.');
+      return false;
+    }
+    
     const { error } = await supabase.from('ai_chat_history').insert({
       document_id: message.document_id,
       user_id: message.user_id,

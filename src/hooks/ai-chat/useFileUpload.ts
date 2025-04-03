@@ -9,6 +9,7 @@ import {
   createProcessingImageMessage,
   createPdfAnalysisResponse,
   createImageAnalysisResponse,
+  createErrorMessage,
   saveChatMessageToSupabase
 } from './messageUtils';
 
@@ -38,19 +39,20 @@ export const useFileUpload = ({
       setMessages((prev) => [...prev, userMessage]);
       setIsLoading(true);
       
+      // First add the user message to chat history if applicable
       if (userId && documentId) {
-        await saveChatMessageToSupabase({
-          role: 'user',
-          content: userMessage.content,
-          document_id: documentId,
-          user_id: userId,
-        }, (error) => {
-          toast({
-            title: "Error",
-            description: "Failed to save chat message",
-            variant: "destructive",
+        try {
+          await saveChatMessageToSupabase({
+            role: 'user',
+            content: userMessage.content,
+            document_id: documentId,
+            user_id: userId,
+          }, (error) => {
+            console.error('Error saving chat message:', error);
           });
-        });
+        } catch (error) {
+          console.error('Error saving chat message:', error);
+        }
         
         try {
           // Upload file to storage
@@ -58,15 +60,24 @@ export const useFileUpload = ({
           
           // Add file to knowledge base if the callback is provided
           if (onAddToKnowledgeBase) {
-            await onAddToKnowledgeBase(path, fileType, file.name);
+            try {
+              await onAddToKnowledgeBase(path, fileType, file.name);
+            } catch (knowledgeBaseError) {
+              console.error('Error adding to knowledge base:', knowledgeBaseError);
+              // Continue with chat even if knowledge base fails
+            }
           }
-        } catch (error) {
-          console.error('Error uploading file:', error);
+        } catch (uploadError) {
+          console.error('Error uploading file:', uploadError);
           toast({
             title: "Upload Error",
-            description: "Failed to upload file to storage",
+            description: "Failed to upload file to storage. Please try again later.",
             variant: "destructive",
           });
+          
+          // Add error message to chat
+          const errorMessage = createErrorMessage("I'm sorry, I couldn't process your file. There was an error uploading it to our system.");
+          setMessages(prev => [...prev, errorMessage]);
           setIsLoading(false);
           return;
         }
@@ -82,18 +93,18 @@ export const useFileUpload = ({
         setMessages((prev) => [...prev, processingMessage]);
         
         if (userId && documentId) {
-          saveChatMessageToSupabase({
-            role: 'assistant',
-            content: processingMessage.content,
-            document_id: documentId,
-            user_id: userId,
-          }, (error) => {
-            toast({
-              title: "Error",
-              description: "Failed to save chat message",
-              variant: "destructive",
+          try {
+            saveChatMessageToSupabase({
+              role: 'assistant',
+              content: processingMessage.content,
+              document_id: documentId,
+              user_id: userId,
+            }, (error) => {
+              console.error('Error saving processing message:', error);
             });
-          });
+          } catch (error) {
+            console.error('Error saving processing message:', error);
+          }
         }
         
         // Analysis message after longer delay
@@ -107,18 +118,18 @@ export const useFileUpload = ({
           setIsLoading(false);
           
           if (userId && documentId) {
-            saveChatMessageToSupabase({
-              role: 'assistant',
-              content: analysisMessage.content,
-              document_id: documentId,
-              user_id: userId,
-            }, (error) => {
-              toast({
-                title: "Error",
-                description: "Failed to save chat message",
-                variant: "destructive",
+            try {
+              saveChatMessageToSupabase({
+                role: 'assistant',
+                content: analysisMessage.content,
+                document_id: documentId,
+                user_id: userId,
+              }, (error) => {
+                console.error('Error saving analysis message:', error);
               });
-            });
+            } catch (error) {
+              console.error('Error saving analysis message:', error);
+            }
           }
         }, 2000);
       }, 1500);

@@ -19,6 +19,17 @@ export interface KnowledgeBaseItem {
 
 export const fetchKnowledgeBaseItems = async (userId: string): Promise<KnowledgeBaseItem[]> => {
   try {
+    // Check if table exists first
+    const { data: tables, error: tableError } = await supabase
+      .from('knowledge_base')
+      .select('*')
+      .limit(1);
+    
+    if (tableError && tableError.message.includes('does not exist')) {
+      console.warn('Knowledge base table does not exist yet. Created with Supabase dashboard.');
+      return [];
+    }
+    
     const { data, error } = await supabase
       .from('knowledge_base')
       .select('*')
@@ -40,6 +51,17 @@ export const addKnowledgeBaseItem = async (
   item: Omit<KnowledgeBaseItem, 'id' | 'created_at'>
 ): Promise<KnowledgeBaseItem | null> => {
   try {
+    // Check if table exists first
+    const { data: tables, error: tableError } = await supabase
+      .from('knowledge_base')
+      .select('*')
+      .limit(1);
+    
+    if (tableError && tableError.message.includes('does not exist')) {
+      console.warn('Knowledge base table does not exist yet. Please create it using the Supabase dashboard.');
+      return null;
+    }
+    
     const { data, error } = await supabase
       .from('knowledge_base')
       .insert(item)
@@ -59,6 +81,17 @@ export const addKnowledgeBaseItem = async (
 
 export const deleteKnowledgeBaseItem = async (id: string, userId: string): Promise<boolean> => {
   try {
+    // Check if table exists first
+    const { data: tables, error: tableError } = await supabase
+      .from('knowledge_base')
+      .select('*')
+      .limit(1);
+    
+    if (tableError && tableError.message.includes('does not exist')) {
+      console.warn('Knowledge base table does not exist yet.');
+      return false;
+    }
+    
     const { error } = await supabase
       .from('knowledge_base')
       .delete()

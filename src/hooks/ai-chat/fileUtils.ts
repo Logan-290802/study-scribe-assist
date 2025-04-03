@@ -27,10 +27,16 @@ export const handleFileUpload = async (
   // Include user ID in the file path to help with permissions
   const filePath = `${userId}/${Date.now()}_${file.name}`;
   
+  // First check if the bucket exists
+  const bucketExists = await checkStorageBucket();
+  if (!bucketExists) {
+    await createStorageBucket();
+  }
+  
   try {
     console.log('Attempting to upload file to path:', filePath);
     
-    // Try direct upload without checking or creating bucket first
+    // Now try the upload
     const { data, error } = await supabase.storage
       .from('uploads')
       .upload(filePath, file, {
@@ -86,7 +92,7 @@ export const handleFileUpload = async (
   }
 };
 
-// Simplified bucket check - we don't try to create it automatically, just check if it exists
+// Check if bucket exists and create if needed
 export const checkStorageBucket = async (): Promise<boolean> => {
   try {
     // Check if bucket exists
@@ -105,3 +111,23 @@ export const checkStorageBucket = async (): Promise<boolean> => {
   }
 };
 
+// Create uploads bucket if it doesn't exist
+export const createStorageBucket = async (): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.storage.createBucket('uploads', {
+      public: false,
+      fileSizeLimit: 10485760, // 10MB
+    });
+    
+    if (error) {
+      console.error('Error creating bucket:', error);
+      return false;
+    }
+    
+    console.log('Created uploads bucket successfully');
+    return true;
+  } catch (error) {
+    console.error('Error creating storage bucket:', error);
+    return false;
+  }
+};

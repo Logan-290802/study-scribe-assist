@@ -41,7 +41,7 @@ export const handleFileUpload = async (
       
       if (error.message.includes('row-level security policy') || 
           error.message.includes('Unauthorized') || 
-          error.statusCode === 403) {
+          error.message.includes('403')) {
         throw new Error(`Storage permission denied. Please contact your administrator to set up storage permissions.`);
       }
       

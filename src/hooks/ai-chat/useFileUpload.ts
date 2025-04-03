@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
-import { handleFileUpload } from './fileUtils';
+import { handleFileUpload, checkStorageBucket } from './fileUtils';
 import { convertFileToKnowledgeBaseItem } from '@/services/KnowledgeBaseService';
 import { 
   createUserMessage, 
@@ -54,6 +54,23 @@ export const useFileUpload = ({
           console.error('Error saving chat message:', error);
         }
         
+        // Check if storage bucket exists before attempting upload
+        const bucketExists = await checkStorageBucket();
+        if (!bucketExists) {
+          // Show a specific message about storage not being set up
+          toast({
+            title: "Storage Not Available",
+            description: "The file storage system hasn't been configured. Please ask the administrator to set up Supabase storage.",
+            variant: "destructive",
+          });
+          
+          // Add error message to chat
+          const errorMessage = createErrorMessage("I'm sorry, I couldn't process your file. The file storage system isn't available at the moment.");
+          setMessages(prev => [...prev, errorMessage]);
+          setIsLoading(false);
+          return;
+        }
+        
         try {
           // Upload file to storage
           const { path, fileType } = await handleFileUpload(file, documentId, userId);
@@ -67,16 +84,24 @@ export const useFileUpload = ({
               // Continue with chat even if knowledge base fails
             }
           }
-        } catch (uploadError) {
+        } catch (uploadError: any) {
           console.error('Error uploading file:', uploadError);
+          
+          let errorDescription = "Failed to upload file to storage. Please try again later.";
+          if (uploadError.message.includes('permission denied') || 
+              uploadError.message.includes('Unauthorized') ||
+              (uploadError.statusCode && uploadError.statusCode === 403)) {
+            errorDescription = "You don't have permission to upload files. Please contact your administrator.";
+          }
+          
           toast({
             title: "Upload Error",
-            description: "Failed to upload file to storage. Please try again later.",
+            description: errorDescription,
             variant: "destructive",
           });
           
           // Add error message to chat
-          const errorMessage = createErrorMessage("I'm sorry, I couldn't process your file. There was an error uploading it to our system.");
+          const errorMessage = createErrorMessage("I'm sorry, I couldn't process your file. " + errorDescription);
           setMessages(prev => [...prev, errorMessage]);
           setIsLoading(false);
           return;

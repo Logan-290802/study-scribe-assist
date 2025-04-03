@@ -26,7 +26,7 @@ export const fetchKnowledgeBaseItems = async (userId: string): Promise<Knowledge
       .limit(1);
     
     if (tableError && tableError.message.includes('does not exist')) {
-      console.warn('Knowledge base table does not exist yet. Created with Supabase dashboard.');
+      console.warn('Knowledge base table does not exist yet. Please create it using the Supabase dashboard.');
       return [];
     }
     
@@ -37,7 +37,8 @@ export const fetchKnowledgeBaseItems = async (userId: string): Promise<Knowledge
       .order('created_at', { ascending: false });
     
     if (error) {
-      throw error;
+      console.error('Error fetching knowledge base items:', error);
+      return [];
     }
     
     return data || [];
@@ -69,7 +70,8 @@ export const addKnowledgeBaseItem = async (
       .single();
     
     if (error) {
-      throw error;
+      console.error('Error adding knowledge base item:', error);
+      return null;
     }
     
     return data;
@@ -99,12 +101,13 @@ export const deleteKnowledgeBaseItem = async (id: string, userId: string): Promi
       .eq('user_id', userId);
     
     if (error) {
-      throw error;
+      console.error('Error deleting knowledge base item:', error);
+      return false;
     }
     
     return true;
   } catch (error) {
-    console.error('Error deleting knowledge base item:', error);
+    console.error('Error deleting knowledge base items:', error);
     return false;
   }
 };

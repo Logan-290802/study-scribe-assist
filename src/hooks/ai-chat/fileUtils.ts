@@ -24,13 +24,11 @@ export const handleFileUpload = async (
   }
   
   const extension = ALLOWED_FILE_TYPES[fileType as keyof typeof ALLOWED_FILE_TYPES];
-  // Create a more simple path structure to avoid potential RLS issues
-  const filePath = `user_${userId}/${Date.now()}_${file.name}`;
+  // Simplify the path structure to avoid potential permissions issues
+  const filePath = `${Date.now()}_${file.name}`;
   
   try {
-    // Make sure the bucket exists and has proper policies
-    await ensureStorageBucket();
-    
+    // Try direct upload without checking or creating bucket first
     const { data, error } = await supabase.storage
       .from('uploads')
       .upload(filePath, file, {
@@ -40,6 +38,13 @@ export const handleFileUpload = async (
       
     if (error) {
       console.error('Storage upload error:', error);
+      
+      if (error.message.includes('row-level security policy') || 
+          error.message.includes('Unauthorized') || 
+          error.statusCode === 403) {
+        throw new Error(`Storage permission denied. Please contact your administrator to set up storage permissions.`);
+      }
+      
       throw error;
     }
     
@@ -53,33 +58,21 @@ export const handleFileUpload = async (
   }
 };
 
-// Ensure the storage bucket exists with proper policies
-const ensureStorageBucket = async () => {
+// Simplified bucket check - we don't try to create it automatically, just check if it exists
+export const checkStorageBucket = async (): Promise<boolean> => {
   try {
     // Check if bucket exists
     const { data: buckets, error } = await supabase.storage.listBuckets();
     
     if (error) {
       console.error('Error checking buckets:', error);
-      throw error;
+      return false;
     }
     
     const uploadsBucket = buckets?.find(bucket => bucket.name === 'uploads');
-    
-    if (!uploadsBucket) {
-      // Create bucket if it doesn't exist
-      const { error: createError } = await supabase.storage.createBucket('uploads', {
-        public: true
-      });
-      
-      if (createError) {
-        console.error('Error creating uploads bucket:', createError);
-      }
-    }
-    
-    return true;
+    return !!uploadsBucket;
   } catch (error) {
-    console.error('Error ensuring storage bucket:', error);
+    console.error('Error checking storage bucket:', error);
     return false;
   }
 };

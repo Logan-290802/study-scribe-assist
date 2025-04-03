@@ -113,6 +113,11 @@ export const saveChatMessageToSupabase = async (
     });
     
     if (error) {
+      if (error.message.includes('row-level security policy') || 
+          error.message.includes('Unauthorized')) {
+        console.warn('RLS policy preventing chat message save. Check Supabase permissions.');
+        return false;
+      }
       throw error;
     }
     

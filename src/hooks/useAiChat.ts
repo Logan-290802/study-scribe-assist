@@ -4,6 +4,7 @@ import { ChatMessage, Reference } from '@/components/ai/types';
 import { useFileUpload } from './ai-chat/useFileUpload';
 import { useMessageHandler } from './ai-chat/useMessageHandler';
 import { useReferenceHandler } from './ai-chat/useReferenceHandler';
+import { convertFileToKnowledgeBaseItem } from '@/services/KnowledgeBaseService';
 
 interface UseAiChatProps {
   documentId?: string;
@@ -11,6 +12,7 @@ interface UseAiChatProps {
   onAddReference?: (reference: Reference) => void;
   externalChatHistory?: { role: 'user' | 'assistant'; content: string }[];
   onNewMessage?: (message: string) => void;
+  onAddToKnowledgeBase?: (item: any) => Promise<any>;
 }
 
 export const useAiChat = ({
@@ -18,7 +20,8 @@ export const useAiChat = ({
   userId,
   onAddReference,
   externalChatHistory,
-  onNewMessage
+  onNewMessage,
+  onAddToKnowledgeBase
 }: UseAiChatProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -39,7 +42,14 @@ export const useAiChat = ({
     }
   });
 
-  // File upload handling
+  // File upload handling with knowledge base integration
+  const handleAddFileToKnowledgeBase = async (filePath: string, fileType: string, fileName: string) => {
+    if (onAddToKnowledgeBase && userId) {
+      const knowledgeBaseItem = convertFileToKnowledgeBaseItem(filePath, fileType, fileName, userId);
+      await onAddToKnowledgeBase(knowledgeBaseItem);
+    }
+  };
+
   const { 
     uploadedFile, 
     setUploadedFile, 
@@ -48,7 +58,8 @@ export const useAiChat = ({
     documentId,
     userId,
     setMessages,
-    setIsLoading
+    setIsLoading,
+    onAddToKnowledgeBase: handleAddFileToKnowledgeBase
   });
 
   // Message handling

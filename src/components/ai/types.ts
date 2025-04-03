@@ -24,4 +24,5 @@ export interface AiChatProps {
   onNewMessage?: (message: string) => void;
   documentId?: string;
   chatHistory?: { role: 'user' | 'assistant'; content: string }[];
+  onAddToKnowledgeBase?: (item: any) => Promise<any>;
 }

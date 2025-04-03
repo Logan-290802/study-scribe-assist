@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { handleFileUpload } from './fileUtils';
+import { convertFileToKnowledgeBaseItem } from '@/services/KnowledgeBaseService';
 import { 
   createUserMessage, 
   createProcessingPdfMessage, 
@@ -16,13 +17,15 @@ interface UseFileUploadProps {
   userId?: string;
   setMessages: React.Dispatch<React.SetStateAction<any[]>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  onAddToKnowledgeBase?: (filePath: string, fileType: string, fileName: string) => Promise<void>;
 }
 
 export const useFileUpload = ({
   documentId,
   userId,
   setMessages,
-  setIsLoading
+  setIsLoading,
+  onAddToKnowledgeBase
 }: UseFileUploadProps) => {
   const { toast } = useToast();
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -50,7 +53,13 @@ export const useFileUpload = ({
         });
         
         try {
-          await handleFileUpload(file, documentId, userId);
+          // Upload file to storage
+          const { path, fileType } = await handleFileUpload(file, documentId, userId);
+          
+          // Add file to knowledge base if the callback is provided
+          if (onAddToKnowledgeBase) {
+            await onAddToKnowledgeBase(path, fileType, file.name);
+          }
         } catch (error) {
           console.error('Error uploading file:', error);
           toast({

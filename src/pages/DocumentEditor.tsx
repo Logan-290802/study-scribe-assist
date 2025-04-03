@@ -9,6 +9,8 @@ import ChatSidebar from '@/components/document/ChatSidebar';
 import { useDocumentData } from '@/hooks/useDocumentData';
 import { useDocumentAiChat } from '@/hooks/useDocumentAiChat';
 import { useReferenceManagement } from '@/hooks/useReferenceManagement';
+import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
+import { convertReferenceToKnowledgeBaseItem } from '@/services/KnowledgeBaseService';
 import { ChatInputProvider } from '@/contexts/ChatInputContext';
 
 const DocumentEditor = () => {
@@ -35,6 +37,23 @@ const DocumentEditor = () => {
     setAiChatHistory,
     handleAiAction
   } = useDocumentAiChat(id, user?.id);
+  
+  // Knowledge base integration
+  const {
+    addItem: addToKnowledgeBase
+  } = useKnowledgeBase(user?.id);
+  
+  // Reference management with knowledge base integration
+  const handleAddReferenceWithKnowledgeBase = async (reference) => {
+    // First add to document references
+    handleAddReference(reference);
+    
+    // Then add to knowledge base
+    if (user?.id) {
+      const knowledgeBaseItem = convertReferenceToKnowledgeBaseItem(reference, user.id);
+      await addToKnowledgeBase(knowledgeBaseItem);
+    }
+  };
   
   // Reference management
   const {
@@ -87,7 +106,7 @@ const DocumentEditor = () => {
                 documentTitle={documentTitle}
                 documentContent={documentContent}
                 aiChatHistory={aiChatHistory}
-                onAddReference={handleAddReference}
+                onAddReference={handleAddReferenceWithKnowledgeBase}
                 onDeleteReference={handleDeleteReference}
               />
             </div>
@@ -95,10 +114,11 @@ const DocumentEditor = () => {
             <div className="col-span-12 lg:col-span-4 h-full">
               <ChatSidebar 
                 documentId={id || ''}
-                onAddReference={handleAddReference}
+                onAddReference={handleAddReferenceWithKnowledgeBase}
                 chatHistory={aiChatHistory}
                 setChatHistory={setAiChatHistory}
                 userId={user?.id}
+                onAddToKnowledgeBase={addToKnowledgeBase}
               />
             </div>
           </div>

@@ -11,7 +11,8 @@ export const AiChat: React.FC<AiChatProps> = ({
   onAddReference, 
   onNewMessage, 
   documentId,
-  chatHistory 
+  chatHistory,
+  onAddToKnowledgeBase
 }) => {
   const { user } = useAuth();
   
@@ -28,7 +29,8 @@ export const AiChat: React.FC<AiChatProps> = ({
     userId: user?.id,
     onAddReference,
     externalChatHistory: chatHistory,
-    onNewMessage
+    onNewMessage,
+    onAddToKnowledgeBase
   });
 
   return (

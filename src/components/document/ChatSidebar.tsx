@@ -10,6 +10,7 @@ interface ChatSidebarProps {
   chatHistory: { role: 'user' | 'assistant'; content: string }[];
   setChatHistory: React.Dispatch<React.SetStateAction<{ role: 'user' | 'assistant'; content: string }[]>>;
   userId?: string;
+  onAddToKnowledgeBase?: (item: any) => Promise<any>;
 }
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({
@@ -17,7 +18,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onAddReference,
   chatHistory,
   setChatHistory,
-  userId
+  userId,
+  onAddToKnowledgeBase
 }) => {
   // Load chat history from Supabase when component mounts
   useEffect(() => {
@@ -78,6 +80,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
           documentId={documentId}
           onNewMessage={handleNewMessage}
           chatHistory={chatHistory}
+          onAddToKnowledgeBase={onAddToKnowledgeBase}
         />
       </CardContent>
     </Card>

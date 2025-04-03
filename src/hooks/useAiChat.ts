@@ -45,7 +45,12 @@ export const useAiChat = ({
   // File upload handling with knowledge base integration
   const handleAddFileToKnowledgeBase = async (filePath: string, fileType: string, fileName: string) => {
     if (onAddToKnowledgeBase && userId) {
-      const knowledgeBaseItem = convertFileToKnowledgeBaseItem(filePath, fileType, fileName, userId);
+      // Create an item object with the format expected by onAddToKnowledgeBase
+      const knowledgeBaseItem = {
+        filePath,
+        fileType,
+        fileName
+      };
       await onAddToKnowledgeBase(knowledgeBaseItem);
     }
   };

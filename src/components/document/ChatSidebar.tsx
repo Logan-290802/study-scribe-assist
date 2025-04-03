@@ -85,11 +85,14 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
     
     // Also call the original onAddToKnowledgeBase if provided
     if (onAddToKnowledgeBase) {
-      await onAddToKnowledgeBase({
+      // Create an item object with the format expected by onAddToKnowledgeBase
+      const itemForCallback = {
         filePath,
         fileType,
         fileName
-      });
+      };
+      
+      await onAddToKnowledgeBase(itemForCallback);
     }
   };
 

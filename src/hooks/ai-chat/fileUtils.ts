@@ -30,7 +30,15 @@ export const handleFileUpload = async (
   // First check if the bucket exists
   const bucketExists = await checkStorageBucket();
   if (!bucketExists) {
-    await createStorageBucket();
+    console.log('Uploads bucket does not exist, attempting to create it...');
+    const created = await createStorageBucket();
+    if (!created) {
+      console.error('Failed to create uploads bucket');
+      throw new Error('Failed to create storage bucket. Please contact administrator.');
+    }
+    console.log('Successfully created uploads bucket');
+  } else {
+    console.log('Uploads bucket already exists');
   }
   
   try {
@@ -51,7 +59,7 @@ export const handleFileUpload = async (
           error.message.includes('Unauthorized') || 
           error.message.includes('403') ||
           error.message.includes('Permission denied')) {
-        throw new Error(`Storage permission denied. Make sure you've set up the proper storage policies for the uploads bucket.`);
+        throw new Error(`Storage permission denied. Make sure you're authenticated and have the proper permissions.`);
       }
       
       if (error.message.includes('already exists')) {
@@ -71,6 +79,7 @@ export const handleFileUpload = async (
           throw retryUpload.error;
         }
         
+        console.log('Retry upload succeeded with path:', newFilePath);
         return { 
           path: newFilePath,
           fileType
@@ -95,6 +104,7 @@ export const handleFileUpload = async (
 // Check if bucket exists and create if needed
 export const checkStorageBucket = async (): Promise<boolean> => {
   try {
+    console.log('Checking if uploads bucket exists...');
     // Check if bucket exists
     const { data: buckets, error } = await supabase.storage.listBuckets();
     
@@ -104,6 +114,7 @@ export const checkStorageBucket = async (): Promise<boolean> => {
     }
     
     const uploadsBucket = buckets?.find(bucket => bucket.name === 'uploads');
+    console.log('Uploads bucket exists:', !!uploadsBucket);
     return !!uploadsBucket;
   } catch (error) {
     console.error('Error checking storage bucket:', error);
@@ -114,6 +125,7 @@ export const checkStorageBucket = async (): Promise<boolean> => {
 // Create uploads bucket if it doesn't exist
 export const createStorageBucket = async (): Promise<boolean> => {
   try {
+    console.log('Creating uploads bucket...');
     const { data, error } = await supabase.storage.createBucket('uploads', {
       public: false,
       fileSizeLimit: 10485760, // 10MB

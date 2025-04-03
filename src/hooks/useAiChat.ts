@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChatMessage, Reference } from '@/components/ai/types';
 import { useFileUpload } from './ai-chat/useFileUpload';
 import { useMessageHandler } from './ai-chat/useMessageHandler';
@@ -27,7 +27,7 @@ export const useAiChat = ({
   const [isLoading, setIsLoading] = useState(false);
 
   // Initialize with external chat history if provided
-  useState(() => {
+  useEffect(() => {
     if (externalChatHistory && externalChatHistory.length > 0) {
       const convertedMessages = externalChatHistory.map((item, index) => ({
         id: index.toString(),
@@ -40,12 +40,21 @@ export const useAiChat = ({
         setMessages(convertedMessages);
       }
     }
-  });
+  }, [externalChatHistory]);
 
   // File upload handling with knowledge base integration
   const handleAddFileToKnowledgeBase = async (item: any) => {
+    console.log('handleAddFileToKnowledgeBase called with item:', item);
     if (onAddToKnowledgeBase && userId) {
-      await onAddToKnowledgeBase(item);
+      try {
+        console.log('Calling onAddToKnowledgeBase from useAiChat');
+        const result = await onAddToKnowledgeBase(item);
+        console.log('Knowledge base add result:', result);
+        return result;
+      } catch (error) {
+        console.error('Error in handleAddFileToKnowledgeBase:', error);
+        return null;
+      }
     }
   };
 
@@ -90,4 +99,3 @@ export const useAiChat = ({
     addSampleReference
   };
 };
-

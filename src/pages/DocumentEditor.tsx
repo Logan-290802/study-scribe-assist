@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import DocumentHeader from '@/components/document/DocumentHeader';
@@ -12,6 +12,7 @@ import { useReferenceManagement } from '@/hooks/useReferenceManagement';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { convertReferenceToKnowledgeBaseItem } from '@/services/KnowledgeBaseService';
 import { ChatInputProvider } from '@/contexts/ChatInputContext';
+import { useDocumentAutosave } from '@/hooks/useDocumentAutosave';
 
 const DocumentEditor = () => {
   const navigate = useNavigate();
@@ -31,6 +32,21 @@ const DocumentEditor = () => {
     handleSave,
     lastSaved
   } = useDocumentData();
+  
+  // Set up autosave
+  const documentData = {
+    title: documentTitle,
+    content: documentContent,
+    chatHistory: []
+  };
+  
+  const { saveNow } = useDocumentAutosave(id, user?.id, documentData);
+  
+  // Effect to trigger save on content changes
+  useEffect(() => {
+    // This will trigger the autosave through the useDocumentAutosave hook
+    console.log('Document content or title changed - autosave should trigger');
+  }, [documentTitle, documentContent]);
   
   // AI chat functionality
   const {
@@ -88,7 +104,7 @@ const DocumentEditor = () => {
           <DocumentHeader 
             documentTitle={documentTitle}
             onTitleChange={setDocumentTitle}
-            onSave={handleSave}
+            onSave={saveNow || handleSave}
             isSaving={isSaving}
             lastSaved={lastSaved}
           />

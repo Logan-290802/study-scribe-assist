@@ -19,7 +19,7 @@ interface UseFileUploadProps {
   userId?: string;
   setMessages: React.Dispatch<React.SetStateAction<any[]>>;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  onAddToKnowledgeBase?: (item: any) => Promise<void>;
+  onAddToKnowledgeBase?: (item: any) => Promise<any>;
 }
 
 export const useFileUpload = ({
@@ -71,31 +71,41 @@ export const useFileUpload = ({
           
           // Upload file to storage
           const { path, fileType } = await handleFileUpload(file, documentId, userId);
+          console.log('File uploaded successfully, path:', path);
+          console.log('Now adding to knowledge base...');
+          
+          // Create the knowledge base item for direct addition
+          const itemForKnowledgeBase = {
+            filePath: path,
+            fileType,
+            fileName: file.name
+          };
           
           // Add file directly to knowledge base using the context
           if (userId && addKnowledgeBaseItem) {
+            console.log('Adding to knowledge base using DocumentStore');
             const knowledgeBaseItem = convertFileToKnowledgeBaseItem(path, fileType, file.name, userId);
             const result = await addKnowledgeBaseItem(knowledgeBaseItem);
             
             if (result) {
+              console.log('Successfully added to knowledge base via DocumentStore');
               toast({
                 title: "File added to knowledge base",
                 description: `"${file.name}" has been added to your knowledge base.`,
               });
+            } else {
+              console.error('Failed to add to knowledge base via DocumentStore');
             }
           }
           
           // Also call the original onAddToKnowledgeBase for backward compatibility
           if (onAddToKnowledgeBase) {
             try {
-              const itemForKnowledgeBase = {
-                filePath: path,
-                fileType,
-                fileName: file.name
-              };
-              await onAddToKnowledgeBase(itemForKnowledgeBase);
+              console.log('Calling onAddToKnowledgeBase with:', itemForKnowledgeBase);
+              const result = await onAddToKnowledgeBase(itemForKnowledgeBase);
+              console.log('onAddToKnowledgeBase result:', result);
             } catch (knowledgeBaseError) {
-              console.error('Error adding to knowledge base:', knowledgeBaseError);
+              console.error('Error adding to knowledge base via callback:', knowledgeBaseError);
               // Continue with chat even if knowledge base fails
             }
           }
@@ -197,4 +207,3 @@ export const useFileUpload = ({
     handleFileChange
   };
 };
-

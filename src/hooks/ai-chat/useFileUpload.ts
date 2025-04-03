@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
-import { handleFileUpload, checkStorageBucket, createStorageBucket } from './fileUtils';
+import { handleFileUpload, checkStorageBucket } from './fileUtils';
 import { convertFileToKnowledgeBaseItem } from '@/services/KnowledgeBaseService';
 import { 
   createUserMessage, 
@@ -55,6 +55,14 @@ export const useFileUpload = ({
         }
         
         try {
+          // Check if bucket exists first
+          const bucketStatus = await checkStorageBucket();
+          console.log('Bucket status:', bucketStatus);
+          
+          if (bucketStatus === 'not-exists') {
+            throw new Error("The 'uploads' bucket doesn't exist. Please create it in your Supabase dashboard under Storage.");
+          }
+          
           // Upload file to storage
           const { path, fileType } = await handleFileUpload(file, documentId, userId);
           
@@ -73,19 +81,20 @@ export const useFileUpload = ({
           let errorDescription = "Failed to upload file to storage. Please try again later.";
           let actionNeeded = "";
           
-          if (uploadError.message.includes('row-level security policy') || 
-              uploadError.message.includes('Permission denied')) {
+          if (uploadError.message.includes('bucket') || 
+              (typeof uploadError === 'object' && uploadError.error_description?.includes('bucket'))) {
+            errorDescription = "The 'uploads' bucket doesn't exist in your Supabase project.";
+            actionNeeded = "Please create it manually in the Supabase dashboard under Storage.";
+          } else if (uploadError.message.includes('row-level security policy') || 
+                  uploadError.message.includes('Unauthorized') ||
+                  uploadError.message.includes('Permission denied')) {
             errorDescription = "Permission issue with Supabase Storage.";
-            actionNeeded = "Please ensure proper Storage policies are set up in your Supabase project.";
-          } else if (uploadError.message.includes('Unauthorized') ||
-              (uploadError.statusCode && uploadError.statusCode === 403)) {
-            errorDescription = "You don't have permission to upload files.";
-            actionNeeded = "Please sign in again or contact your administrator.";
+            actionNeeded = "Please check your Storage RLS policies in the Supabase dashboard.";
           }
           
           toast({
             title: "Upload Error",
-            description: errorDescription,
+            description: `${errorDescription} ${actionNeeded}`,
             variant: "destructive",
           });
           

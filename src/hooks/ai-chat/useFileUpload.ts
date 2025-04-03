@@ -1,18 +1,9 @@
 
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
-import { handleFileUpload, checkStorageBucket } from './fileUtils';
-import { convertFileToKnowledgeBaseItem } from '@/services/KnowledgeBaseService';
-import { useDocuments } from '@/store/DocumentStore';
-import { 
-  createUserMessage, 
-  createProcessingPdfMessage, 
-  createProcessingImageMessage,
-  createPdfAnalysisResponse,
-  createImageAnalysisResponse,
-  createErrorMessage,
-  saveChatMessageToSupabase
-} from './messageUtils';
+import { checkStorageBucket } from './fileUtils';
+import { uploadFileToStorage, addFileToKnowledgeBase } from './fileUploadService';
+import { createFileUploadMessages } from './fileUploadMessages';
 
 interface UseFileUploadProps {
   documentId?: string;
@@ -31,31 +22,18 @@ export const useFileUpload = ({
 }: UseFileUploadProps) => {
   const { toast } = useToast();
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const { addKnowledgeBaseItem } = useDocuments();
 
   const handleFileChange = async (file: File) => {
     try {
       setUploadedFile(file);
-      
-      const userMessage = createUserMessage(`I've uploaded a file: "${file.name}". Can you analyze it for me?`);
-      setMessages((prev) => [...prev, userMessage]);
       setIsLoading(true);
       
-      // First add the user message to chat history if applicable
+      // Create and handle file upload messages
+      const { userMessage, getErrorMessage, addProcessingAndAnalysisMessages } = 
+        await createFileUploadMessages(file, documentId, userId, setMessages, setIsLoading);
+      
+      // If document and user IDs are available, proceed with storage and knowledge base
       if (userId && documentId) {
-        try {
-          await saveChatMessageToSupabase({
-            role: 'user',
-            content: userMessage.content,
-            document_id: documentId,
-            user_id: userId,
-          }, (error) => {
-            console.error('Error saving chat message:', error);
-          });
-        } catch (error) {
-          console.error('Error saving chat message:', error);
-        }
-        
         try {
           // Check if bucket exists first
           const bucketStatus = await checkStorageBucket();
@@ -70,45 +48,21 @@ export const useFileUpload = ({
           }
           
           // Upload file to storage
-          const { path, fileType } = await handleFileUpload(file, documentId, userId);
+          const { path, fileType } = await uploadFileToStorage(file, documentId, userId);
           console.log('File uploaded successfully, path:', path);
-          console.log('Now adding to knowledge base...');
           
-          // Create the knowledge base item for direct addition
-          const itemForKnowledgeBase = {
-            filePath: path,
-            fileType,
-            fileName: file.name
-          };
+          // Add file to knowledge base
+          await addFileToKnowledgeBase(path, fileType, file.name, userId, onAddToKnowledgeBase);
           
-          // Add file directly to knowledge base using the context
-          if (userId && addKnowledgeBaseItem) {
-            console.log('Adding to knowledge base using DocumentStore');
-            const knowledgeBaseItem = convertFileToKnowledgeBaseItem(path, fileType, file.name, userId);
-            const result = await addKnowledgeBaseItem(knowledgeBaseItem);
-            
-            if (result) {
-              console.log('Successfully added to knowledge base via DocumentStore');
-              toast({
-                title: "File added to knowledge base",
-                description: `"${file.name}" has been added to your knowledge base.`,
-              });
-            } else {
-              console.error('Failed to add to knowledge base via DocumentStore');
-            }
-          }
+          // Show success toast
+          toast({
+            title: "File uploaded",
+            description: `"${file.name}" has been uploaded and added to your knowledge base.`,
+          });
           
-          // Also call the original onAddToKnowledgeBase for backward compatibility
-          if (onAddToKnowledgeBase) {
-            try {
-              console.log('Calling onAddToKnowledgeBase with:', itemForKnowledgeBase);
-              const result = await onAddToKnowledgeBase(itemForKnowledgeBase);
-              console.log('onAddToKnowledgeBase result:', result);
-            } catch (knowledgeBaseError) {
-              console.error('Error adding to knowledge base via callback:', knowledgeBaseError);
-              // Continue with chat even if knowledge base fails
-            }
-          }
+          // Add the processing and analysis messages
+          addProcessingAndAnalysisMessages();
+          
         } catch (uploadError: any) {
           console.error('Error uploading file:', uploadError);
           
@@ -133,63 +87,13 @@ export const useFileUpload = ({
           });
           
           // Add error message to chat
-          const errorMessage = createErrorMessage(`I'm sorry, I couldn't process your file. ${errorDescription} ${actionNeeded}`);
-          setMessages(prev => [...prev, errorMessage]);
-          setIsLoading(false);
+          getErrorMessage(errorDescription, actionNeeded);
           return;
         }
+      } else {
+        // If no document/user ID, just show the messages without storage/knowledge base
+        addProcessingAndAnalysisMessages();
       }
-      
-      // Processing message after short delay
-      setTimeout(() => {
-        const isImage = file.type.startsWith('image/');
-        const processingMessage = isImage 
-          ? createProcessingImageMessage(file.name)
-          : createProcessingPdfMessage(file.name);
-        
-        setMessages((prev) => [...prev, processingMessage]);
-        
-        if (userId && documentId) {
-          try {
-            saveChatMessageToSupabase({
-              role: 'assistant',
-              content: processingMessage.content,
-              document_id: documentId,
-              user_id: userId,
-            }, (error) => {
-              console.error('Error saving processing message:', error);
-            });
-          } catch (error) {
-            console.error('Error saving processing message:', error);
-          }
-        }
-        
-        // Analysis message after longer delay
-        setTimeout(() => {
-          const isImage = file.type.startsWith('image/');
-          const analysisMessage = isImage
-            ? createImageAnalysisResponse(file.name)
-            : createPdfAnalysisResponse(file.name);
-            
-          setMessages((prev) => [...prev, analysisMessage]);
-          setIsLoading(false);
-          
-          if (userId && documentId) {
-            try {
-              saveChatMessageToSupabase({
-                role: 'assistant',
-                content: analysisMessage.content,
-                document_id: documentId,
-                user_id: userId,
-              }, (error) => {
-                console.error('Error saving analysis message:', error);
-              });
-            } catch (error) {
-              console.error('Error saving analysis message:', error);
-            }
-          }
-        }, 2000);
-      }, 1500);
     } catch (error) {
       console.error('Error handling file:', error);
       setIsLoading(false);

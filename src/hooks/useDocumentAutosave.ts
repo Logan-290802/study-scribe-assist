@@ -33,7 +33,7 @@ export function useDocumentAutosave(
   };
   
   // Function to save the document content
-  const saveDocument = async (data: DocumentData) => {
+  const saveDocument = async (data: DocumentData): Promise<void> => {
     if (!documentId || !userId) return;
     
     console.log('Saving document with ID:', documentId);
@@ -63,10 +63,8 @@ export function useDocumentAutosave(
       
       setLastSaved(new Date());
       console.log('Document saved successfully at', new Date().toISOString());
-      return true;
     } catch (error) {
       console.error('Error saving document:', error);
-      return false;
     }
   };
   
@@ -105,20 +103,15 @@ export function useDocumentAutosave(
       console.log('Manual save triggered');
       setIsSaving(true);
       
-      const success = await saveDocument(documentData);
+      await saveDocument(documentData);
       
       setIsSaving(false);
+      setLastSaved(new Date());
       
-      if (success) {
-        setLastSaved(new Date());
-        
-        toast({
-          title: "Document Saved",
-          description: "Your document has been saved successfully."
-        });
-      } else {
-        throw new Error('Save operation failed');
-      }
+      toast({
+        title: "Document Saved",
+        description: "Your document has been saved successfully."
+      });
     } catch (error) {
       console.error('Error saving document:', error);
       setIsSaving(false);

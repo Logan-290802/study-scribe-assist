@@ -1,20 +1,27 @@
 
 import React from 'react';
 import { useAuth } from '@/store/AuthContext';
-import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import KnowledgeBaseItem from './KnowledgeBaseItem';
 import { Book, Search } from 'lucide-react';
+import { KnowledgeBaseItem as KBItem } from '@/services/KnowledgeBaseService';
 
 interface KnowledgeBaseProps {
   searchQuery: string;
+  items?: KBItem[];
+  isLoading?: boolean;
+  onDeleteItem?: (id: string) => Promise<boolean>;
 }
 
-const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
+const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ 
+  searchQuery, 
+  items = [], 
+  isLoading = false,
+  onDeleteItem
+}) => {
   const { user } = useAuth();
-  const { knowledgeBaseItems, isLoading, deleteItem } = useKnowledgeBase(user?.id);
   
   // Filter items based on search query
-  const filteredItems = knowledgeBaseItems.filter(item => {
+  const filteredItems = items.filter(item => {
     if (!searchQuery) return true;
     
     const searchLower = searchQuery.toLowerCase();
@@ -27,7 +34,9 @@ const KnowledgeBase: React.FC<KnowledgeBaseProps> = ({ searchQuery }) => {
   });
 
   const handleDeleteItem = async (id: string) => {
-    await deleteItem(id);
+    if (onDeleteItem) {
+      await onDeleteItem(id);
+    }
   };
 
   if (isLoading) {

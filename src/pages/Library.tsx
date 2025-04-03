@@ -6,9 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Search, Book, FileText, Tag, Calendar, Clock } from 'lucide-react';
 import MyWorkList from '@/components/library/MyWorkList';
 import KnowledgeBase from '@/components/library/KnowledgeBase';
+import { useDocuments } from '@/store/DocumentStore';
 
 const Library = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const { knowledgeBaseItems, knowledgeBaseLoading, deleteKnowledgeBaseItem } = useDocuments();
   
   return (
     <Layout>
@@ -43,7 +45,12 @@ const Library = () => {
           </TabsContent>
           
           <TabsContent value="knowledge-base" className="mt-0">
-            <KnowledgeBase searchQuery={searchQuery} />
+            <KnowledgeBase 
+              searchQuery={searchQuery} 
+              items={knowledgeBaseItems} 
+              isLoading={knowledgeBaseLoading}
+              onDeleteItem={deleteKnowledgeBaseItem}
+            />
           </TabsContent>
         </Tabs>
       </div>

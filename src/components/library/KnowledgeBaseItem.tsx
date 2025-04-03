@@ -1,8 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trash2, FileText, Image, FileUp, Download } from 'lucide-react';
+import { Trash2, FileText, Image, FileUp, Download, ExternalLink } from 'lucide-react';
 import { KnowledgeBaseItem as KBItem } from '@/services/KnowledgeBaseService';
 import { getFilePublicUrl } from '@/services/KnowledgeBaseService';
 
@@ -12,6 +12,9 @@ interface KnowledgeBaseItemProps {
 }
 
 const KnowledgeBaseItem: React.FC<KnowledgeBaseItemProps> = ({ item, onDelete }) => {
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this item?')) {
       await onDelete(item.id);
@@ -34,16 +37,36 @@ const KnowledgeBaseItem: React.FC<KnowledgeBaseItemProps> = ({ item, onDelete })
   };
   
   // Handle download for file items
-  const handleDownload = () => {
+  const handleView = () => {
     if (!item.file_path) return;
     
     const publicUrl = getFilePublicUrl(item.file_path);
     window.open(publicUrl, '_blank');
   };
+  
+  const isImage = item.file_type?.toLowerCase().includes('image');
+  const imageUrl = isImage ? getFilePublicUrl(item.file_path!) : '';
 
   return (
     <Card className="h-full flex flex-col overflow-hidden hover:shadow-md transition-shadow">
       <CardContent className="p-4 flex-grow">
+        {isImage && !imageError && (
+          <div className="mb-4 relative aspect-video w-full overflow-hidden rounded bg-gray-100">
+            {!isImageLoaded && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-300"></div>
+              </div>
+            )}
+            <img 
+              src={imageUrl} 
+              alt={item.title}
+              className={`w-full h-full object-cover transition-opacity ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+              onLoad={() => setIsImageLoaded(true)}
+              onError={() => setImageError(true)}
+            />
+          </div>
+        )}
+        
         <div className="flex items-start gap-3">
           <div className="p-2 rounded-full bg-gray-100 text-gray-600">
             {getItemIcon()}
@@ -74,6 +97,15 @@ const KnowledgeBaseItem: React.FC<KnowledgeBaseItemProps> = ({ item, onDelete })
             </span>
           </div>
         )}
+        
+        {item.url && (
+          <div className="mt-2 flex items-center text-xs text-blue-500">
+            <ExternalLink className="h-3 w-3 mr-1" />
+            <a href={item.url} target="_blank" rel="noopener noreferrer" className="truncate hover:underline">
+              {item.url}
+            </a>
+          </div>
+        )}
       </CardContent>
       
       <CardFooter className="p-3 pt-0 flex justify-between">
@@ -91,7 +123,7 @@ const KnowledgeBaseItem: React.FC<KnowledgeBaseItemProps> = ({ item, onDelete })
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={handleDownload}
+            onClick={handleView}
             className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
           >
             <Download className="h-4 w-4 mr-1" />

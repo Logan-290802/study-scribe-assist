@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { handleFileUpload, checkStorageBucket } from './fileUtils';
-import { convertFileToKnowledgeBaseItem, addKnowledgeBaseItem } from '@/services/KnowledgeBaseService';
+import { convertFileToKnowledgeBaseItem } from '@/services/KnowledgeBaseService';
+import { useDocuments } from '@/store/DocumentStore';
 import { 
   createUserMessage, 
   createProcessingPdfMessage, 
@@ -30,6 +31,7 @@ export const useFileUpload = ({
 }: UseFileUploadProps) => {
   const { toast } = useToast();
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const { addKnowledgeBaseItem } = useDocuments();
 
   const handleFileChange = async (file: File) => {
     try {
@@ -70,15 +72,17 @@ export const useFileUpload = ({
           // Upload file to storage
           const { path, fileType } = await handleFileUpload(file, documentId, userId);
           
-          // Add file directly to knowledge base
-          if (userId) {
+          // Add file directly to knowledge base using the context
+          if (userId && addKnowledgeBaseItem) {
             const knowledgeBaseItem = convertFileToKnowledgeBaseItem(path, fileType, file.name, userId);
-            await addKnowledgeBaseItem(knowledgeBaseItem);
+            const result = await addKnowledgeBaseItem(knowledgeBaseItem);
             
-            toast({
-              title: "File added to knowledge base",
-              description: `"${file.name}" has been added to your knowledge base.`,
-            });
+            if (result) {
+              toast({
+                title: "File added to knowledge base",
+                description: `"${file.name}" has been added to your knowledge base.`,
+              });
+            }
           }
           
           // Also call the original onAddToKnowledgeBase for backward compatibility

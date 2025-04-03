@@ -1,4 +1,6 @@
 
+import { KnowledgeBaseItem } from '@/services/KnowledgeBaseService';
+
 export interface Document {
   id: string;
   title: string;
@@ -19,4 +21,9 @@ export interface DocumentContextType {
   getDocument: (id: string) => Document | undefined;
   deleteDocument: (id: string) => Promise<void>;
   archiveDocument: (id: string, archived: boolean) => Promise<void>;
+  // Knowledge base properties
+  knowledgeBaseItems?: KnowledgeBaseItem[];
+  knowledgeBaseLoading?: boolean;
+  addKnowledgeBaseItem?: (item: Omit<KnowledgeBaseItem, 'id' | 'created_at'>) => Promise<KnowledgeBaseItem | null>;
+  deleteKnowledgeBaseItem?: (id: string) => Promise<boolean>;
 }

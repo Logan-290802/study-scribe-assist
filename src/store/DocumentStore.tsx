@@ -5,6 +5,8 @@ import { Document, DocumentContextType } from '@/types/document.types';
 import { useLoadDocuments } from '@/hooks/useLoadDocuments';
 import { useDocumentOperations } from '@/hooks/useDocumentOperations';
 import { useDocumentRealtime } from '@/hooks/useDocumentRealtime';
+import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
+import { KnowledgeBaseItem } from '@/services/KnowledgeBaseService';
 
 const DocumentContext = createContext<DocumentContextType | undefined>(undefined);
 
@@ -26,6 +28,9 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
   // Set up realtime subscription
   useDocumentRealtime(user?.id, setDocuments);
 
+  // Add Knowledge Base functionality
+  const { knowledgeBaseItems, isLoading: kbLoading, addItem, deleteItem } = useKnowledgeBase(user?.id);
+
   return (
     <DocumentContext.Provider value={{ 
       documents, 
@@ -34,7 +39,12 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
       updateDocument, 
       getDocument, 
       deleteDocument,
-      archiveDocument 
+      archiveDocument,
+      // Knowledge base properties
+      knowledgeBaseItems,
+      knowledgeBaseLoading: kbLoading,
+      addKnowledgeBaseItem: addItem,
+      deleteKnowledgeBaseItem: deleteItem
     }}>
       {children}
     </DocumentContext.Provider>

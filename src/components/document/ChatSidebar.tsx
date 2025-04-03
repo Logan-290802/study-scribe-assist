@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { AiChat, Reference } from '@/components/ai';
 import { supabase } from '@/lib/supabase';
+import { useDocuments } from '@/store/DocumentStore';
+import { KnowledgeBaseItem, convertFileToKnowledgeBaseItem } from '@/services/KnowledgeBaseService';
 
 interface ChatSidebarProps {
   documentId: string;
@@ -21,6 +23,8 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   userId,
   onAddToKnowledgeBase
 }) => {
+  const { addKnowledgeBaseItem } = useDocuments();
+  
   // Load chat history from Supabase when component mounts
   useEffect(() => {
     if (!documentId || !userId) return;
@@ -72,6 +76,23 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
     }
   };
 
+  // Function to handle file uploads and add to knowledge base
+  const handleAddToKnowledgeBase = async (filePath: string, fileType: string, fileName: string) => {
+    if (!userId || !addKnowledgeBaseItem) return;
+    
+    const knowledgeBaseItem = convertFileToKnowledgeBaseItem(filePath, fileType, fileName, userId);
+    await addKnowledgeBaseItem(knowledgeBaseItem);
+    
+    // Also call the original onAddToKnowledgeBase if provided
+    if (onAddToKnowledgeBase) {
+      await onAddToKnowledgeBase({
+        filePath,
+        fileType,
+        fileName
+      });
+    }
+  };
+
   return (
     <Card className="h-full sticky top-24">
       <CardContent className="p-4 h-full">
@@ -80,7 +101,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
           documentId={documentId}
           onNewMessage={handleNewMessage}
           chatHistory={chatHistory}
-          onAddToKnowledgeBase={onAddToKnowledgeBase}
+          onAddToKnowledgeBase={handleAddToKnowledgeBase}
         />
       </CardContent>
     </Card>

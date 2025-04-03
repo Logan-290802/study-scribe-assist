@@ -24,7 +24,8 @@ export const handleFileUpload = async (
   }
   
   const extension = ALLOWED_FILE_TYPES[fileType as keyof typeof ALLOWED_FILE_TYPES];
-  // Include user ID in the file path to help with permissions
+  // Create a file path compatible with the current policy structure
+  // Using userId folder followed by timestamp and filename
   const filePath = `${userId}/${Date.now()}_${file.name}`;
   
   console.log('Starting file upload process for:', file.name);
@@ -33,8 +34,9 @@ export const handleFileUpload = async (
   
   try {
     console.log('Attempting to upload file to path:', filePath);
+    console.log('Using existing uploads bucket with policy: ((bucket_id = uploads) AND (auth.uid() IS NOT NULL))');
     
-    // Try the upload directly without checking bucket
+    // Attempt to upload the file
     const { data, error } = await supabase.storage
       .from('uploads')
       .upload(filePath, file, {
@@ -55,11 +57,10 @@ export const handleFileUpload = async (
           error.message.includes('Unauthorized') || 
           error.message.includes('403') ||
           error.message.includes('Permission denied')) {
-        throw new Error(`Storage permission denied. Based on your current policies, make sure:
-        1. "allow_authenticated_uploads" policy allows the current user to insert files
-        2. Try setting the policy using this SQL in the Supabase dashboard:
-           CREATE POLICY "Allow authenticated uploads" ON storage.objects
-           FOR INSERT TO authenticated USING (auth.uid() = (storage.foldername(name))[1]);`);
+        throw new Error(`Storage permission denied. Please check that:
+        1. You are signed in
+        2. Your 'allow_authenticated_uploads' policy allows authenticated users to upload to the 'uploads' bucket
+        3. Your current policy is: ((bucket_id = 'uploads'::text) AND (auth.uid() IS NOT NULL))`);
       }
       
       if (error.message.includes('already exists')) {
@@ -100,11 +101,11 @@ export const handleFileUpload = async (
     
     // Provide more specific guidance based on the error
     if (error.message.includes('bucket') || error.error_description?.includes('bucket')) {
-      throw new Error(`Storage bucket issue: The 'uploads' bucket does not exist or is not properly configured. Please create it in your Supabase dashboard under Storage.`);
+      throw new Error(`Storage bucket issue: The 'uploads' bucket does not exist. Please create it in your Supabase dashboard under Storage.`);
     }
     
     if (error.message.includes('policy') || error.error_description?.includes('policy')) {
-      throw new Error(`Storage policy issue: Check that your RLS policies match your file structure. Your current path is "${userId}/[filename]" so ensure policies allow this pattern.`);
+      throw new Error(`Storage policy issue: Your current uploads policy is ((bucket_id = 'uploads'::text) AND (auth.uid() IS NOT NULL)). Please make sure you're signed in.`);
     }
     
     throw error;
@@ -121,6 +122,7 @@ export const checkStorageBucket = async (): Promise<'exists' | 'not-exists' | 'p
     
     if (error) {
       console.error('Error checking uploads bucket:', error);
+      console.log('Policy information: Current policy is ((bucket_id = uploads) AND (auth.uid() IS NOT NULL))');
       
       if (error.message.includes('The bucket specified does not exist') || 
           error.message.includes('bucket not found')) {

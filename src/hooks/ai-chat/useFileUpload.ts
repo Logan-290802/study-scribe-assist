@@ -63,6 +63,10 @@ export const useFileUpload = ({
             throw new Error("The 'uploads' bucket doesn't exist. Please create it in your Supabase dashboard under Storage.");
           }
           
+          if (bucketStatus === 'permission-denied') {
+            console.log('Permission issue detected. Will attempt upload anyway in case it works with the current policy.');
+          }
+          
           // Upload file to storage
           const { path, fileType } = await handleFileUpload(file, documentId, userId);
           
@@ -89,7 +93,7 @@ export const useFileUpload = ({
                   uploadError.message.includes('Unauthorized') ||
                   uploadError.message.includes('Permission denied')) {
             errorDescription = "Permission issue with Supabase Storage.";
-            actionNeeded = "Please check your Storage RLS policies in the Supabase dashboard.";
+            actionNeeded = "Please check that you're signed in and your Supabase policy allows authenticated uploads.";
           }
           
           toast({

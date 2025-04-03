@@ -28,8 +28,9 @@ export const handleFileUpload = async (
   const filePath = `${userId}/${Date.now()}_${file.name}`;
   
   // First check if the bucket exists
-  const bucketExists = await checkStorageBucket();
-  if (!bucketExists) {
+  const bucketStatus = await checkStorageBucket();
+  
+  if (bucketStatus === 'not-exists') {
     console.log('Uploads bucket does not exist, attempting to create it...');
     const created = await createStorageBucket();
     if (!created) {
@@ -37,8 +38,13 @@ export const handleFileUpload = async (
       throw new Error('Failed to create storage bucket. Please contact administrator.');
     }
     console.log('Successfully created uploads bucket');
-  } else {
+  } else if (bucketStatus === 'permission-denied') {
+    console.log('Permission denied while checking bucket. User may not have admin rights.');
+    // Instead of failing, we'll try to upload anyway - maybe the bucket exists and user just can't list buckets
+  } else if (bucketStatus === 'exists') {
     console.log('Uploads bucket already exists');
+  } else {
+    console.log('Unknown bucket status, attempting upload anyway');
   }
   
   try {
@@ -59,7 +65,11 @@ export const handleFileUpload = async (
           error.message.includes('Unauthorized') || 
           error.message.includes('403') ||
           error.message.includes('Permission denied')) {
-        throw new Error(`Storage permission denied. Make sure you're authenticated and have the proper permissions.`);
+        // Guide user to set up their Supabase storage RLS policies correctly
+        throw new Error(`Storage permission denied. Make sure you have the following RLS policies for the uploads bucket:
+        1. Allow authenticated users to read their own files
+        2. Allow authenticated users to upload files
+        3. Allow authenticated users to update and delete their own files`);
       }
       
       if (error.message.includes('already exists')) {
@@ -102,7 +112,7 @@ export const handleFileUpload = async (
 };
 
 // Check if bucket exists and create if needed
-export const checkStorageBucket = async (): Promise<boolean> => {
+export const checkStorageBucket = async (): Promise<'exists' | 'not-exists' | 'permission-denied' | 'error'> => {
   try {
     console.log('Checking if uploads bucket exists...');
     // Check if bucket exists
@@ -110,15 +120,24 @@ export const checkStorageBucket = async (): Promise<boolean> => {
     
     if (error) {
       console.error('Error checking buckets:', error);
-      return false;
+      
+      // Handle permission errors differently
+      if (error.message.includes('row-level security policy') || 
+          error.message.includes('Unauthorized') || 
+          error.message.includes('403') ||
+          error.message.includes('Permission denied')) {
+        return 'permission-denied';
+      }
+      
+      return 'error';
     }
     
     const uploadsBucket = buckets?.find(bucket => bucket.name === 'uploads');
     console.log('Uploads bucket exists:', !!uploadsBucket);
-    return !!uploadsBucket;
+    return uploadsBucket ? 'exists' : 'not-exists';
   } catch (error) {
     console.error('Error checking storage bucket:', error);
-    return false;
+    return 'error';
   }
 };
 
@@ -133,6 +152,12 @@ export const createStorageBucket = async (): Promise<boolean> => {
     
     if (error) {
       console.error('Error creating bucket:', error);
+      
+      // Give more specific feedback for common errors
+      if (error.message.includes('row-level security policy')) {
+        console.log('Permission denied: You need admin privileges to create buckets in Supabase Storage');
+      }
+      
       return false;
     }
     

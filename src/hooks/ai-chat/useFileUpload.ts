@@ -54,41 +54,6 @@ export const useFileUpload = ({
           console.error('Error saving chat message:', error);
         }
         
-        // Check if storage bucket exists before attempting upload
-        const bucketExists = await checkStorageBucket();
-        if (!bucketExists) {
-          try {
-            // Attempt to create the bucket
-            const created = await createStorageBucket();
-            if (!created) {
-              // Show a specific message about storage not being set up
-              toast({
-                title: "Storage Not Available",
-                description: "The file storage system hasn't been configured. Please ask the administrator to set up Supabase storage.",
-                variant: "destructive",
-              });
-              
-              // Add error message to chat
-              const errorMessage = createErrorMessage("I'm sorry, I couldn't process your file. The file storage system isn't available at the moment.");
-              setMessages(prev => [...prev, errorMessage]);
-              setIsLoading(false);
-              return;
-            }
-          } catch (bucketError) {
-            console.error('Error creating bucket:', bucketError);
-            toast({
-              title: "Storage Setup Failed",
-              description: "Unable to set up file storage. You may need administrator permissions.",
-              variant: "destructive",
-            });
-            
-            const errorMessage = createErrorMessage("I'm sorry, I couldn't set up the file storage system. You may need administrator permissions.");
-            setMessages(prev => [...prev, errorMessage]);
-            setIsLoading(false);
-            return;
-          }
-        }
-        
         try {
           // Upload file to storage
           const { path, fileType } = await handleFileUpload(file, documentId, userId);
@@ -106,10 +71,16 @@ export const useFileUpload = ({
           console.error('Error uploading file:', uploadError);
           
           let errorDescription = "Failed to upload file to storage. Please try again later.";
-          if (uploadError.message.includes('permission denied') || 
-              uploadError.message.includes('Unauthorized') ||
+          let actionNeeded = "";
+          
+          if (uploadError.message.includes('row-level security policy') || 
+              uploadError.message.includes('Permission denied')) {
+            errorDescription = "Permission issue with Supabase Storage.";
+            actionNeeded = "Please ensure proper Storage policies are set up in your Supabase project.";
+          } else if (uploadError.message.includes('Unauthorized') ||
               (uploadError.statusCode && uploadError.statusCode === 403)) {
-            errorDescription = "You don't have permission to upload files. Please contact your administrator.";
+            errorDescription = "You don't have permission to upload files.";
+            actionNeeded = "Please sign in again or contact your administrator.";
           }
           
           toast({
@@ -119,7 +90,7 @@ export const useFileUpload = ({
           });
           
           // Add error message to chat
-          const errorMessage = createErrorMessage("I'm sorry, I couldn't process your file. " + errorDescription);
+          const errorMessage = createErrorMessage(`I'm sorry, I couldn't process your file. ${errorDescription} ${actionNeeded}`);
           setMessages(prev => [...prev, errorMessage]);
           setIsLoading(false);
           return;

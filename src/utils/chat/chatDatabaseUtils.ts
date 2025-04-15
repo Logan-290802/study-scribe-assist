@@ -3,18 +3,6 @@ import { supabase } from '@/lib/supabase';
 
 export const fetchChatHistoryFromDb = async (documentId: string, userId: string) => {
   try {
-    // Check if the table exists first by using a direct query approach
-    // Instead of querying information_schema which might not be accessible
-    const { data: checkData, error: checkError } = await supabase
-      .from('ai_chat_history')
-      .select('id')
-      .limit(1);
-      
-    if (checkError && checkError.message.includes('does not exist')) {
-      console.info('ai_chat_history table does not exist yet');
-      return null;
-    }
-    
     const { data, error } = await supabase
       .from('ai_chat_history')
       .select('*')
@@ -47,17 +35,6 @@ export const saveChatMessageToDb = async (
   content: string
 ) => {
   try {
-    // Check if the table exists first by using a direct query approach
-    const { data: checkData, error: checkError } = await supabase
-      .from('ai_chat_history')
-      .select('id')
-      .limit(1);
-      
-    if (checkError && checkError.message.includes('does not exist')) {
-      console.info('ai_chat_history table does not exist yet');
-      return false;
-    }
-    
     const { error } = await supabase.from('ai_chat_history').insert({
       document_id: documentId,
       user_id: userId,

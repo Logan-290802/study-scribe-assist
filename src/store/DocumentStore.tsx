@@ -13,6 +13,10 @@ const DocumentContext = createContext<DocumentContextType | undefined>(undefined
 export const DocumentProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const { documents, setDocuments, loading } = useLoadDocuments(user?.id);
+  
+  // Set up realtime subscription and get tracking function
+  const { trackNewDocumentId } = useDocumentRealtime(user?.id, setDocuments);
+  
   const { 
     addDocument, 
     updateDocument, 
@@ -22,11 +26,9 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
   } = useDocumentOperations(
     user?.id, 
     documents, 
-    setDocuments
+    setDocuments,
+    trackNewDocumentId // Pass the tracking function to prevent duplicates
   );
-  
-  // Set up realtime subscription
-  useDocumentRealtime(user?.id, setDocuments);
 
   // Add Knowledge Base functionality
   const { knowledgeBaseItems, isLoading: kbLoading, addItem, deleteItem } = useKnowledgeBase(user?.id);

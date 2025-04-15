@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Document } from '@/types/document.types';
@@ -11,7 +12,8 @@ import {
 export const useDocumentOperations = (
   userId: string | undefined,
   documents: Document[],
-  setDocuments: React.Dispatch<React.SetStateAction<Document[]>>
+  setDocuments: React.Dispatch<React.SetStateAction<Document[]>>,
+  trackNewDocumentId?: (id: string) => void
 ) => {
   const { toast } = useToast();
   const [isOperationInProgress, setIsOperationInProgress] = useState(false);
@@ -49,6 +51,11 @@ export const useDocumentOperations = (
       console.log("Document created:", data);
       
       const addedDoc = transformSupabaseToDocument(data);
+      
+      // Track the new document ID to prevent duplication from realtime events
+      if (trackNewDocumentId) {
+        trackNewDocumentId(data.id);
+      }
       
       setDocuments(prev => [addedDoc, ...prev]);
       return data.id;

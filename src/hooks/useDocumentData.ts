@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useDocuments } from '@/store/DocumentStore';
@@ -65,7 +64,6 @@ export const useDocumentData = () => {
     fetchReferences();
   }, [id, user]);
   
-  // Implement autosave functionality
   const handleSave = useCallback(async () => {
     if (!id || !user) return;
     
@@ -91,13 +89,12 @@ export const useDocumentData = () => {
     }
   }, [id, user, documentTitle, documentContent, updateDocument, toast]);
   
-  // Autosave when content or title changes (with debounce)
   useEffect(() => {
     if (!id || !user) return;
     
     const saveTimeout = setTimeout(() => {
       handleSave();
-    }, 2000); // 2 second debounce
+    }, 10000); // Changed from 2000ms to 10000ms
     
     return () => clearTimeout(saveTimeout);
   }, [documentTitle, documentContent, handleSave, id, user]);

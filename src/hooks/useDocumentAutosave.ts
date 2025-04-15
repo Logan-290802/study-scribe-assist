@@ -67,7 +67,7 @@ export function useDocumentAutosave(
     saveDocument,
     [documentId, userId],
     {
-      debounceTime: 3000,
+      debounceTime: 10000,
       onSaveStart: () => {
         console.log('Starting autosave...');
         setIsSaving(true);

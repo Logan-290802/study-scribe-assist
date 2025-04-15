@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
 import { Reference } from '../ai';
-import { Library, Plus, X, Copy, Edit, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Library, Copy, Edit, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { AddReferenceDialog } from './AddReferenceDialog';
 
 interface ReferenceManagerProps {
   references: Reference[];
@@ -29,20 +30,6 @@ export const ReferenceManager: React.FC<ReferenceManagerProps> = ({
     setActiveReferenceId(activeReferenceId === id ? null : id);
   };
 
-  const handleAddManualReference = () => {
-    // In a real app, this would open a form
-    const newReference: Reference = {
-      id: Date.now().toString(),
-      title: "Manual Reference Example",
-      authors: ["Smith, J.", "Johnson, A."],
-      year: "2022",
-      source: "Journal of Example Studies, 15(2), 123-145",
-      format: "APA",
-    };
-    
-    onAddReference(newReference);
-  };
-
   const copyReferenceToClipboard = (reference: Reference) => {
     let formattedRef = '';
     
@@ -60,7 +47,6 @@ export const ReferenceManager: React.FC<ReferenceManagerProps> = ({
     
     navigator.clipboard.writeText(formattedRef)
       .then(() => {
-        // In a real app, this would show a toast
         console.log('Reference copied to clipboard');
       })
       .catch(err => {
@@ -155,13 +141,7 @@ export const ReferenceManager: React.FC<ReferenceManagerProps> = ({
           </div>
           
           <div className="p-2 border-t bg-gray-50">
-            <button
-              onClick={handleAddManualReference}
-              className="w-full py-1.5 flex justify-center items-center gap-1 text-sm bg-blue-50 text-blue-600 rounded border border-blue-200 hover:bg-blue-100 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Add Reference Manually
-            </button>
+            <AddReferenceDialog onAddReference={onAddReference} />
           </div>
         </>
       )}

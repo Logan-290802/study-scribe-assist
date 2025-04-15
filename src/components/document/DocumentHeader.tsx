@@ -2,8 +2,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import DocumentTitle from '@/components/editor/DocumentTitle';
-import { Save, Clock } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { Save } from 'lucide-react';
+import { SaveIndicator } from './SaveIndicator';
 
 interface DocumentHeaderProps {
   documentTitle: string;
@@ -20,10 +20,6 @@ const DocumentHeader: React.FC<DocumentHeaderProps> = ({
   isSaving,
   lastSaved
 }) => {
-  const handleSaveClick = () => {
-    onSave();
-  };
-
   return (
     <div className="flex items-center justify-between bg-white border-b p-4 rounded-t-md">
       <DocumentTitle
@@ -32,22 +28,17 @@ const DocumentHeader: React.FC<DocumentHeaderProps> = ({
       />
       
       <div className="flex items-center gap-4">
-        {lastSaved && (
-          <div className="flex items-center text-sm text-gray-500">
-            <Clock className="h-3 w-3 mr-1" />
-            <span>
-              {isSaving ? 'Saving...' : `Saved ${formatDistanceToNow(lastSaved, { addSuffix: true })}`}
-            </span>
-          </div>
-        )}
+        <SaveIndicator isSaving={isSaving} lastSaved={lastSaved} />
         
         <Button 
-          onClick={handleSaveClick}
+          onClick={onSave}
           disabled={isSaving}
-          className="flex items-center gap-1"
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-2"
         >
           <Save className="h-4 w-4" />
-          {isSaving ? 'Saving...' : 'Save'}
+          Save
         </Button>
       </div>
     </div>

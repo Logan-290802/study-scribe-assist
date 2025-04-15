@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from 'react';
 import { useAutosave } from './useAutosave';
 import { useDocuments } from '@/store/DocumentStore';
@@ -22,7 +21,6 @@ export function useDocumentAutosave(
   const [isSaving, setIsSaving] = useState(false);
   const previousDataRef = useRef<DocumentData | null>(null);
   
-  // Check if data has actually changed
   const hasDataChanged = () => {
     if (!previousDataRef.current) return true;
     
@@ -32,7 +30,6 @@ export function useDocumentAutosave(
     );
   };
   
-  // Function to save the document content
   const saveDocument = async (data: DocumentData): Promise<void> => {
     if (!documentId || !userId) return;
     
@@ -40,14 +37,12 @@ export function useDocumentAutosave(
     console.log('Document content length:', data.content.length);
     
     try {
-      // Save document content and title
       await updateDocument(documentId, {
         title: data.title,
         content: data.content,
         snippet: data.content?.substring(0, 150) || ''
       });
       
-      // Save any new chat messages
       const latestChatMessage = data.chatHistory[data.chatHistory.length - 1];
       if (latestChatMessage) {
         await saveChatMessageToDb(
@@ -58,7 +53,6 @@ export function useDocumentAutosave(
         );
       }
       
-      // Update the previous data ref
       previousDataRef.current = { ...data };
       
       setLastSaved(new Date());
@@ -68,13 +62,12 @@ export function useDocumentAutosave(
     }
   };
   
-  // Setup autosave
   const autosave = useAutosave(
     documentData,
     saveDocument,
     [documentId, userId],
     {
-      debounceTime: 2000,
+      debounceTime: 3000,
       onSaveStart: () => {
         console.log('Starting autosave...');
         setIsSaving(true);
@@ -89,7 +82,6 @@ export function useDocumentAutosave(
     }
   );
   
-  // Ensure initial save happens once
   useEffect(() => {
     if (documentId && userId && !previousDataRef.current && documentData) {
       console.log('Initial document data setup');
@@ -97,7 +89,6 @@ export function useDocumentAutosave(
     }
   }, [documentId, userId, documentData]);
   
-  // Manual save function
   const saveDocumentNow = async () => {
     try {
       console.log('Manual save triggered');

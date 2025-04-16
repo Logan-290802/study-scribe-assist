@@ -1,10 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
-import { Download, File, FileText, History, CheckCircle, Loader2, Eye } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { Reference } from '../ai';
-import { cn } from '@/lib/utils';
-import { Link } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
 import { generateDocx, generatePdf } from '@/utils/document-generator';
+import FormatSelector from './FormatSelector';
+import DocumentStats from './DocumentStats';
+import ExportActions from './ExportActions';
 
 interface ExportPanelProps {
   documentContent: string;
@@ -90,36 +92,10 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
       </div>
       
       <div className="p-4 space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Export Format</label>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setSelectedFormat('docx')}
-              className={cn(
-                "flex-1 py-2 px-3 border rounded-md flex items-center justify-center gap-2 transition-colors",
-                selectedFormat === 'docx' 
-                  ? "bg-blue-50 border-blue-200 text-blue-700" 
-                  : "bg-white hover:bg-gray-50"
-              )}
-            >
-              <FileText className="w-4 h-4" />
-              <span>Word (DOCX)</span>
-            </button>
-            
-            <button
-              onClick={() => setSelectedFormat('pdf')}
-              className={cn(
-                "flex-1 py-2 px-3 border rounded-md flex items-center justify-center gap-2 transition-colors",
-                selectedFormat === 'pdf' 
-                  ? "bg-blue-50 border-blue-200 text-blue-700" 
-                  : "bg-white hover:bg-gray-50"
-              )}
-            >
-              <File className="w-4 h-4" />
-              <span>PDF</span>
-            </button>
-          </div>
-        </div>
+        <FormatSelector
+          selectedFormat={selectedFormat}
+          onFormatChange={setSelectedFormat}
+        />
         
         <div>
           <div className="flex items-center">
@@ -139,64 +115,23 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
           </p>
         </div>
         
-        <div className="bg-gray-50 rounded-md p-3 text-sm">
-          <h4 className="font-medium mb-1">Export will include:</h4>
-          <ul className="space-y-1">
-            <li className="flex items-center gap-1 text-gray-600">
-              <CheckCircle className="w-3.5 h-3.5 text-green-500" />
-              Document Content ({documentContent.length > 0 ? 'Non-empty' : 'Empty'})
-            </li>
-            <li className="flex items-center gap-1 text-gray-600">
-              <CheckCircle className="w-3.5 h-3.5 text-green-500" />
-              Bibliography ({references.length} references)
-            </li>
-            {includeAiHistory && (
-              <li className="flex items-center gap-1 text-gray-600">
-                <CheckCircle className="w-3.5 h-3.5 text-green-500" />
-                AI Chat History ({aiChatHistory.length} messages)
-              </li>
-            )}
-          </ul>
-        </div>
+        <DocumentStats
+          documentContent={documentContent}
+          references={references}
+          includeAiHistory={includeAiHistory}
+          aiChatHistory={aiChatHistory}
+        />
         
-        <div className="flex gap-2">
-          <Link
-            to="/preview-export"
-            state={{ documentTitle, documentContent, references, aiChatHistory }}
-            className="flex-1 py-2.5 flex justify-center items-center gap-2 border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 rounded transition-colors"
-          >
-            <Eye className="w-5 h-5" />
-            <span>Preview</span>
-          </Link>
-          
-          <button
-            onClick={handleDownload}
-            disabled={isExporting || exportSuccess}
-            className={cn(
-              "flex-1 py-2.5 flex justify-center items-center gap-2 text-white rounded transition-colors",
-              (isExporting || exportSuccess) 
-                ? "bg-blue-400" 
-                : "bg-blue-600 hover:bg-blue-700"
-            )}
-          >
-            {isExporting ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Exporting...</span>
-              </>
-            ) : exportSuccess ? (
-              <>
-                <CheckCircle className="w-5 h-5" />
-                <span>Exported!</span>
-              </>
-            ) : (
-              <>
-                <Download className="w-5 h-5" />
-                <span>{selectedFormat === 'docx' ? 'Export Word' : 'Export PDF'}</span>
-              </>
-            )}
-          </button>
-        </div>
+        <ExportActions
+          documentTitle={documentTitle}
+          documentContent={documentContent}
+          references={references}
+          aiChatHistory={aiChatHistory}
+          isExporting={isExporting}
+          exportSuccess={exportSuccess}
+          selectedFormat={selectedFormat}
+          onExport={handleDownload}
+        />
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 import { Reference } from '@/components/ai/types';
 
@@ -14,69 +15,30 @@ export interface KnowledgeBaseItem {
   format?: 'APA' | 'MLA' | 'Harvard';
   user_id: string;
   created_at: string;
-  document_id?: string;  // Add document context
+  document_id?: string;
 }
 
 export const fetchKnowledgeBaseItems = async (userId: string): Promise<KnowledgeBaseItem[]> => {
-  try {
-    // Check if table exists first
-    const { data, error: checkError } = await supabase
-      .from('knowledge_base')
-      .select('id')
-      .limit(1);
+  const { data: items, error } = await supabase
+    .from('knowledge_base')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
     
-    if (checkError && checkError.message.includes('does not exist')) {
-      console.warn('Knowledge base table does not exist yet. Creating table...');
-      
-      // Create the table if it doesn't exist
-      const { error: createError } = await supabase.rpc('create_knowledge_base_if_not_exists');
-      
-      if (createError) {
-        console.warn('Could not auto-create table, please create it manually:', createError);
-        return [];
-      }
-    }
-    
-    const { data: items, error } = await supabase
-      .from('knowledge_base')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
-    
-    if (error) {
-      console.error('Error fetching knowledge base items:', error);
-      return [];
-    }
-    
-    return items || [];
-  } catch (error) {
+  if (error) {
     console.error('Error fetching knowledge base items:', error);
     return [];
   }
+  
+  return items || [];
 };
 
 export const addKnowledgeBaseItem = async (
   item: Omit<KnowledgeBaseItem, 'id' | 'created_at'>
 ): Promise<KnowledgeBaseItem | null> => {
+  console.log('Adding knowledge base item:', item);
+  
   try {
-    // Check if table exists first
-    const { data, error: checkError } = await supabase
-      .from('knowledge_base')
-      .select('id')
-      .limit(1);
-    
-    if (checkError && checkError.message.includes('does not exist')) {
-      console.warn('Knowledge base table does not exist yet. Creating table...');
-      
-      // Create the table if it doesn't exist
-      const { error: createError } = await supabase.rpc('create_knowledge_base_if_not_exists');
-      
-      if (createError) {
-        console.warn('Could not auto-create table, please create it manually:', createError);
-        return null;
-      }
-    }
-    
     const { data: newItem, error } = await supabase
       .from('knowledge_base')
       .insert(item)
@@ -88,26 +50,16 @@ export const addKnowledgeBaseItem = async (
       return null;
     }
     
+    console.log('Successfully added knowledge base item:', newItem);
     return newItem;
   } catch (error) {
-    console.error('Error adding knowledge base item:', error);
+    console.error('Error in addKnowledgeBaseItem:', error);
     return null;
   }
 };
 
 export const deleteKnowledgeBaseItem = async (id: string, userId: string): Promise<boolean> => {
   try {
-    // Check if table exists first
-    const { data: tables, error: tableError } = await supabase
-      .from('knowledge_base')
-      .select('*')
-      .limit(1);
-    
-    if (tableError && tableError.message.includes('does not exist')) {
-      console.warn('Knowledge base table does not exist yet.');
-      return false;
-    }
-    
     const { error } = await supabase
       .from('knowledge_base')
       .delete()
@@ -121,7 +73,7 @@ export const deleteKnowledgeBaseItem = async (id: string, userId: string): Promi
     
     return true;
   } catch (error) {
-    console.error('Error deleting knowledge base items:', error);
+    console.error('Error in deleteKnowledgeBaseItem:', error);
     return false;
   }
 };
@@ -161,7 +113,7 @@ export const convertReferenceToKnowledgeBaseItem = (
 
 export const getFilePublicUrl = (filePath: string): string => {
   const { data } = supabase.storage
-    .from('reference-pdfs')
+    .from('uploads')
     .getPublicUrl(filePath);
   
   return data.publicUrl;

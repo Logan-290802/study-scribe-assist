@@ -75,6 +75,54 @@ export type Database = {
         }
         Relationships: []
       }
+      knowledge_base: {
+        Row: {
+          authors: string[] | null
+          content: string
+          created_at: string
+          document_id: string | null
+          file_path: string | null
+          file_type: string | null
+          format: string | null
+          id: string
+          source: string | null
+          title: string
+          url: string | null
+          user_id: string
+          year: string | null
+        }
+        Insert: {
+          authors?: string[] | null
+          content: string
+          created_at?: string
+          document_id?: string | null
+          file_path?: string | null
+          file_type?: string | null
+          format?: string | null
+          id?: string
+          source?: string | null
+          title: string
+          url?: string | null
+          user_id: string
+          year?: string | null
+        }
+        Update: {
+          authors?: string[] | null
+          content?: string
+          created_at?: string
+          document_id?: string | null
+          file_path?: string | null
+          file_type?: string | null
+          format?: string | null
+          id?: string
+          source?: string | null
+          title?: string
+          url?: string | null
+          user_id?: string
+          year?: string | null
+        }
+        Relationships: []
+      }
       knowledge_base_references: {
         Row: {
           authors: string[]

@@ -8,7 +8,6 @@ export const useKnowledgeBase = (userId: string | undefined) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Fetch knowledge base items when userId changes
   useEffect(() => {
     if (!userId) return;
     

@@ -8,6 +8,7 @@ export interface Reference {
   source: string;
   format: 'APA' | 'MLA' | 'Harvard';
   content?: string;
+  file_path?: string;
 }
 
 export interface ChatMessage {

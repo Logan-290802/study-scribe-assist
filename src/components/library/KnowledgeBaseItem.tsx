@@ -113,16 +113,11 @@ const KnowledgeBaseItem: React.FC<KnowledgeBaseItemProps> = ({ item, onDelete })
     if (!item.file_path) return '';
     
     try {
-      const { data: { publicUrl }, error } = supabase.storage
+      const { data } = supabase.storage
         .from('uploads')
         .getPublicUrl(item.file_path);
         
-      if (error) {
-        console.error('Error getting public URL:', error);
-        return '';
-      }
-      
-      return publicUrl;
+      return data.publicUrl;
     } catch (error) {
       console.error('Error getting image URL:', error);
       return '';

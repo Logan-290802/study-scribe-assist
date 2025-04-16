@@ -99,6 +99,9 @@ export const generatePdf = async (
     day: 'numeric'
   });
   
+  // Clean HTML tags from content for plain text version
+  const cleanContent = content.replace(/<[^>]*>/g, '');
+  
   // Format references for PDF
   const formattedReferences = references.map(ref => ({
     text: `${ref.authors.join(', ')} (${ref.year}). ${ref.title}. ${ref.source}.${ref.url ? ` Retrieved from ${ref.url}` : ''}`,
@@ -109,15 +112,12 @@ export const generatePdf = async (
   const formattedChatHistory = aiChatHistory.map(msg => ({
     text: [
       { text: `[${msg.role === 'user' ? 'User' : 'AI'}]: `, bold: true },
-      { text: msg.content }
+      msg.content
     ],
     margin: [0, 0, 0, 5]
   }));
   
-  // Clean HTML tags from content for plain text version
-  const cleanContent = content.replace(/<[^>]*>/g, '');
-  
-  // Create document definition with all sections
+  // Create document definition
   const docDefinition = {
     content: [
       // Title Page
@@ -158,12 +158,12 @@ export const generatePdf = async (
       title: {
         fontSize: 24,
         bold: true,
-        margin: [0, 20, 0, 20] as [number, number, number, number]
+        margin: [0, 20, 0, 20]
       },
       header: {
         fontSize: 18,
         bold: true,
-        margin: [0, 0, 0, 10] as [number, number, number, number]
+        margin: [0, 0, 0, 10]
       }
     }
   };

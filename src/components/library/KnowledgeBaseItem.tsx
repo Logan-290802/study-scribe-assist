@@ -78,14 +78,6 @@ const KnowledgeBaseItem: React.FC<KnowledgeBaseItemProps> = ({ item, onDelete })
     }
   };
   
-  // Handle download for file items
-  const handleView = () => {
-    if (!item.file_path) return;
-    
-    const publicUrl = getFilePublicUrl(item.file_path);
-    window.open(publicUrl, '_blank');
-  };
-  
   const isImage = item.file_type?.toLowerCase().includes('image');
   const imageUrl = isImage ? getFilePublicUrl(item.file_path!) : '';
 

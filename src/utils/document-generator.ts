@@ -41,12 +41,7 @@ export const generateDocx = async (
         }),
         new Paragraph({ text: '', pageBreakBefore: true }),
         
-        // Document Content
-        new Paragraph({
-          text: 'Document Content',
-          heading: HeadingLevel.HEADING_1,
-          spacing: { after: 200 },
-        }),
+        // Document Content - directly display the content without a heading
         new Paragraph({
           children: [new TextRun({ text: content.replace(/<[^>]*>/g, '') })],
           spacing: { after: 200 },
@@ -140,8 +135,7 @@ export const generatePdf = async (
       },
       { text: '', pageBreak: 'before' },
       
-      // Document Content
-      { text: 'Document Content', style: 'header' },
+      // Document Content - directly add the content without a heading
       { text: cleanContent, margin: [0, 0, 0, 20] },
       { text: '', pageBreak: 'before' },
       
@@ -169,7 +163,7 @@ export const generatePdf = async (
   };
 
   return new Promise((resolve) => {
-    const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+    const pdfDocGenerator = pdfMake.createPdf(docDefinition as any);
     pdfDocGenerator.getBlob((blob) => {
       resolve(blob);
     });

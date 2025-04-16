@@ -118,7 +118,7 @@ export const generatePdf = async (
   const cleanContent = content.replace(/<[^>]*>/g, '');
   
   // Create document definition with all sections
-  const docDefinition: pdfMake.TDocumentDefinitions = {
+  const docDefinition = {
     content: [
       // Title Page
       { 

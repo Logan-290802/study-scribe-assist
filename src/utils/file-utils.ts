@@ -25,10 +25,10 @@ export const downloadAndOpenFile = async (filePath: string) => {
       
       let errorMessage = 'Unable to download the file. Please try again.';
       
-      // Provide more specific error messages
-      if (error.message.includes('not found') || error.statusCode === 404) {
+      // Provide more specific error messages based on error message content
+      if (error.message.includes('not found') || error.message.includes('404')) {
         errorMessage = 'File not found. It may have been deleted or moved.';
-      } else if (error.message.includes('permission') || error.statusCode === 403) {
+      } else if (error.message.includes('permission') || error.message.includes('403')) {
         errorMessage = 'You do not have permission to access this file.';
       }
       

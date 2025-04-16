@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Download, File, FileText, History, CheckCircle, Loader2, Eye } from 'lucide-react';
 import { Reference } from '../ai';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
+import { toast } from '@/components/ui/use-toast';
 
 interface ExportPanelProps {
   documentContent: string;
@@ -25,7 +25,6 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
   const [wordCount, setWordCount] = useState(0);
 
   useEffect(() => {
-    // Calculate word count from HTML content
     const tempElement = document.createElement('div');
     tempElement.innerHTML = documentContent;
     const text = tempElement.textContent || '';
@@ -33,18 +32,42 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
     setWordCount(words.length);
   }, [documentContent]);
 
-  const handleExport = () => {
+  const handleDownload = () => {
     setIsExporting(true);
     
-    // Simulate export process
-    setTimeout(() => {
+    try {
+      const blob = new Blob([documentContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${documentTitle || 'document'}.html`;
+      document.body.appendChild(link);
+      link.click();
+      
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
       setIsExporting(false);
       setExportSuccess(true);
+      
+      toast({
+        title: 'Download Successful',
+        description: `${documentTitle || 'Document'} has been downloaded.`,
+      });
       
       setTimeout(() => {
         setExportSuccess(false);
       }, 3000);
-    }, 2000);
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({
+        title: 'Download Error',
+        description: 'Failed to download the document.',
+        variant: 'destructive',
+      });
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -141,7 +164,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
           </Link>
           
           <button
-            onClick={handleExport}
+            onClick={handleDownload}
             disabled={isExporting || exportSuccess}
             className={cn(
               "flex-1 py-2.5 flex justify-center items-center gap-2 text-white rounded transition-colors",
@@ -163,7 +186,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
             ) : (
               <>
                 <Download className="w-5 h-5" />
-                <span>Export {selectedFormat.toUpperCase()}</span>
+                <span>Export HTML</span>
               </>
             )}
           </button>

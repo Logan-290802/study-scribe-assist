@@ -1,9 +1,10 @@
-
 import { useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/supabase';
 import { Reference } from '@/components/ai';
 import { Document } from '@/types/document.types';
+import { useDocuments } from '@/components/documents';
+import { convertReferenceToKnowledgeBaseItem } from '@/components/documents';
 
 export const useReferenceManagement = (
   documentId: string | undefined, 
@@ -13,8 +14,8 @@ export const useReferenceManagement = (
   updateDocument: (id: string, updates: Partial<Omit<Document, 'id'>>) => Promise<void>
 ) => {
   const { toast } = useToast();
+  const { addKnowledgeBaseItem } = useDocuments();
   
-  // Reset references when document ID changes
   useEffect(() => {
     if (!documentId) {
       setReferences([]);
@@ -44,13 +45,12 @@ export const useReferenceManagement = (
           content: reference.content,
           document_id: documentId,
           user_id: userId,
+          file_path: reference.file_path
         })
         .select()
         .single();
       
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       
       const newReference: Reference = {
         id: data.id,
@@ -61,9 +61,15 @@ export const useReferenceManagement = (
         url: data.url,
         format: data.format as 'APA' | 'MLA' | 'Harvard',
         content: data.content,
+        file_path: data.file_path
       };
       
       setReferences([...references, newReference]);
+      
+      if (addKnowledgeBaseItem) {
+        const knowledgeBaseItem = convertReferenceToKnowledgeBaseItem(newReference, userId);
+        await addKnowledgeBaseItem(knowledgeBaseItem);
+      }
       
       await updateDocument(documentId, {
         referencesCount: references.length + 1,
@@ -71,7 +77,7 @@ export const useReferenceManagement = (
       
       toast({
         title: "Reference added",
-        description: `${reference.title} has been added to your references.`,
+        description: `${reference.title} has been added to your references and knowledge base.`,
       });
     } catch (error) {
       console.error('Error adding reference:', error);

@@ -147,13 +147,14 @@ export const convertReferenceToKnowledgeBaseItem = (
 ): Omit<KnowledgeBaseItem, 'id' | 'created_at'> => {
   return {
     title: reference.title,
-    content: reference.content || '',
+    content: reference.content || `Reference: ${reference.title}`,
     authors: reference.authors,
     year: reference.year,
     source: reference.source,
     url: reference.url,
     format: reference.format,
     file_path: reference.file_path,
+    file_type: reference.file_path?.toLowerCase().includes('.pdf') ? 'application/pdf' : undefined,
     user_id: userId,
   };
 };

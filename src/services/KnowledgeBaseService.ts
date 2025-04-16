@@ -14,6 +14,7 @@ export interface KnowledgeBaseItem {
   format?: 'APA' | 'MLA' | 'Harvard';
   user_id: string;
   created_at: string;
+  document_id?: string;  // Add document context
 }
 
 export const fetchKnowledgeBaseItems = async (userId: string): Promise<KnowledgeBaseItem[]> => {
@@ -152,13 +153,14 @@ export const convertReferenceToKnowledgeBaseItem = (
     source: reference.source,
     url: reference.url,
     format: reference.format,
+    file_path: reference.file_path,
     user_id: userId,
   };
 };
 
 export const getFilePublicUrl = (filePath: string): string => {
   const { data } = supabase.storage
-    .from('uploads')
+    .from('reference-pdfs')
     .getPublicUrl(filePath);
   
   return data.publicUrl;

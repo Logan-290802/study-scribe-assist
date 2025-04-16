@@ -2,9 +2,10 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trash2, FileText, Image, FileUp, Download, ExternalLink } from 'lucide-react';
+import { Trash2, FileText, Image, FileUp, Download, ExternalLink, Copy } from 'lucide-react';
 import { KnowledgeBaseItem as KBItem } from '@/services/KnowledgeBaseService';
 import { getFilePublicUrl } from '@/services/KnowledgeBaseService';
+import { useToast } from '@/components/ui/use-toast';
 
 interface KnowledgeBaseItemProps {
   item: KBItem;
@@ -14,11 +15,52 @@ interface KnowledgeBaseItemProps {
 const KnowledgeBaseItem: React.FC<KnowledgeBaseItemProps> = ({ item, onDelete }) => {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const { toast } = useToast();
   
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this item?')) {
       await onDelete(item.id);
     }
+  };
+
+  const handleView = () => {
+    if (!item.file_path) return;
+    const publicUrl = getFilePublicUrl(item.file_path);
+    window.open(publicUrl, '_blank');
+  };
+
+  const handleCopyReference = () => {
+    let formattedRef = '';
+    
+    switch (item.format) {
+      case 'APA':
+        formattedRef = `${item.authors?.join(', ')} (${item.year}). ${item.title}. ${item.source}.`;
+        break;
+      case 'MLA':
+        formattedRef = `${item.authors?.join(', ')}. "${item.title}." ${item.source}, ${item.year}.`;
+        break;
+      case 'Harvard':
+        formattedRef = `${item.authors?.join(', ')} ${item.year}, '${item.title}', ${item.source}.`;
+        break;
+      default:
+        formattedRef = `${item.title} - ${item.authors?.join(', ')} (${item.year})`;
+    }
+    
+    navigator.clipboard.writeText(formattedRef)
+      .then(() => {
+        toast({
+          title: 'Reference Copied',
+          description: 'Reference details copied to clipboard',
+        });
+      })
+      .catch(err => {
+        console.error('Could not copy reference: ', err);
+        toast({
+          title: 'Copy Failed',
+          description: 'Unable to copy reference',
+          variant: 'destructive',
+        });
+      });
   };
 
   // Determine the icon based on the file type
@@ -71,8 +113,13 @@ const KnowledgeBaseItem: React.FC<KnowledgeBaseItemProps> = ({ item, onDelete })
           <div className="p-2 rounded-full bg-gray-100 text-gray-600">
             {getItemIcon()}
           </div>
-          <div>
-            <h3 className="font-medium truncate mb-1">{item.title}</h3>
+          <div className="flex-grow">
+            <h3 
+              className={`font-medium truncate mb-1 ${item.file_path ? 'cursor-pointer hover:text-blue-600' : ''}`}
+              onClick={item.file_path ? handleView : undefined}
+            >
+              {item.title}
+            </h3>
             {item.authors && item.authors.length > 0 && (
               <p className="text-sm text-gray-500 mb-1">
                 {item.authors.join(', ')}
@@ -119,17 +166,28 @@ const KnowledgeBaseItem: React.FC<KnowledgeBaseItemProps> = ({ item, onDelete })
           Delete
         </Button>
         
-        {item.file_path && (
+        <div className="flex gap-2">
+          {item.file_path && (
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={handleView}
+              className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+            >
+              <Download className="h-4 w-4 mr-1" />
+              View
+            </Button>
+          )}
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={handleView}
-            className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+            onClick={handleCopyReference}
+            className="text-green-500 hover:text-green-700 hover:bg-green-50"
           >
-            <Download className="h-4 w-4 mr-1" />
-            View
+            <Copy className="h-4 w-4 mr-1" />
+            Copy
           </Button>
-        )}
+        </div>
       </CardFooter>
     </Card>
   );

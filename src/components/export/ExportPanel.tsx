@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Download, File, FileText, History, CheckCircle, Loader2, Eye } from 'lucide-react';
 import { Reference } from '../ai';
 import { cn } from '@/lib/utils';
@@ -133,6 +133,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
         <div className="flex gap-2">
           <Link
             to="/preview-export"
+            state={{ documentTitle, documentContent, references, aiChatHistory }}
             className="flex-1 py-2.5 flex justify-center items-center gap-2 border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 rounded transition-colors"
           >
             <Eye className="w-5 h-5" />

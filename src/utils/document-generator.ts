@@ -5,7 +5,8 @@ import pdfFonts from 'pdfmake/build/vfs_fonts';
 import { Reference } from '@/components/ai';
 
 // Initialize pdfMake with the virtual file system for fonts
-pdfMake.vfs = pdfFonts.pdfMake ? pdfFonts.pdfMake.vfs : pdfFonts.vfs;
+// Using 'any' type for pdfFonts as the type definition is incomplete
+pdfMake.vfs = (pdfFonts as any).vfs;
 
 export const generateDocx = async (
   title: string,
@@ -46,8 +47,8 @@ export const generatePdf = async (
       header: {
         fontSize: 18,
         bold: true,
-        // Fix margin to conform to pdfmake's expected format [left, top, right, bottom]
-        margin: [0, 0, 0, 10]
+        // Fix margin to conform to pdfmake's expected format - must be a tuple with specific structure
+        margin: [0, 0, 0, 10] as [number, number, number, number]
       }
     }
   };

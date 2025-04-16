@@ -18,13 +18,30 @@ export const FilePreview = ({ filePath, fileType, title, onClick }: FilePreviewP
   const isImage = fileType?.toLowerCase().includes('image');
   
   useEffect(() => {
-    if (isImage && filePath) {
-      getPublicImageUrl(filePath).then(url => {
-        if (url) {
-          setImageUrl(url);
+    let isMounted = true;
+    
+    const loadImage = async () => {
+      if (isImage && filePath) {
+        try {
+          const url = await getPublicImageUrl(filePath);
+          if (isMounted && url) {
+            console.log('Image URL loaded:', url);
+            setImageUrl(url);
+          }
+        } catch (error) {
+          if (isMounted) {
+            console.error('Error loading image URL:', error);
+            setImageError(true);
+          }
         }
-      });
-    }
+      }
+    };
+    
+    loadImage();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [isImage, filePath]);
 
   const getIconComponent = () => {
@@ -44,7 +61,7 @@ export const FilePreview = ({ filePath, fileType, title, onClick }: FilePreviewP
       <div className="p-2 rounded-full bg-gray-100 text-gray-600">
         {getIconComponent()}
       </div>
-      {isImage && !imageError && (
+      {isImage && !imageError && imageUrl && (
         <div className="mb-4 relative aspect-video w-full overflow-hidden rounded bg-gray-100">
           {!isImageLoaded && (
             <div className="absolute inset-0 flex items-center justify-center">

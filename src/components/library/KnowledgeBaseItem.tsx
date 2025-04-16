@@ -24,7 +24,16 @@ const KnowledgeBaseItem: React.FC<KnowledgeBaseItemProps> = ({ item, onDelete })
   };
 
   const handleView = async () => {
-    if (!item.file_path) return;
+    if (!item.file_path) {
+      toast({
+        title: 'No File Available',
+        description: 'This item does not have an associated file.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    console.log('Attempting to view file:', item.file_path);
     await downloadAndOpenFile(item.file_path);
   };
 

@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/supabase';
@@ -66,9 +67,19 @@ export const useReferenceManagement = (
       
       setReferences([...references, newReference]);
       
+      // Add to knowledge base with improved logging
       if (addKnowledgeBaseItem) {
+        console.log('Creating knowledge base item from reference:', newReference);
         const knowledgeBaseItem = convertReferenceToKnowledgeBaseItem(newReference, userId);
-        await addKnowledgeBaseItem(knowledgeBaseItem);
+        console.log('Knowledge base item created:', knowledgeBaseItem);
+        try {
+          const result = await addKnowledgeBaseItem(knowledgeBaseItem);
+          console.log('Knowledge base item added, result:', result);
+        } catch (kbError) {
+          console.error('Error adding to knowledge base:', kbError);
+        }
+      } else {
+        console.warn('addKnowledgeBaseItem function is not available');
       }
       
       await updateDocument(documentId, {

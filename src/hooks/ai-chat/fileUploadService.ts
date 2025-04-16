@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 import { ALLOWED_FILE_TYPES } from './fileUtils';
 import { useToast } from '@/components/ui/use-toast';
@@ -113,6 +114,7 @@ export const addFileToKnowledgeBase = async (
   const knowledgeBaseItem = convertFileToKnowledgeBaseItem(path, fileType, fileName, userId);
   
   console.log('Adding to knowledge base:', fileName);
+  console.log('Knowledge base item:', knowledgeBaseItem);
   
   if (onAddToKnowledgeBase) {
     try {
@@ -122,8 +124,11 @@ export const addFileToKnowledgeBase = async (
       return result;
     } catch (error) {
       console.error('Error in addFileToKnowledgeBase:', error);
+      console.error('Error details:', JSON.stringify(error));
       return null;
     }
+  } else {
+    console.warn('onAddToKnowledgeBase function not provided');
   }
   
   return null;

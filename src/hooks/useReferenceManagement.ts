@@ -3,8 +3,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/supabase';
 import { Reference } from '@/components/ai';
 import { Document } from '@/types/document.types';
-import { useDocuments } from '@/components/documents';
-import { convertReferenceToKnowledgeBaseItem } from '@/components/documents';
+import { useDocuments } from '@/store/DocumentStore';
+import { convertReferenceToKnowledgeBaseItem } from '@/services/KnowledgeBaseService';
 
 export const useReferenceManagement = (
   documentId: string | undefined, 

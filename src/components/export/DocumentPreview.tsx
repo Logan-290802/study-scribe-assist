@@ -41,9 +41,8 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         </div>
       </div>
 
-      {/* Document Content */}
+      {/* Document Content - Removed header */}
       <div className="p-8 border-b">
-        <h2 className="text-2xl font-semibold mb-6">Document Content</h2>
         <div 
           className="prose prose-sm sm:prose lg:prose-lg mx-auto"
           dangerouslySetInnerHTML={{ __html: content }}

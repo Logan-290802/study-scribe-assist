@@ -192,7 +192,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
             ) : (
               <>
                 <Download className="w-5 h-5" />
-                <span>Export HTML</span>
+                <span>{selectedFormat === 'docx' ? 'Export Word' : 'Export PDF'}</span>
               </>
             )}
           </button>

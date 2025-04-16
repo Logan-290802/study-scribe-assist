@@ -4,6 +4,7 @@ import { Reference } from '../ai';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { toast } from '@/components/ui/use-toast';
+import { generateDocx, generatePdf } from '@/utils/document-generator';
 
 interface ExportPanelProps {
   documentContent: string;
@@ -32,19 +33,24 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
     setWordCount(words.length);
   }, [documentContent]);
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     setIsExporting(true);
     
     try {
-      const blob = new Blob([documentContent], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
+      let blob: Blob;
       
+      if (selectedFormat === 'docx') {
+        blob = await generateDocx(documentTitle, documentContent, references, aiChatHistory);
+      } else {
+        blob = await generatePdf(documentTitle, documentContent, references, aiChatHistory);
+      }
+      
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${documentTitle || 'document'}.html`;
+      link.download = `${documentTitle || 'document'}.${selectedFormat}`;
       document.body.appendChild(link);
       link.click();
-      
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       
@@ -53,7 +59,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
       
       toast({
         title: 'Download Successful',
-        description: `${documentTitle || 'Document'} has been downloaded.`,
+        description: `${documentTitle || 'Document'} has been downloaded as ${selectedFormat.toUpperCase()}.`,
       });
       
       setTimeout(() => {
@@ -63,7 +69,7 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({
       console.error('Download error:', error);
       toast({
         title: 'Download Error',
-        description: 'Failed to download the document.',
+        description: `Failed to download the document as ${selectedFormat.toUpperCase()}.`,
         variant: 'destructive',
       });
       setIsExporting(false);

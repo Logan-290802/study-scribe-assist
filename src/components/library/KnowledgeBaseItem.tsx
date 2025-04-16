@@ -1,10 +1,9 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Trash2, FileText, Image, FileUp, Download, ExternalLink, Copy } from 'lucide-react';
 import { KnowledgeBaseItem as KBItem } from '@/services/KnowledgeBaseService';
-import { getFilePublicUrl } from '@/services/KnowledgeBaseService';
+import { supabase } from '@/lib/supabase';
 import { useToast } from '@/components/ui/use-toast';
 
 interface KnowledgeBaseItemProps {
@@ -15,6 +14,7 @@ interface KnowledgeBaseItemProps {
 const KnowledgeBaseItem: React.FC<KnowledgeBaseItemProps> = ({ item, onDelete }) => {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
   const { toast } = useToast();
   
   const handleDelete = async () => {
@@ -23,10 +23,41 @@ const KnowledgeBaseItem: React.FC<KnowledgeBaseItemProps> = ({ item, onDelete })
     }
   };
 
-  const handleView = () => {
+  const handleView = async () => {
     if (!item.file_path) return;
-    const publicUrl = getFilePublicUrl(item.file_path);
-    window.open(publicUrl, '_blank');
+    
+    try {
+      const { data, error } = await supabase.storage
+        .from('uploads')
+        .download(item.file_path);
+        
+      if (error) {
+        console.error('Error downloading file:', error);
+        toast({
+          title: 'Download Error',
+          description: 'Unable to download the file. Please try again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      // Create a URL for the downloaded file
+      const url = URL.createObjectURL(data);
+      
+      // Open in new window/tab
+      window.open(url, '_blank');
+      
+      // Clean up the URL after a delay
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      
+    } catch (error) {
+      console.error('Error handling file view:', error);
+      toast({
+        title: 'Error',
+        description: 'Unable to open the file. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleCopyReference = () => {
@@ -63,7 +94,6 @@ const KnowledgeBaseItem: React.FC<KnowledgeBaseItemProps> = ({ item, onDelete })
       });
   };
 
-  // Determine the icon based on the file type
   const getItemIcon = () => {
     if (!item.file_path) return <FileText className="h-5 w-5" />;
     
@@ -79,7 +109,35 @@ const KnowledgeBaseItem: React.FC<KnowledgeBaseItemProps> = ({ item, onDelete })
   };
   
   const isImage = item.file_type?.toLowerCase().includes('image');
-  const imageUrl = isImage ? getFilePublicUrl(item.file_path!) : '';
+  const getImageUrl = async () => {
+    if (!item.file_path) return '';
+    
+    try {
+      const { data: { publicUrl }, error } = supabase.storage
+        .from('uploads')
+        .getPublicUrl(item.file_path);
+        
+      if (error) {
+        console.error('Error getting public URL:', error);
+        return '';
+      }
+      
+      return publicUrl;
+    } catch (error) {
+      console.error('Error getting image URL:', error);
+      return '';
+    }
+  };
+
+  useEffect(() => {
+    if (isImage) {
+      getImageUrl().then(url => {
+        if (url) {
+          setImageUrl(url);
+        }
+      });
+    }
+  }, [isImage, item.file_path]);
 
   return (
     <Card className="h-full flex flex-col overflow-hidden hover:shadow-md transition-shadow">

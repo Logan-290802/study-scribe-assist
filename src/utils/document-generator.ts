@@ -35,8 +35,7 @@ export const generateDocx = async (
           spacing: { after: 400 },
         }),
         new Paragraph({
-          text: 'This submission includes AI-assisted components for transparency and review.',
-          italics: true,
+          children: [new TextRun({ text: 'This submission includes AI-assisted components for transparency and review.', italics: true })],
           alignment: 'center',
           spacing: { after: 500 },
         }),
@@ -119,7 +118,7 @@ export const generatePdf = async (
   const cleanContent = content.replace(/<[^>]*>/g, '');
   
   // Create document definition with all sections
-  const docDefinition = {
+  const docDefinition: pdfMake.TDocumentDefinitions = {
     content: [
       // Title Page
       { 

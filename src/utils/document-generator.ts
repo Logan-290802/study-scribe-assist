@@ -4,7 +4,8 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import { Reference } from '@/components/ai';
 
-pdfMake.vfs = pdfFonts.pdfMake.vfs;
+// Initialize pdfMake with the virtual file system for fonts
+pdfMake.vfs = pdfFonts.pdfMake ? pdfFonts.pdfMake.vfs : pdfFonts.vfs;
 
 export const generateDocx = async (
   title: string,
@@ -16,6 +17,9 @@ export const generateDocx = async (
     sections: [{
       properties: {},
       children: [
+        new Paragraph({
+          children: [new TextRun({ text: title, size: 28, bold: true })],
+        }),
         new Paragraph({
           children: [new TextRun({ text: content, size: 24 })],
         }),
@@ -32,15 +36,17 @@ export const generatePdf = async (
   references: Reference[],
   aiChatHistory: { role: 'user' | 'assistant'; content: string }[]
 ): Promise<Blob> => {
+  // Create document definition with proper type formatting
   const docDefinition = {
     content: [
       { text: title, style: 'header' },
-      content,
+      { text: content }
     ],
     styles: {
       header: {
         fontSize: 18,
         bold: true,
+        // Fix margin to conform to pdfmake's expected format [left, top, right, bottom]
         margin: [0, 0, 0, 10]
       }
     }

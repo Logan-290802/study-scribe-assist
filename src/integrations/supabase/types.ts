@@ -149,6 +149,7 @@ export type Database = {
           content: string | null
           created_at: string
           document_id: string
+          file_path: string | null
           format: string
           id: string
           source: string
@@ -162,6 +163,7 @@ export type Database = {
           content?: string | null
           created_at?: string
           document_id?: string
+          file_path?: string | null
           format: string
           id?: string
           source: string
@@ -175,6 +177,7 @@ export type Database = {
           content?: string | null
           created_at?: string
           document_id?: string
+          file_path?: string | null
           format?: string
           id?: string
           source?: string

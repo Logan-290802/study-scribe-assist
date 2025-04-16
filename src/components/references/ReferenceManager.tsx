@@ -1,9 +1,12 @@
 
 import React, { useState } from 'react';
 import { Reference } from '../ai';
-import { Library, Copy, Edit, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Library, Copy, File, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AddReferenceDialog } from './AddReferenceDialog';
+import { ReferenceFileViewer } from './ReferenceFileViewer';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/components/ui/use-toast';
 
 interface ReferenceManagerProps {
   references: Reference[];
@@ -18,12 +21,33 @@ export const ReferenceManager: React.FC<ReferenceManagerProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [activeReferenceId, setActiveReferenceId] = useState<string | null>(null);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [selectedFileUrl, setSelectedFileUrl] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const formatAuthors = (authors: string[]) => {
     if (authors.length === 0) return '';
     if (authors.length === 1) return authors[0];
     if (authors.length === 2) return `${authors[0]} & ${authors[1]}`;
     return `${authors[0]} et al.`;
+  };
+
+  const handleViewFile = async (filePath: string) => {
+    try {
+      const { data: { publicUrl } } = supabase.storage
+        .from('reference-pdfs')
+        .getPublicUrl(filePath);
+      
+      setSelectedFileUrl(publicUrl);
+      setViewerOpen(true);
+    } catch (error) {
+      console.error('Error getting file URL:', error);
+      toast({
+        title: "Error",
+        description: "Could not open the file. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const toggleReferenceDetails = (id: string) => {
@@ -96,6 +120,18 @@ export const ReferenceManager: React.FC<ReferenceManagerProps> = ({
                         </div>
                       </div>
                       <div className="flex gap-1">
+                        {reference.file_path && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewFile(reference.file_path!);
+                            }}
+                            className="p-1 hover:bg-gray-200 rounded-full text-gray-500 transition-colors"
+                            title="View PDF"
+                          >
+                            <File className="w-4 h-4" />
+                          </button>
+                        )}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -145,6 +181,12 @@ export const ReferenceManager: React.FC<ReferenceManagerProps> = ({
           </div>
         </>
       )}
+
+      <ReferenceFileViewer
+        open={viewerOpen}
+        onOpenChange={setViewerOpen}
+        fileUrl={selectedFileUrl}
+      />
     </div>
   );
 };

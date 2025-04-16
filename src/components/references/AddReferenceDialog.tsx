@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -30,7 +29,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { BookPlus } from 'lucide-react';
+import { BookPlus, Upload } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/lib/supabase';
 
 const referenceFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -49,6 +50,9 @@ interface AddReferenceDialogProps {
 
 export function AddReferenceDialog({ onAddReference }: AddReferenceDialogProps) {
   const [open, setOpen] = React.useState(false);
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const [isUploading, setIsUploading] = React.useState(false);
+  const { toast } = useToast();
   
   const form = useForm<ReferenceFormValues>({
     resolver: zodResolver(referenceFormSchema),
@@ -62,20 +66,59 @@ export function AddReferenceDialog({ onAddReference }: AddReferenceDialogProps) 
     },
   });
 
-  function onSubmit(data: ReferenceFormValues) {
-    const reference: Reference = {
-      id: Date.now().toString(),
-      title: data.title,
-      authors: data.authors.split(',').map(author => author.trim()),
-      year: data.year,
-      source: data.source,
-      url: data.url || undefined,
-      format: data.format,
-    };
-    
-    onAddReference(reference);
-    form.reset();
-    setOpen(false);
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type === 'application/pdf') {
+      setSelectedFile(file);
+    } else {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload a PDF file",
+        variant: "destructive",
+      });
+    }
+  };
+
+  async function onSubmit(data: ReferenceFormValues) {
+    setIsUploading(true);
+    try {
+      let filePath: string | undefined;
+
+      if (selectedFile) {
+        const fileName = `${Date.now()}_${selectedFile.name}`;
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('reference-pdfs')
+          .upload(fileName, selectedFile);
+
+        if (uploadError) throw uploadError;
+        filePath = uploadData.path;
+      }
+
+      const reference: Reference = {
+        id: Date.now().toString(),
+        title: data.title,
+        authors: data.authors.split(',').map(author => author.trim()),
+        year: data.year,
+        source: data.source,
+        url: data.url || undefined,
+        format: data.format,
+        file_path: filePath,
+      };
+      
+      onAddReference(reference);
+      form.reset();
+      setSelectedFile(null);
+      setOpen(false);
+    } catch (error) {
+      console.error('Error adding reference:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add reference. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   }
 
   return (
@@ -187,8 +230,33 @@ export function AddReferenceDialog({ onAddReference }: AddReferenceDialogProps) 
                 </FormItem>
               )}
             />
+            <FormItem>
+              <FormLabel>PDF File (optional)</FormLabel>
+              <FormControl>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="file"
+                    accept="application/pdf"
+                    onChange={handleFileChange}
+                    className="flex-1"
+                  />
+                  {selectedFile && (
+                    <span className="text-sm text-gray-500">{selectedFile.name}</span>
+                  )}
+                </div>
+              </FormControl>
+            </FormItem>
             <DialogFooter>
-              <Button type="submit">Add Reference</Button>
+              <Button type="submit" disabled={isUploading}>
+                {isUploading ? (
+                  <>
+                    <Upload className="mr-2 h-4 w-4 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  'Add Reference'
+                )}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

@@ -1,8 +1,6 @@
-
 import { supabase } from '@/lib/supabase';
 import { DatabaseOperationsResults } from './types';
 
-// Function to test inserting/querying data for each table
 export const testDatabaseOperations = async (userId: string): Promise<DatabaseOperationsResults> => {
   const results: DatabaseOperationsResults = {
     documentsInsert: false,
@@ -11,6 +9,8 @@ export const testDatabaseOperations = async (userId: string): Promise<DatabaseOp
     referencesQuery: false,
     aiChatHistoryInsert: false,
     aiChatHistoryQuery: false,
+    documentVersionsInsert: false,
+    documentVersionsQuery: false,
     testDocumentId: ''
   };
   
@@ -59,6 +59,9 @@ async function testDocumentOperations(userId: string, results: DatabaseOperation
     
     // 4. Test chat history operations if document was created successfully
     await testChatHistoryOperations(docData.id, userId, results);
+    
+    // 5. Test document version operations if document was created successfully
+    await testDocumentVersionOperations(docData.id, userId, results);
     
     // Clean up the test document
     await supabase
@@ -179,5 +182,48 @@ async function testChatHistoryOperations(documentId: string, userId: string, res
       .from('ai_chat_history')
       .delete()
       .eq('id', chatData.id);
+  }
+}
+
+// Add new test for document versions
+async function testDocumentVersionOperations(documentId: string, userId: string, results: DatabaseOperationsResults): Promise<void> {
+  const { data: versionData, error: versionError } = await supabase
+    .from('document_versions')
+    .insert({
+      document_id: documentId,
+      content: '<p>Test version content</p>',
+      version_number: 1,
+      user_id: userId,
+      title: 'Test Version'
+    })
+    .select()
+    .single();
+    
+  if (versionError) {
+    console.error('Error inserting test document version:', versionError);
+    return;
+  }
+  
+  if (versionData) {
+    results.documentVersionsInsert = true;
+    
+    // Query the version
+    const { data: queryData, error: queryError } = await supabase
+      .from('document_versions')
+      .select()
+      .eq('id', versionData.id)
+      .single();
+      
+    if (queryError) {
+      console.error('Error querying test document version:', queryError);
+    } else if (queryData) {
+      results.documentVersionsQuery = true;
+    }
+    
+    // Clean up the test version
+    await supabase
+      .from('document_versions')
+      .delete()
+      .eq('id', versionData.id);
   }
 }

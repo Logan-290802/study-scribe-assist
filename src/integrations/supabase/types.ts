@@ -36,10 +36,115 @@ export type Database = {
         }
         Relationships: []
       }
+      authors: {
+        Row: {
+          created_at: string | null
+          first_name: string | null
+          id: string
+          last_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          first_name?: string | null
+          id?: string
+          last_name: string
+        }
+        Update: {
+          created_at?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string
+        }
+        Relationships: []
+      }
+      citation_formats: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          template: Json
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          template: Json
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          template?: Json
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      document_versions: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          document_id: string | null
+          id: string
+          title: string
+          user_id: string
+          version_number: number
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          document_id?: string | null
+          id?: string
+          title: string
+          user_id: string
+          version_number: number
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          document_id?: string | null
+          id?: string
+          title?: string
+          user_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_versions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_versions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "v_document_overview"
+            referencedColumns: ["document_id"]
+          },
+          {
+            foreignKeyName: "fk_document_versions_document"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_document_versions_document"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "v_document_overview"
+            referencedColumns: ["document_id"]
+          },
+        ]
+      }
       documents: {
         Row: {
           archived: boolean | null
           content: string | null
+          document_type: string | null
           dueDate: string | null
           id: string
           last_modified: string
@@ -52,6 +157,7 @@ export type Database = {
         Insert: {
           archived?: boolean | null
           content?: string | null
+          document_type?: string | null
           dueDate?: string | null
           id?: string
           last_modified?: string
@@ -64,6 +170,7 @@ export type Database = {
         Update: {
           archived?: boolean | null
           content?: string | null
+          document_type?: string | null
           dueDate?: string | null
           id?: string
           last_modified?: string
@@ -189,6 +296,148 @@ export type Database = {
             referencedRelation: "documents"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "knowledge_base_references_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "v_document_overview"
+            referencedColumns: ["document_id"]
+          },
+        ]
+      }
+      reference_authors: {
+        Row: {
+          author_id: string
+          order_position: number
+          reference_id: string
+        }
+        Insert: {
+          author_id: string
+          order_position: number
+          reference_id: string
+        }
+        Update: {
+          author_id?: string
+          order_position?: number
+          reference_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reference_authors_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "authors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reference_authors_reference_id_fkey"
+            columns: ["reference_id"]
+            isOneToOne: false
+            referencedRelation: "reference_materials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reference_materials: {
+        Row: {
+          citation_format_id: string | null
+          content: string | null
+          created_at: string | null
+          file_path: string | null
+          id: string
+          source: string | null
+          title: string
+          type: string
+          updated_at: string | null
+          url: string | null
+          user_id: string
+          year: string | null
+        }
+        Insert: {
+          citation_format_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          file_path?: string | null
+          id?: string
+          source?: string | null
+          title: string
+          type: string
+          updated_at?: string | null
+          url?: string | null
+          user_id: string
+          year?: string | null
+        }
+        Update: {
+          citation_format_id?: string | null
+          content?: string | null
+          created_at?: string | null
+          file_path?: string | null
+          id?: string
+          source?: string | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+          url?: string | null
+          user_id?: string
+          year?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reference_materials_citation_format_id_fkey"
+            columns: ["citation_format_id"]
+            isOneToOne: false
+            referencedRelation: "citation_formats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reference_usage: {
+        Row: {
+          context: string | null
+          document_id: string | null
+          id: string
+          reference_id: string | null
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          context?: string | null
+          document_id?: string | null
+          id?: string
+          reference_id?: string | null
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          context?: string | null
+          document_id?: string | null
+          id?: string
+          reference_id?: string | null
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reference_usage_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reference_usage_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "v_document_overview"
+            referencedColumns: ["document_id"]
+          },
+          {
+            foreignKeyName: "reference_usage_reference_id_fkey"
+            columns: ["reference_id"]
+            isOneToOne: false
+            referencedRelation: "reference_materials"
+            referencedColumns: ["id"]
+          },
         ]
       }
       references: {
@@ -242,11 +491,33 @@ export type Database = {
             referencedRelation: "documents"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "references_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "v_document_overview"
+            referencedColumns: ["document_id"]
+          },
         ]
       }
     }
     Views: {
-      [_ in never]: never
+      v_document_overview: {
+        Row: {
+          ai_message_count: number | null
+          document_id: string | null
+          document_type: string | null
+          dueDate: string | null
+          last_modified: string | null
+          moduleNumber: string | null
+          reference_count: number | null
+          references_count: number | null
+          title: string | null
+          user_id: string | null
+          version_count: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

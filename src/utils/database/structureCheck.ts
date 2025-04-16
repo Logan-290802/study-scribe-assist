@@ -8,6 +8,9 @@ export const checkDatabaseTables = async (): Promise<DatabaseStructureResults> =
     documents: false,
     references: false,
     ai_chat_history: false,
+    document_versions: false,
+    citation_formats: false,
+    reference_materials: false,
     columnsInfo: {},
     foreignKeys: {}
   };
@@ -29,9 +32,12 @@ export const checkDatabaseTables = async (): Promise<DatabaseStructureResults> =
       results.documents = tables.some(t => t.table_name === 'documents');
       results.references = tables.some(t => t.table_name === 'references');
       results.ai_chat_history = tables.some(t => t.table_name === 'ai_chat_history');
+      results.document_versions = tables.some(t => t.table_name === 'document_versions');
+      results.citation_formats = tables.some(t => t.table_name === 'citation_formats');
+      results.reference_materials = tables.some(t => t.table_name === 'reference_materials');
       
       // Get column information for each existing table
-      for (const tableName of ['documents', 'references', 'ai_chat_history']) {
+      for (const tableName of ['documents', 'references', 'ai_chat_history', 'document_versions', 'citation_formats', 'reference_materials']) {
         if (tables.some(t => t.table_name === tableName)) {
           await getTableColumns(tableName, results);
           await getTableForeignKeys(tableName, results);

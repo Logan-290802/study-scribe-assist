@@ -1,4 +1,3 @@
-
 // Types for database checking functionality
 export interface TableInfo {
   table_name: string;
@@ -16,11 +15,25 @@ export interface ColumnInfo {
   column_default: string | null;
 }
 
+// New type for document versions
+export interface DocumentVersion {
+  id: string;
+  document_id: string;
+  content: string | null;
+  version_number: number;
+  created_at: string;
+  user_id: string;
+  title: string;
+}
+
 // Results of database structure check
 export interface DatabaseStructureResults {
   documents: boolean;
   references: boolean;
   ai_chat_history: boolean;
+  document_versions: boolean;
+  citation_formats: boolean;
+  reference_materials: boolean;
   columnsInfo: Record<string, ColumnInfo[]>;
   foreignKeys: Record<string, any[]>;
 }
@@ -33,5 +46,7 @@ export interface DatabaseOperationsResults {
   referencesQuery: boolean;
   aiChatHistoryInsert: boolean;
   aiChatHistoryQuery: boolean;
+  documentVersionsInsert: boolean;
+  documentVersionsQuery: boolean;
   testDocumentId: string;
 }

@@ -3,6 +3,8 @@ import React, { useRef, useEffect } from 'react';
 import ChatMessage from './ChatMessage';
 import UploadedFile from './UploadedFile';
 import { ChatMessage as ChatMessageType } from '../types';
+import { Loader } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 
 interface ChatMessageListProps {
   messages: ChatMessageType[];
@@ -27,7 +29,7 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isLoading]);
 
   return (
     <div className="flex-grow overflow-y-auto p-4 space-y-4 thin-scrollbar">
@@ -43,13 +45,13 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
       ))}
       
       {isLoading && (
-        <div className="flex justify-start animate-fade-in">
-          <div className="bg-gray-100 text-gray-800 rounded-lg rounded-tl-none max-w-[85%] p-3">
-            <div className="flex space-x-2">
-              <div className="w-2 h-2 rounded-full bg-gray-300 animate-pulse"></div>
-              <div className="w-2 h-2 rounded-full bg-gray-300 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-2 h-2 rounded-full bg-gray-300 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+        <div className="flex flex-col justify-start animate-fade-in">
+          <div className="bg-gray-100 text-gray-800 rounded-lg rounded-tl-none max-w-[85%] p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Loader className="w-4 h-4 text-blue-500 animate-spin" />
+              <span className="text-sm text-gray-500">Anthropic's Claude is thinking...</span>
             </div>
+            <Progress value={60} className="h-1" />
           </div>
         </div>
       )}

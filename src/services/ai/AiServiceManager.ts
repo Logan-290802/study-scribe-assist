@@ -16,6 +16,12 @@ export class AiServiceManager {
   }
   
   async processTextWithAi(text: string, action: 'research' | 'critique' | 'expand'): Promise<AiResponse> {
+    // For now, use Claude for all actions
+    console.log(`Processing action: ${action} with Claude`);
+    return this.claudeService.query(text);
+    
+    // The following code will be re-enabled later when we want to use different services
+    /*
     switch (action) {
       case 'research':
         return this.perplexityService.query(text);
@@ -29,6 +35,7 @@ export class AiServiceManager {
           error: 'Invalid action type'
         };
     }
+    */
   }
 }
 

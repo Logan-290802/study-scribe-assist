@@ -1,6 +1,8 @@
 
 import { useToast } from '@/components/ui/use-toast';
 import { ChatMessage } from '@/components/ai/types';
+import { Progress } from '@/components/ui/progress';
+import { aiServiceManager } from '@/services/ai/AiServiceManager';
 import { 
   createUserMessage, 
   createReferenceResponse, 
@@ -56,30 +58,33 @@ export const useMessageHandler = ({
       return;
     }
     
+    // Set loading state to true when waiting for AI response
     setIsLoading(true);
     
-    setTimeout(() => {
-      let aiResponse: ChatMessage;
+    try {
+      // Use Claude AI for all interactions
+      const aiResult = await aiServiceManager.processTextWithAi(input, 'expand');
       
-      if (input.toLowerCase().includes('reference') || input.toLowerCase().includes('citation')) {
-        aiResponse = createReferenceResponse();
-      } else if (input.toLowerCase().includes('summarize') || input.toLowerCase().includes('summary')) {
-        aiResponse = createSummaryResponse();
-      } else if (uploadedFile) {
-        // This case is handled by useFileUpload now
-        aiResponse = createGeneralResponse();
-        setUploadedFile(null);
-      } else {
-        aiResponse = createGeneralResponse();
-      }
+      // Create AI response with the content from Claude
+      const aiResponse: ChatMessage = {
+        id: Math.random().toString(36).substring(2, 9),
+        role: 'assistant',
+        content: aiResult.content,
+        timestamp: new Date()
+      };
       
       setMessages((prev) => [...prev, aiResponse]);
-      setIsLoading(false);
       
+      // If there's an uploaded file, clear it after processing
+      if (uploadedFile) {
+        setUploadedFile(null);
+      }
+      
+      // Save the AI response to Supabase if documentId and userId exist
       if (documentId && userId) {
-        saveChatMessageToSupabase({
+        await saveChatMessageToSupabase({
           role: 'assistant',
-          content: aiResponse.content,
+          content: aiResult.content,
           document_id: documentId,
           user_id: userId,
         }, (error) => {
@@ -90,7 +95,29 @@ export const useMessageHandler = ({
           });
         });
       }
-    }, 1500);
+    } catch (error) {
+      console.error('Error processing AI request:', error);
+      
+      // Show error toast
+      toast({
+        title: "AI Error",
+        description: "Failed to get a response from the AI service",
+        variant: "destructive",
+      });
+      
+      // Add error message to chat
+      const errorResponse: ChatMessage = {
+        id: Math.random().toString(36).substring(2, 9),
+        role: 'assistant',
+        content: "Sorry, I encountered an error processing your request. Please try again later.",
+        timestamp: new Date()
+      };
+      
+      setMessages((prev) => [...prev, errorResponse]);
+    } finally {
+      // Always set loading to false when done
+      setIsLoading(false);
+    }
   };
 
   return {

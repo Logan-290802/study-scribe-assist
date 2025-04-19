@@ -21,6 +21,8 @@ export class AiServiceManager {
     const claudeApiKey = apiKeys?.claude || import.meta.env.VITE_CLAUDE_API_KEY;
     if (!claudeApiKey) {
       console.warn("No Claude API key found. Using mock responses.");
+    } else {
+      console.log("Claude API key found. Using Anthropic Claude API.");
     }
   }
   

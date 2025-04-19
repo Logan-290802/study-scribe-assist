@@ -46,7 +46,8 @@ export class ClaudeService extends AiService {
       const data = await response.json();
       console.log("Claude API response received successfully");
       
-      if (!data.content || !data.content[0] || !data.content[0].text) {
+      // Proper parsing of Claude's response format
+      if (!data.content || data.content.length === 0) {
         throw new Error('Unexpected response format from Claude API');
       }
 

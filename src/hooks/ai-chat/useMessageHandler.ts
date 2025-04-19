@@ -1,7 +1,7 @@
 
 import { useToast } from '@/components/ui/use-toast';
 import { ChatMessage } from '@/components/ai/types';
-import { aiServiceManager } from '@/services/ai/AiServiceManager';
+import { getAiServiceManager } from '@/services/ai/AiServiceManager';
 import { 
   createUserMessage, 
   createReferenceResponse, 
@@ -75,9 +75,13 @@ export const useMessageHandler = ({
     console.log("Loading state set to true, waiting for AI response");
     
     try {
+      console.log("Initializing AI service manager");
+      // Get the AI service manager instance
+      const aiManager = await getAiServiceManager();
+      
       console.log("Calling Claude AI service...");
       // Use Claude AI for all interactions
-      const aiResult = await aiServiceManager.processTextWithAi(input, 'expand');
+      const aiResult = await aiManager.processTextWithAi(input, 'expand');
       console.log("AI response received:", aiResult);
       
       // Create AI response with the content from Claude

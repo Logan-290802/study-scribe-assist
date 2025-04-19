@@ -15,6 +15,12 @@ export class AiServiceManager {
     this.openAiService = new OpenAiService({ apiKey: apiKeys?.openai });
     this.claudeService = new ClaudeService({ apiKey: apiKeys?.claude });
     
+    // Store Claude API key in localStorage if provided
+    if (apiKeys?.claude) {
+      localStorage.setItem('CLAUDE_API_KEY', apiKeys.claude);
+      console.log("Claude API key saved to localStorage");
+    }
+    
     // Log the status of Claude API key
     console.log("Claude API key detected:", !!apiKeys?.claude);
   }
@@ -42,7 +48,7 @@ export const getAiServiceManager = async (): Promise<AiServiceManager> => {
   }
   
   try {
-    // Try to retrieve the API key from Supabase storage
+    // Try to retrieve the API key from browser storage
     console.log("Attempting to retrieve Claude API key from browser storage");
     const apiKey = localStorage.getItem('CLAUDE_API_KEY');
     

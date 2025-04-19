@@ -1,51 +1,58 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, Check, Key } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
+import { getAiServiceManager } from '@/services/ai/AiServiceManager';
 
 interface AiApiKeysFormProps {
-  onKeysUpdate: (keys: { perplexity?: string; openai?: string; claude?: string }) => void;
-  initialKeys?: { perplexity?: string; openai?: string; claude?: string };
+  onKeysUpdate?: (keys: { perplexity?: string; openai?: string; claude?: string }) => void;
 }
 
-const AiApiKeysForm: React.FC<AiApiKeysFormProps> = ({ onKeysUpdate, initialKeys = {} }) => {
-  const [perplexityKey, setPerplexityKey] = useState(initialKeys.perplexity || '');
-  const [openaiKey, setOpenaiKey] = useState(initialKeys.openai || '');
-  const [claudeKey, setClaudeKey] = useState(initialKeys.claude || '');
+const AiApiKeysForm: React.FC<AiApiKeysFormProps> = ({ onKeysUpdate }) => {
+  const [claudeKey, setClaudeKey] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
-  const handleSave = () => {
+  // Load saved API key on mount
+  useEffect(() => {
+    const savedKey = localStorage.getItem('CLAUDE_API_KEY');
+    if (savedKey) {
+      setClaudeKey(savedKey);
+    }
+  }, []);
+
+  const handleSave = async () => {
     setIsSaving(true);
     
-    // In a real app, you might save these to a secure location
-    // For now, we'll just pass them to the parent component
     try {
-      onKeysUpdate({
-        perplexity: perplexityKey || undefined,
-        openai: openaiKey || undefined,
-        claude: claudeKey || undefined
-      });
+      // Create a new AI service manager with the provided API key
+      await getAiServiceManager();
       
-      // Store in localStorage (not recommended for production, just for demo)
-      if (perplexityKey) localStorage.setItem('perplexity_api_key', perplexityKey);
-      if (openaiKey) localStorage.setItem('openai_api_key', openaiKey);
-      if (claudeKey) localStorage.setItem('claude_api_key', claudeKey);
+      // Store in localStorage (used by AiServiceManager)
+      if (claudeKey) {
+        localStorage.setItem('CLAUDE_API_KEY', claudeKey);
+      } else {
+        localStorage.removeItem('CLAUDE_API_KEY');
+      }
+      
+      if (onKeysUpdate) {
+        onKeysUpdate({ claude: claudeKey });
+      }
       
       toast({
-        title: "API keys saved",
-        description: "Your AI API keys have been saved successfully.",
+        title: "API key saved",
+        description: "Your Claude API key has been saved successfully.",
         duration: 3000,
       });
     } catch (error) {
-      console.error('Error saving API keys:', error);
+      console.error('Error saving API key:', error);
       toast({
-        title: "Error saving API keys",
-        description: "There was an error saving your API keys.",
+        title: "Error saving API key",
+        description: "There was an error saving your API key.",
         variant: "destructive",
         duration: 3000,
       });
@@ -59,43 +66,15 @@ const AiApiKeysForm: React.FC<AiApiKeysFormProps> = ({ onKeysUpdate, initialKeys
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Key className="h-5 w-5" />
-          AI API Keys
+          AI API Key
         </CardTitle>
         <CardDescription>
-          Enter your API keys to enable AI features. Your keys are stored locally and never sent to our servers.
+          Enter your Claude API key to enable AI features. Your key is stored locally and never sent to our servers.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="perplexity-key">Perplexity API Key (for Research)</Label>
-          <Input
-            id="perplexity-key"
-            value={perplexityKey}
-            onChange={(e) => setPerplexityKey(e.target.value)}
-            type="password"
-            placeholder="sk_xxxxxxxxxxxxxxxxxx"
-          />
-          <p className="text-xs text-muted-foreground">
-            Get a key from <a href="https://www.perplexity.ai/settings/api" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">Perplexity API</a>
-          </p>
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="openai-key">OpenAI API Key (for Critique)</Label>
-          <Input
-            id="openai-key"
-            value={openaiKey}
-            onChange={(e) => setOpenaiKey(e.target.value)}
-            type="password"
-            placeholder="sk-xxxxxxxxxxxxxxxxxx"
-          />
-          <p className="text-xs text-muted-foreground">
-            Get a key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">OpenAI</a>
-          </p>
-        </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="claude-key">Claude API Key (for Expansion)</Label>
+          <Label htmlFor="claude-key">Claude API Key</Label>
           <Input
             id="claude-key"
             value={claudeKey}
@@ -113,7 +92,7 @@ const AiApiKeysForm: React.FC<AiApiKeysFormProps> = ({ onKeysUpdate, initialKeys
           <div>
             <p className="text-sm font-medium">Security Notice</p>
             <p className="text-xs mt-1">
-              For demonstration purposes, API keys are stored in browser storage. In a production environment, these should be stored securely on the server side and accessed via environment variables.
+              For demonstration purposes, API keys are stored in browser storage. In a production environment, these should be stored securely on the server side.
             </p>
           </div>
         </div>
@@ -125,7 +104,7 @@ const AiApiKeysForm: React.FC<AiApiKeysFormProps> = ({ onKeysUpdate, initialKeys
           ) : (
             <>
               <Check className="h-4 w-4" />
-              Save API Keys
+              Save API Key
             </>
           )}
         </Button>

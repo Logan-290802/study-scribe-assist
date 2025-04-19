@@ -12,11 +12,11 @@ export class ClaudeService extends AiService {
       const apiKey = this.apiKey || import.meta.env.VITE_CLAUDE_API_KEY || "";
       
       if (!apiKey) {
-        console.log("No Claude API key available, using mock response");
+        console.error("No Claude API key available");
         return this.mockResponse(text);
       }
       
-      console.log("Making request to Claude API");
+      console.log("Making request to Claude API with text:", text.substring(0, 50) + "...");
       
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -28,10 +28,6 @@ export class ClaudeService extends AiService {
         body: JSON.stringify({
           model: 'claude-3-sonnet-20240229',
           messages: [
-            {
-              role: 'system',
-              content: 'You are a creative, thoughtful idea developer who helps writers expand concepts and ideas. Your role is to take a seed concept and develop it into a rich, well-rounded exploration while maintaining clarity and relevance.'
-            },
             {
               role: 'user',
               content: text
@@ -48,7 +44,7 @@ export class ClaudeService extends AiService {
       }
 
       const data = await response.json();
-      console.log("Claude API response received:", data);
+      console.log("Claude API response received successfully");
       
       if (!data.content || !data.content[0] || !data.content[0].text) {
         throw new Error('Unexpected response format from Claude API');
@@ -60,90 +56,17 @@ export class ClaudeService extends AiService {
       };
     } catch (error) {
       console.error('Error in Claude service:', error);
-      return {
-        content: `I apologize, but I encountered an error while processing your request. ${error.message}`,
-        error: error.message,
-        source: 'Anthropic Claude (Error)'
-      };
+      throw error; // Re-throw to allow proper error handling upstream
     }
   }
   
   // For development or when API key is not available
   private mockResponse(text: string): AiResponse {
+    console.log("Using mock response for Claude");
     return {
-      content: `# Expanded Exploration: "${text.substring(0, 30)}..."
+      content: `This is a mock response to: "${text.substring(0, 30)}..."
 
-## Core Principles & Underlying Assumptions
-
-This concept fundamentally rests on several key principles:
-- The relationship between [principle 1] and [principle 2]
-- The assumption that [key assumption]
-- The underlying value of [core value]
-
-These elements form the foundation upon which this idea is built. The interplay between [element 1] and [element 2] creates a dynamic tension that makes this concept particularly rich for exploration.
-
-## Historical Context & Evolution
-
-This idea has roots that can be traced to:
-- Early formulations in [historical period/movement], when [historical figure/group] first proposed similar concepts
-- Important developments during [middle period], particularly through the work of [key contributors]
-- Contemporary evolution through [recent developments] and the influence of [modern field/discipline]
-
-The progression from [earlier form] to [current understanding] demonstrates how the concept has adapted to changing contexts while maintaining its essential character.
-
-## Different Perspectives & Interpretations
-
-Various schools of thought offer distinct interpretations:
-- The [Perspective A] approach emphasizes [key aspect 1], suggesting that [interpretation 1]
-- From a [Perspective B] standpoint, the focus shifts to [key aspect 2], leading to [interpretation 2]
-- [Interdisciplinary perspective] bridges these views by recognizing [connecting element]
-
-These diverse viewpoints enrich our understanding by highlighting different dimensions of the same fundamental concept.
-
-## Examples & Applications
-
-This concept manifests concretely through:
-- In [domain 1]: [specific example 1] demonstrates how [principle] operates in practice
-- In [domain 2]: Organizations like [example organization] have applied this thinking to [practical application]
-- In everyday contexts: [relatable example] shows how this idea appears in common experiences
-
-These examples illustrate the versatility and practical relevance of the concept across different contexts.
-
-## Implications & Extensions
-
-The broader implications include:
-- Potential impact on [related field/issue], particularly regarding [specific impact]
-- Extension of these principles to [new domain], which could lead to [innovative outcome]
-- Long-term consequences for [broader system], especially considering [emerging trend]
-
-These ripple effects demonstrate the concept's significance beyond its immediate applications.
-
-## Potential Limitations & Criticisms
-
-Important challenges to consider include:
-- The problem of [limitation 1], which raises questions about [specific concern]
-- Critics from [opposing perspective] who argue that [counter-argument]
-- Practical constraints related to [implementation challenge]
-
-Acknowledging these limitations provides a more balanced understanding and identifies areas for further refinement.
-
-## Related Concepts Worth Exploring
-
-This idea connects meaningfully to:
-- [Related concept 1], which shares [common element] but differs in [key distinction]
-- The broader framework of [larger theoretical approach]
-- Emerging ideas around [cutting-edge related concept]
-
-Exploring these connections could yield even richer insights and applications of the core concept.
-
-## Synthesis & Next Steps
-
-Drawing these threads together, we see that this idea represents [synthesized understanding]. Moving forward, fruitful directions might include:
-- Deeper exploration of [specific aspect]
-- Application of these principles to [new context]
-- Integration with [complementary framework]
-
-This expanded understanding transforms the initial concept from a single point into a rich constellation of interconnected ideas, applications, and possibilities.`,
+I'm currently in mock mode because no API key was provided. Please set up a valid Claude API key to get real responses.`,
       source: 'Anthropic Claude (Mock)'
     };
   }

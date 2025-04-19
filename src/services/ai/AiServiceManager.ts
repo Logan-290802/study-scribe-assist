@@ -16,14 +16,21 @@ export class AiServiceManager {
     
     // Log to confirm initialization
     console.log("AiServiceManager initialized with Claude service");
+
+    // Check if Claude API key is available
+    const claudeApiKey = apiKeys?.claude || import.meta.env.VITE_CLAUDE_API_KEY;
+    if (!claudeApiKey) {
+      console.warn("No Claude API key found. Using mock responses.");
+    }
   }
   
   async processTextWithAi(text: string, action: 'research' | 'critique' | 'expand'): Promise<AiResponse> {
     // Use only Claude for all actions for now
-    console.log(`Processing action: ${action} with Claude`);
+    console.log(`Processing action: ${action} with Claude, text: "${text.substring(0, 30)}..."`);
+    
     try {
       const response = await this.claudeService.query(text);
-      console.log("Claude response received:", response);
+      console.log("Claude response received:", response.content.substring(0, 50) + "...");
       return response;
     } catch (error) {
       console.error("Error in processTextWithAi:", error);

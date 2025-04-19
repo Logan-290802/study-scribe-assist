@@ -1,4 +1,3 @@
-
 import { AiService, AiResponse, AiServiceOptions } from './AiService';
 
 export class ClaudeService extends AiService {
@@ -28,20 +27,7 @@ export class ClaudeService extends AiService {
             },
             {
               role: 'user',
-              content: `I'm working on developing this idea further:
-
-"${text}"
-
-Please help me expand on this concept by:
-1. Exploring the core principles and underlying assumptions
-2. Providing historical context and evolution of this idea
-3. Examining different perspectives and interpretations
-4. Offering concrete examples and applications
-5. Discussing implications and potential extensions
-6. Addressing potential criticisms or limitations
-7. Suggesting related concepts worth exploring
-
-Please organize your response clearly with headings and maintain a cohesive narrative that builds on my original idea while adding substantial depth and breadth.`
+              content: text
             }
           ],
           max_tokens: 1000,
@@ -58,6 +44,7 @@ Please organize your response clearly with headings and maintain a cohesive narr
         source: 'Anthropic Claude'
       };
     } catch (error) {
+      console.error('Error in Claude service:', error);
       // Fall back to mock response if API call fails
       return this.mockResponse(text);
     }

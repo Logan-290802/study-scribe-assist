@@ -35,9 +35,13 @@ export const useMessageHandler = ({
   const handleSendMessage = async (input: string) => {
     if (!input.trim()) return;
 
+    // Create and add user message
     const userMessage = createUserMessage(input);
     setMessages((prev) => [...prev, userMessage]);
     
+    console.log("Sending user message:", input);
+    
+    // Save user message to Supabase if available
     if (documentId && userId) {
       await saveChatMessageToSupabase({
         role: 'user',
@@ -53,6 +57,7 @@ export const useMessageHandler = ({
       });
     }
     
+    // If we have an external handler, use that instead
     if (onNewMessage) {
       onNewMessage(input);
       return;
@@ -60,10 +65,13 @@ export const useMessageHandler = ({
     
     // Set loading state to true when waiting for AI response
     setIsLoading(true);
+    console.log("Loading state set to true, waiting for AI response");
     
     try {
+      console.log("Calling Claude AI service...");
       // Use Claude AI for all interactions
       const aiResult = await aiServiceManager.processTextWithAi(input, 'expand');
+      console.log("AI response received:", aiResult);
       
       // Create AI response with the content from Claude
       const aiResponse: ChatMessage = {
@@ -74,6 +82,7 @@ export const useMessageHandler = ({
       };
       
       setMessages((prev) => [...prev, aiResponse]);
+      console.log("AI message added to chat");
       
       // If there's an uploaded file, clear it after processing
       if (uploadedFile) {
@@ -101,7 +110,7 @@ export const useMessageHandler = ({
       // Show error toast
       toast({
         title: "AI Error",
-        description: "Failed to get a response from the AI service",
+        description: "Failed to get a response from Claude. Please try again.",
         variant: "destructive",
       });
       
@@ -117,6 +126,7 @@ export const useMessageHandler = ({
     } finally {
       // Always set loading to false when done
       setIsLoading(false);
+      console.log("Loading state set to false, AI response complete");
     }
   };
 

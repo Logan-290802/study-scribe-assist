@@ -8,15 +8,21 @@ export class ClaudeService extends AiService {
   
   async query(text: string): Promise<AiResponse> {
     try {
-      if (!this.apiKey) {
+      // Use either the provided API key or check for environment variable
+      const apiKey = this.apiKey || import.meta.env.VITE_CLAUDE_API_KEY || "";
+      
+      if (!apiKey) {
+        console.log("No Claude API key available, using mock response");
         return this.mockResponse(text);
       }
+      
+      console.log("Making request to Claude API");
       
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
           'anthropic-version': '2023-06-01',
-          'x-api-key': this.apiKey,
+          'x-api-key': apiKey,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -37,10 +43,12 @@ export class ClaudeService extends AiService {
 
       if (!response.ok) {
         const errorData = await response.text();
+        console.error(`Claude API error (${response.status}):`, errorData);
         throw new Error(`Claude API error (${response.status}): ${errorData}`);
       }
 
       const data = await response.json();
+      console.log("Claude API response received:", data);
       
       if (!data.content || !data.content[0] || !data.content[0].text) {
         throw new Error('Unexpected response format from Claude API');

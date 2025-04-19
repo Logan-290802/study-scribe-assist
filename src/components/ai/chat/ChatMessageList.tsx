@@ -48,10 +48,10 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
         <div className="flex flex-col justify-start animate-fade-in">
           <div className="bg-gray-100 text-gray-800 rounded-lg rounded-tl-none max-w-[85%] p-4 space-y-3">
             <div className="flex items-center gap-2">
-              <Loader className="w-4 h-4 text-blue-500 animate-spin" />
+              <Loader className="w-5 h-5 text-blue-500 animate-spin" />
               <span className="text-sm text-gray-500">Anthropic's Claude is thinking...</span>
             </div>
-            <Progress value={60} className="h-1" />
+            <Progress value={65} className="h-1.5 w-full" />
           </div>
         </div>
       )}

@@ -13,31 +13,26 @@ export class AiServiceManager {
     this.perplexityService = new PerplexityService({ apiKey: apiKeys?.perplexity });
     this.openAiService = new OpenAiService({ apiKey: apiKeys?.openai });
     this.claudeService = new ClaudeService({ apiKey: apiKeys?.claude });
+    
+    // Log to confirm initialization
+    console.log("AiServiceManager initialized with Claude service");
   }
   
   async processTextWithAi(text: string, action: 'research' | 'critique' | 'expand'): Promise<AiResponse> {
-    // For now, use Claude for all actions
+    // Use only Claude for all actions for now
     console.log(`Processing action: ${action} with Claude`);
-    return this.claudeService.query(text);
-    
-    // The following code will be re-enabled later when we want to use different services
-    /*
-    switch (action) {
-      case 'research':
-        return this.perplexityService.query(text);
-      case 'critique':
-        return this.openAiService.query(text);
-      case 'expand':
-        return this.claudeService.query(text);
-      default:
-        return { 
-          content: 'Unknown action requested',
-          error: 'Invalid action type'
-        };
+    try {
+      const response = await this.claudeService.query(text);
+      console.log("Claude response received:", response);
+      return response;
+    } catch (error) {
+      console.error("Error in processTextWithAi:", error);
+      throw error;
     }
-    */
   }
 }
 
 // Create a singleton instance for use throughout the app
-export const aiServiceManager = new AiServiceManager();
+export const aiServiceManager = new AiServiceManager({
+  claude: import.meta.env.VITE_CLAUDE_API_KEY
+});

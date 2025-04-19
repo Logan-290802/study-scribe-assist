@@ -1,3 +1,4 @@
+
 import { AiService, AiResponse, AiServiceOptions } from './AiService';
 
 export class ClaudeService extends AiService {
@@ -14,8 +15,8 @@ export class ClaudeService extends AiService {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
-          'x-api-key': this.apiKey,
           'anthropic-version': '2023-06-01',
+          'x-api-key': this.apiKey,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -23,7 +24,7 @@ export class ClaudeService extends AiService {
           messages: [
             {
               role: 'system',
-              content: 'You are a creative, thoughtful idea developer who helps writers expand concepts and ideas. Your role is to take a seed concept and develop it into a rich, well-rounded exploration. You should maintain the original intent while adding depth, nuance, relevant examples, different perspectives, historical context, practical applications, and thought-provoking extensions. Organize your response in a clear structure with headings, and ensure the expanded content remains coherent, relevant, and builds meaningfully on the original idea.'
+              content: 'You are a creative, thoughtful idea developer who helps writers expand concepts and ideas. Your role is to take a seed concept and develop it into a rich, well-rounded exploration while maintaining clarity and relevance.'
             },
             {
               role: 'user',
@@ -35,18 +36,27 @@ export class ClaudeService extends AiService {
       });
 
       if (!response.ok) {
-        throw new Error(`Claude API error: ${response.status}`);
+        const errorData = await response.text();
+        throw new Error(`Claude API error (${response.status}): ${errorData}`);
       }
 
       const data = await response.json();
+      
+      if (!data.content || !data.content[0] || !data.content[0].text) {
+        throw new Error('Unexpected response format from Claude API');
+      }
+
       return {
         content: data.content[0].text,
         source: 'Anthropic Claude'
       };
     } catch (error) {
       console.error('Error in Claude service:', error);
-      // Fall back to mock response if API call fails
-      return this.mockResponse(text);
+      return {
+        content: `I apologize, but I encountered an error while processing your request. ${error.message}`,
+        error: error.message,
+        source: 'Anthropic Claude (Error)'
+      };
     }
   }
   

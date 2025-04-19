@@ -3,6 +3,7 @@ import { AiService, AiResponse } from './AiService';
 import { PerplexityService } from './PerplexityService';
 import { OpenAiService } from './OpenAiService';
 import { ClaudeService } from './ClaudeService';
+import { supabase } from '@/integrations/supabase/client';
 
 export class AiServiceManager {
   private perplexityService: PerplexityService;
@@ -14,24 +15,11 @@ export class AiServiceManager {
     this.openAiService = new OpenAiService({ apiKey: apiKeys?.openai });
     this.claudeService = new ClaudeService({ apiKey: apiKeys?.claude });
     
-    // Detailed logging for Claude API key
-    const claudeApiKey = apiKeys?.claude || import.meta.env.VITE_CLAUDE_API_KEY;
-    
-    console.log("Claude API key status:", {
-      providedViaConstructor: !!apiKeys?.claude,
-      providedViaEnv: !!import.meta.env.VITE_CLAUDE_API_KEY,
-      keyLength: claudeApiKey ? claudeApiKey.length : 'No key found'
-    });
-
-    if (!claudeApiKey) {
-      console.warn("No Claude API key found. Only mock responses will be available.");
-    } else {
-      console.log("Claude API key detected. Anthropic Claude API is ready.");
-    }
+    // Log the status of Claude API key
+    console.log("Claude API key detected:", !!apiKeys?.claude);
   }
   
   async processTextWithAi(text: string, action: 'research' | 'critique' | 'expand'): Promise<AiResponse> {
-    // Use only Claude for all actions for now
     console.log(`Processing action: ${action} with Claude, text: "${text.substring(0, 30)}..."`);
     
     try {
@@ -45,8 +33,17 @@ export class AiServiceManager {
   }
 }
 
-// Create a singleton instance for use throughout the app
-export const aiServiceManager = new AiServiceManager({
-  claude: import.meta.env.VITE_CLAUDE_API_KEY
-});
+// Fetch the Claude API key from Supabase secrets
+export const aiServiceManager = (async () => {
+  const { data, error } = await supabase.functions.getSecret('CLAUDE_API_KEY');
+  
+  if (error) {
+    console.error('Failed to retrieve Claude API key:', error);
+    throw new Error('Claude API key retrieval failed');
+  }
+
+  return new AiServiceManager({
+    claude: data?.secret
+  });
+})();
 

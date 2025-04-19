@@ -8,12 +8,15 @@ export class ClaudeService extends AiService {
   
   async query(text: string): Promise<AiResponse> {
     try {
-      // Use either the provided API key or check for environment variable
-      const apiKey = this.apiKey || import.meta.env.VITE_CLAUDE_API_KEY || "";
+      // Use either the provided API key or check for environment variable or localStorage
+      const apiKey = this.apiKey || localStorage.getItem('CLAUDE_API_KEY') || "";
       
       if (!apiKey) {
         console.error("No Claude API key available");
-        return this.mockResponse(text);
+        return {
+          content: "I couldn't process your request because no Claude API key is configured. Please go to Tools > AI Configuration to add your API key.",
+          source: 'Claude (No API Key)'
+        };
       }
       
       console.log("Making request to Claude API with text:", text.substring(0, 50) + "...");
@@ -40,7 +43,10 @@ export class ClaudeService extends AiService {
       if (!response.ok) {
         const errorData = await response.text();
         console.error(`Claude API error (${response.status}):`, errorData);
-        throw new Error(`Claude API error (${response.status}): ${errorData}`);
+        return {
+          content: `I encountered an API error (${response.status}) when trying to process your request. Please check your API key in Tools > AI Configuration.`,
+          source: 'Claude Error'
+        };
       }
 
       const data = await response.json();
@@ -57,18 +63,10 @@ export class ClaudeService extends AiService {
       };
     } catch (error) {
       console.error('Error in Claude service:', error);
-      throw error; // Re-throw to allow proper error handling upstream
+      return {
+        content: "I encountered an error processing your request. Please try again or check your API key in Tools > AI Configuration.",
+        source: 'Claude Error'
+      };
     }
-  }
-  
-  // For development or when API key is not available
-  private mockResponse(text: string): AiResponse {
-    console.log("Using mock response for Claude");
-    return {
-      content: `This is a mock response to: "${text.substring(0, 30)}..."
-
-I'm currently in mock mode because no API key was provided. Please set up a valid Claude API key to get real responses.`,
-      source: 'Anthropic Claude (Mock)'
-    };
   }
 }

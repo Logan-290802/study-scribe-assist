@@ -14,15 +14,19 @@ export class AiServiceManager {
     this.openAiService = new OpenAiService({ apiKey: apiKeys?.openai });
     this.claudeService = new ClaudeService({ apiKey: apiKeys?.claude });
     
-    // Log to confirm initialization
-    console.log("AiServiceManager initialized with Claude service");
-
-    // Check if Claude API key is available
+    // Detailed logging for Claude API key
     const claudeApiKey = apiKeys?.claude || import.meta.env.VITE_CLAUDE_API_KEY;
+    
+    console.log("Claude API key status:", {
+      providedViaConstructor: !!apiKeys?.claude,
+      providedViaEnv: !!import.meta.env.VITE_CLAUDE_API_KEY,
+      keyLength: claudeApiKey ? claudeApiKey.length : 'No key found'
+    });
+
     if (!claudeApiKey) {
-      console.warn("No Claude API key found. Using mock responses.");
+      console.warn("No Claude API key found. Only mock responses will be available.");
     } else {
-      console.log("Claude API key found. Using Anthropic Claude API.");
+      console.log("Claude API key detected. Anthropic Claude API is ready.");
     }
   }
   

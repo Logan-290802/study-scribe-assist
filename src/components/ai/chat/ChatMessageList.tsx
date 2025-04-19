@@ -6,6 +6,8 @@ import { ChatMessage as ChatMessageType } from '../types';
 import { Loader } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Key } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface ChatMessageListProps {
   messages: ChatMessageType[];
@@ -23,6 +25,7 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
   onAddReference
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
   const hasApiKey = localStorage.getItem('CLAUDE_API_KEY') !== null;
 
   const scrollToBottom = () => {
@@ -33,21 +36,29 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
     scrollToBottom();
   }, [messages, isLoading]);
 
-  if (!hasApiKey && messages.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full text-center p-4">
-        <div className="bg-amber-50 p-6 rounded-lg max-w-md">
-          <p className="text-amber-800">
-            To chat with Claude, please add your API key first.
-            You can get one from the <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" className="underline">Anthropic Console</a>.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex-grow overflow-y-auto p-4 space-y-4 thin-scrollbar">
+      {!hasApiKey && messages.length === 0 && (
+        <div className="flex flex-col items-center justify-center h-full text-center">
+          <div className="bg-amber-50 p-6 rounded-lg mb-4 max-w-md">
+            <div className="flex items-center justify-center mb-2">
+              <Key className="h-5 w-5 text-amber-500 mr-2" />
+              <h3 className="font-medium text-amber-800">API Key Required</h3>
+            </div>
+            <p className="text-amber-700 mb-4">
+              You need to add a Claude API key to use the AI chat assistant.
+            </p>
+            <Button 
+              variant="outline" 
+              className="border-amber-300 hover:bg-amber-100"
+              onClick={() => navigate('/tools')}
+            >
+              Add API Key
+            </Button>
+          </div>
+        </div>
+      )}
+
       {messages.map((message) => (
         <ChatMessage
           key={message.id}
@@ -64,7 +75,7 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
           <div className="bg-gray-100 text-gray-800 rounded-lg rounded-tl-none max-w-[85%] p-4 space-y-3">
             <div className="flex items-center gap-2">
               <Loader className="w-5 h-5 text-blue-500 animate-spin" />
-              <span className="text-sm text-gray-500">Claude is thinking...</span>
+              <span className="text-sm text-gray-500">Anthropic's Claude is thinking...</span>
             </div>
             <Progress value={65} className="h-1.5 w-full" />
           </div>

@@ -59,3 +59,4 @@ export const AiChat: React.FC<AiChatProps> = ({
 };
 
 export default AiChat;
+

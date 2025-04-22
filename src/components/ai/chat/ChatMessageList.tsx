@@ -33,7 +33,7 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
   }, [messages, isLoading]);
 
   return (
-    <ScrollArea className="h-[calc(100vh-280px)] w-full">
+    <ScrollArea className="flex-grow max-h-[400px] overflow-y-auto">
       <div className="flex flex-col space-y-4 p-4">
         {messages.map((message) => (
           <ChatMessage
@@ -72,3 +72,4 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
 };
 
 export default ChatMessageList;
+

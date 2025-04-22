@@ -114,6 +114,7 @@ export const useCriticalThinking = (editor: Editor | null) => {
     enabled,
     analyzing,
     suggestions,
+    setSuggestions,  // Add this to expose the setSuggestions function
     selectedSuggestion,
     setSelectedSuggestion,
     toggleCriticalThinking,

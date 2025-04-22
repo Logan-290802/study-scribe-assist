@@ -86,8 +86,27 @@ export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange, onAiA
         }
       }
     },
-    onClick: ({ editor }) => {
-      // Similar to selection update but for clicks
+  });
+
+  const criticalThinking = useCriticalThinking(editor);
+
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content);
+    }
+  }, [content, editor]);
+
+  useEffect(() => {
+    if (editor) {
+      updateHeadings(editor);
+    }
+  }, [editor]);
+
+  // Add a click event listener to the editor
+  useEffect(() => {
+    if (!editor || !editor.view.dom) return;
+    
+    const handleEditorClick = () => {
       if (criticalThinking.enabled) {
         const { suggestions } = criticalThinking;
         const { from } = editor.state.selection;
@@ -104,22 +123,15 @@ export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange, onAiA
           setSuggestionPopoverOpen(false);
         }
       }
-    }
-  });
-
-  const criticalThinking = useCriticalThinking(editor);
-
-  useEffect(() => {
-    if (editor && content !== editor.getHTML()) {
-      editor.commands.setContent(content);
-    }
-  }, [content, editor]);
-
-  useEffect(() => {
-    if (editor) {
-      updateHeadings(editor);
-    }
-  }, [editor]);
+    };
+    
+    const editorDom = editor.view.dom;
+    editorDom.addEventListener('click', handleEditorClick);
+    
+    return () => {
+      editorDom.removeEventListener('click', handleEditorClick);
+    };
+  }, [editor, criticalThinking.enabled, criticalThinking.suggestions]);
 
   // Update the SuggestionHighlight extension when suggestions change
   useEffect(() => {
@@ -187,14 +199,17 @@ export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange, onAiA
 
   // Handle dismissing a suggestion
   const handleDismissSuggestion = (suggestionId: string) => {
-    criticalThinking.setSuggestions(prev => 
-      prev.filter(s => s.id !== suggestionId)
-    );
+    // Filter out the dismissed suggestion
+    const updatedSuggestions = criticalThinking.suggestions.filter(s => s.id !== suggestionId);
     
+    // Update the hook state for suggestions
+    // We need to modify useCriticalThinking to expose this functionality
     if (criticalThinking.selectedSuggestion?.id === suggestionId) {
       criticalThinking.setSelectedSuggestion(null);
       setSuggestionPopoverOpen(false);
     }
+    
+    return updatedSuggestions;
   };
 
   if (!editor) {

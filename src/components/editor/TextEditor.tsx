@@ -19,8 +19,13 @@ import History from '@tiptap/extension-history';
 import { EditorToolbar } from './EditorToolbar';
 import { HeadingNavigator } from './HeadingNavigator';
 import { HeadingWithId } from './extensions/HeadingWithId';
+import { SuggestionHighlight } from './extensions/SuggestionHighlight';
 import TextSelectionMenu from './TextSelectionMenu';
 import { useChatInput } from '@/contexts/ChatInputContext';
+import useCriticalThinking from '@/hooks/useCriticalThinking';
+import SuggestionPopover from './SuggestionPopover';
+import SuggestionsList from './SuggestionsList';
+import './critical-thinking.css';
 
 interface TextEditorProps {
   content: string;
@@ -31,6 +36,7 @@ interface TextEditorProps {
 export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange, onAiAction }) => {
   const [headings, setHeadings] = useState<{ id: string; level: number; text: string }[]>([]);
   const { setInputValue } = useChatInput();
+  const [suggestionPopoverOpen, setSuggestionPopoverOpen] = useState(false);
   
   const editor = useEditor({
     extensions: [
@@ -54,13 +60,54 @@ export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange, onAiA
         openOnClick: true,
       }),
       History,
+      SuggestionHighlight.configure({
+        suggestions: [],
+        selectedSuggestionId: null,
+      }),
     ],
     content,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
       updateHeadings(editor);
     },
+    onSelectionUpdate: ({ editor }) => {
+      // When selection changes, check if it's on a suggestion
+      if (criticalThinking.enabled) {
+        const { suggestions } = criticalThinking;
+        const { from } = editor.state.selection;
+        
+        const matchingSuggestion = suggestions.find(
+          suggestion => from >= suggestion.position.from && from <= suggestion.position.to
+        );
+        
+        if (matchingSuggestion) {
+          criticalThinking.setSelectedSuggestion(matchingSuggestion);
+          setSuggestionPopoverOpen(true);
+        }
+      }
+    },
+    onClick: ({ editor }) => {
+      // Similar to selection update but for clicks
+      if (criticalThinking.enabled) {
+        const { suggestions } = criticalThinking;
+        const { from } = editor.state.selection;
+        
+        const matchingSuggestion = suggestions.find(
+          suggestion => from >= suggestion.position.from && from <= suggestion.position.to
+        );
+        
+        if (matchingSuggestion) {
+          criticalThinking.setSelectedSuggestion(matchingSuggestion);
+          setSuggestionPopoverOpen(true);
+        } else {
+          // Close popover when clicking elsewhere
+          setSuggestionPopoverOpen(false);
+        }
+      }
+    }
   });
+
+  const criticalThinking = useCriticalThinking(editor);
 
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
@@ -73,6 +120,17 @@ export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange, onAiA
       updateHeadings(editor);
     }
   }, [editor]);
+
+  // Update the SuggestionHighlight extension when suggestions change
+  useEffect(() => {
+    if (editor && criticalThinking.enabled) {
+      editor.extensionStorage.suggestionHighlight = {
+        suggestions: criticalThinking.suggestions,
+        selectedSuggestionId: criticalThinking.selectedSuggestion?.id || null,
+      };
+      editor.view.dispatch(editor.state.tr.setMeta('suggestion-update', true));
+    }
+  }, [editor, criticalThinking.suggestions, criticalThinking.selectedSuggestion, criticalThinking.enabled]);
 
   const updateHeadings = (editor: any) => {
     if (!editor) return;
@@ -127,6 +185,18 @@ export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange, onAiA
     }
   };
 
+  // Handle dismissing a suggestion
+  const handleDismissSuggestion = (suggestionId: string) => {
+    criticalThinking.setSuggestions(prev => 
+      prev.filter(s => s.id !== suggestionId)
+    );
+    
+    if (criticalThinking.selectedSuggestion?.id === suggestionId) {
+      criticalThinking.setSelectedSuggestion(null);
+      setSuggestionPopoverOpen(false);
+    }
+  };
+
   if (!editor) {
     return <div className="animate-pulse-subtle p-4 h-[400px] bg-gray-100 rounded-md"></div>;
   }
@@ -134,12 +204,61 @@ export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange, onAiA
   return (
     <div className="flex flex-col border rounded-md overflow-hidden glass-card">
       <div className="flex items-center border-b">
-        <EditorToolbar editor={editor} />
+        <EditorToolbar 
+          editor={editor} 
+          criticalThinkingEnabled={criticalThinking.enabled}
+          criticalThinkingAnalyzing={criticalThinking.analyzing}
+          onToggleCriticalThinking={criticalThinking.toggleCriticalThinking}
+        />
         <HeadingNavigator headings={headings} onHeadingClick={scrollToHeading} />
       </div>
-      <div className="prose-lg max-w-none">
-        <EditorContent editor={editor} className="min-h-[400px]" />
-        <TextSelectionMenu onAction={handleSelectionAction} />
+      <div className="flex">
+        <div className="prose-lg max-w-none flex-grow">
+          <EditorContent editor={editor} className="min-h-[400px]" />
+          <TextSelectionMenu onAction={handleSelectionAction} />
+          {criticalThinking.selectedSuggestion && (
+            <SuggestionPopover
+              suggestion={criticalThinking.selectedSuggestion}
+              onApply={criticalThinking.applySuggestion}
+              onDismiss={() => {
+                setSuggestionPopoverOpen(false);
+                criticalThinking.setSelectedSuggestion(null);
+              }}
+              open={suggestionPopoverOpen}
+              onOpenChange={setSuggestionPopoverOpen}
+            />
+          )}
+        </div>
+        
+        {criticalThinking.enabled && (
+          <div className="w-64 border-l bg-gray-50/80 flex flex-col">
+            <div className="p-3 border-b">
+              <h3 className="text-sm font-medium flex items-center justify-between">
+                Suggestions
+                {criticalThinking.analyzing && (
+                  <span className="text-xs text-gray-500 animate-pulse">Analyzing...</span>
+                )}
+              </h3>
+            </div>
+            <SuggestionsList
+              suggestions={criticalThinking.suggestions}
+              selectedSuggestionId={criticalThinking.selectedSuggestion?.id || null}
+              onSelectSuggestion={(suggestion) => {
+                criticalThinking.setSelectedSuggestion(suggestion);
+                setSuggestionPopoverOpen(true);
+                
+                // Move cursor to the suggestion
+                if (editor) {
+                  const { from, to } = suggestion.position;
+                  editor.commands.setTextSelection({ from, to });
+                  editor.commands.scrollIntoView();
+                }
+              }}
+              onApplySuggestion={criticalThinking.applySuggestion}
+              onDismissSuggestion={handleDismissSuggestion}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

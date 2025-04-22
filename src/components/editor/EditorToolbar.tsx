@@ -6,12 +6,21 @@ import {
   List, ListOrdered, Quote, Code, Link, Undo, Redo
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import CriticalThinkingToggle from './CriticalThinkingToggle';
 
 interface EditorToolbarProps {
   editor: Editor;
+  criticalThinkingEnabled?: boolean;
+  criticalThinkingAnalyzing?: boolean;
+  onToggleCriticalThinking?: () => void;
 }
 
-export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor }) => {
+export const EditorToolbar: React.FC<EditorToolbarProps> = ({ 
+  editor,
+  criticalThinkingEnabled = false,
+  criticalThinkingAnalyzing = false,
+  onToggleCriticalThinking
+}) => {
   if (!editor) {
     return null;
   }
@@ -131,6 +140,16 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor }) => {
       </ToolbarButton>
       
       <div className="flex-grow"></div>
+      
+      {onToggleCriticalThinking && (
+        <CriticalThinkingToggle
+          enabled={criticalThinkingEnabled}
+          analyzing={criticalThinkingAnalyzing}
+          onToggle={onToggleCriticalThinking}
+        />
+      )}
+      
+      <div className="w-px h-6 bg-gray-300 mx-1"></div>
       
       <ToolbarButton
         onClick={() => editor.commands.undo()}

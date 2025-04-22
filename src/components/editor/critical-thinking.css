@@ -1,0 +1,59 @@
+
+/* Base highlight style */
+.suggestion-highlight {
+  position: relative;
+  border-radius: 2px;
+  cursor: pointer;
+  background-color: rgba(255, 255, 150, 0.2);
+  border-bottom: 2px dashed #f97316;
+  transition: all 0.2s ease;
+}
+
+/* Type-specific colors */
+.suggestion-clarity {
+  border-bottom-color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.suggestion-logic {
+  border-bottom-color: #8b5cf6;
+  background-color: rgba(139, 92, 246, 0.1);
+}
+
+.suggestion-evidence {
+  border-bottom-color: #f59e0b;
+  background-color: rgba(245, 158, 11, 0.1);
+}
+
+.suggestion-structure {
+  border-bottom-color: #10b981;
+  background-color: rgba(16, 185, 129, 0.1);
+}
+
+/* Selected suggestion */
+.suggestion-selected {
+  background-color: rgba(255, 255, 150, 0.4);
+  border-bottom-width: 2px;
+}
+
+/* Type-specific selected states */
+.suggestion-clarity.suggestion-selected {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+.suggestion-logic.suggestion-selected {
+  background-color: rgba(139, 92, 246, 0.2);
+}
+
+.suggestion-evidence.suggestion-selected {
+  background-color: rgba(245, 158, 11, 0.2);
+}
+
+.suggestion-structure.suggestion-selected {
+  background-color: rgba(16, 185, 129, 0.2);
+}
+
+/* Hover state */
+.suggestion-highlight:hover {
+  background-color: rgba(255, 255, 150, 0.3);
+}

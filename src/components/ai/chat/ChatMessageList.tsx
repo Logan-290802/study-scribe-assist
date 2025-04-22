@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect } from 'react';
 import ChatMessage from './ChatMessage';
 import UploadedFile from './UploadedFile';
@@ -33,7 +32,7 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
   }, [messages, isLoading]);
 
   return (
-    <ScrollArea className="flex-grow max-h-[400px] overflow-y-auto">
+    <ScrollArea className="flex-1 overflow-y-auto">
       <div className="flex flex-col space-y-4 p-4">
         {messages.map((message) => (
           <ChatMessage
@@ -72,4 +71,3 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
 };
 
 export default ChatMessageList;
-

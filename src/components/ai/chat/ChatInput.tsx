@@ -1,9 +1,8 @@
 
 import React, { useRef, useEffect } from 'react';
-import { SendHorizontal, Upload, Key } from 'lucide-react';
+import { SendHorizontal, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useChatInput } from '@/contexts/ChatInputContext';
-import { useNavigate } from 'react-router-dom';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -22,14 +21,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 }) => {
   const { inputValue, setInputValue } = useChatInput();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const navigate = useNavigate();
-  const hasApiKey = localStorage.getItem('CLAUDE_API_KEY') !== null;
-  
-  const noApiKeyMessage = "Claude API key required - click to configure";
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputValue.trim() || isLoading || disabled || !hasApiKey) return;
+    if (!inputValue.trim() || isLoading || disabled) return;
     
     onSendMessage(inputValue);
     setInputValue('');
@@ -39,13 +34,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
-    }
-  };
-
-  // Navigate to API key configuration page if clicked when no key is present
-  const handleNoApiKeyClick = () => {
-    if (!hasApiKey) {
-      navigate('/tools');
     }
   };
 
@@ -67,25 +55,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       <div className="flex-grow relative">
         <textarea
           ref={textareaRef}
-          value={!hasApiKey ? noApiKeyMessage : inputValue}
-          onChange={(e) => hasApiKey && setInputValue(e.target.value)}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={hasApiKey ? placeholder : ""}
+          placeholder={placeholder}
           rows={1}
-          className={cn(
-            "w-full p-2 border rounded-md bg-white/80 focus:outline-none focus:ring-1 resize-none overflow-y-auto",
-            hasApiKey ? "focus:ring-blue-500" : "focus:ring-amber-500 text-amber-700 cursor-pointer"
-          )}
-          disabled={isLoading || disabled || !hasApiKey}
+          className="w-full p-2 border rounded-md bg-white/80 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none overflow-y-auto"
+          disabled={isLoading || disabled}
           style={{ minHeight: '42px', maxHeight: '100px' }}
-          onClick={handleNoApiKeyClick}
-          readOnly={!hasApiKey}
         />
-        {!hasApiKey && (
-          <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-            <Key className="h-4 w-4 text-amber-500" />
-          </div>
-        )}
       </div>
       <div className="flex items-end">
         <button
@@ -93,18 +71,18 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           onClick={onUploadFile}
           className={cn(
             "p-2 rounded-md transition-colors",
-            disabled || isLoading || !hasApiKey ? "text-gray-400 cursor-not-allowed" : "text-gray-600 hover:bg-gray-100"
+            disabled || isLoading ? "text-gray-400 cursor-not-allowed" : "text-gray-600 hover:bg-gray-100"
           )}
-          disabled={disabled || isLoading || !hasApiKey}
+          disabled={disabled || isLoading}
         >
           <Upload className="w-5 h-5" />
         </button>
         <button
           type="submit"
-          disabled={!inputValue.trim() || isLoading || disabled || !hasApiKey}
+          disabled={!inputValue.trim() || isLoading || disabled}
           className={cn(
             "p-2 rounded-md transition-colors text-white",
-            inputValue.trim() && !isLoading && !disabled && hasApiKey
+            inputValue.trim() && !isLoading && !disabled
               ? "bg-blue-500 hover:bg-blue-600" 
               : "bg-gray-300 cursor-not-allowed"
           )}

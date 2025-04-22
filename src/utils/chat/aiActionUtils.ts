@@ -1,5 +1,5 @@
 
-import { getAiServiceManager } from '@/services/ai/AiServiceManager';
+import { aiServiceManager } from '@/services/ai/AiServiceManager';
 import { toast } from '@/components/ui/use-toast';
 
 export const getActionTitle = (action: string) => {
@@ -60,12 +60,7 @@ export const processAiAction = async (
 ) => {
   try {
     const aiAction = getAiActionType(action);
-    
-    // Get the AI service manager instance
-    const aiManager = await getAiServiceManager();
-    
-    // Process the AI action
-    const aiResult = await aiManager.processTextWithAi(selection, aiAction);
+    const aiResult = await aiServiceManager.processTextWithAi(selection, aiAction);
     const formattedResponse = formatAiResponse(action, aiResult);
     
     toast({

@@ -1,10 +1,10 @@
+
 import React, { useRef, useEffect } from 'react';
 import ChatMessage from './ChatMessage';
 import UploadedFile from './UploadedFile';
 import { ChatMessage as ChatMessageType } from '../types';
 import { Loader } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ChatMessageListProps {
   messages: ChatMessageType[];
@@ -32,41 +32,39 @@ const ChatMessageList: React.FC<ChatMessageListProps> = ({
   }, [messages, isLoading]);
 
   return (
-    <ScrollArea className="flex-1 overflow-y-auto">
-      <div className="flex flex-col space-y-4 p-4">
-        {messages.map((message) => (
-          <ChatMessage
-            key={message.id}
-            id={message.id}
-            role={message.role}
-            content={message.content}
-            timestamp={message.timestamp}
-            onAddReference={message.role === 'assistant' && message.content.includes('reference') ? onAddReference : undefined}
-          />
-        ))}
-        
-        {isLoading && (
-          <div className="flex flex-col justify-start animate-fade-in">
-            <div className="bg-gray-100 text-gray-800 rounded-lg rounded-tl-none max-w-[85%] p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <Loader className="w-4 h-4 text-blue-500 animate-spin" />
-                <span className="text-sm text-gray-500">Anthropic's Claude is thinking...</span>
-              </div>
-              <Progress value={60} className="h-1" />
+    <div className="flex-grow overflow-y-auto p-4 space-y-4 thin-scrollbar">
+      {messages.map((message) => (
+        <ChatMessage
+          key={message.id}
+          id={message.id}
+          role={message.role}
+          content={message.content}
+          timestamp={message.timestamp}
+          onAddReference={message.role === 'assistant' && message.content.includes('reference') ? onAddReference : undefined}
+        />
+      ))}
+      
+      {isLoading && (
+        <div className="flex flex-col justify-start animate-fade-in">
+          <div className="bg-gray-100 text-gray-800 rounded-lg rounded-tl-none max-w-[85%] p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Loader className="w-4 h-4 text-blue-500 animate-spin" />
+              <span className="text-sm text-gray-500">Anthropic's Claude is thinking...</span>
             </div>
+            <Progress value={60} className="h-1" />
           </div>
-        )}
-        
-        {uploadedFile && (
-          <UploadedFile 
-            file={uploadedFile} 
-            onRemove={onRemoveUploadedFile} 
-          />
-        )}
-        
-        <div ref={messagesEndRef} />
-      </div>
-    </ScrollArea>
+        </div>
+      )}
+      
+      {uploadedFile && (
+        <UploadedFile 
+          file={uploadedFile} 
+          onRemove={onRemoveUploadedFile} 
+        />
+      )}
+      
+      <div ref={messagesEndRef} />
+    </div>
   );
 };
 

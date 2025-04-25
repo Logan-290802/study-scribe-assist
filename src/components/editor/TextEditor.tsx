@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useEditor } from '@tiptap/react';
 import Document from '@tiptap/extension-document';
@@ -25,6 +24,7 @@ import useCriticalThinking from '@/hooks/useCriticalThinking';
 import EditorContent from './EditorContent';
 import { useEditorHeadings } from '@/hooks/useEditorHeadings';
 import { useEditorSuggestions } from '@/hooks/useEditorSuggestions';
+import SuggestionsList from './SuggestionsList';
 import './critical-thinking.css';
 
 interface TextEditorProps {
@@ -102,7 +102,6 @@ export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange, onAiA
   };
 
   const handleDismissSuggestion = (suggestionId: string) => {
-    // Filter out the dismissed suggestion
     const updatedSuggestions = criticalThinking.suggestions.filter(s => s.id !== suggestionId);
     
     if (criticalThinking.selectedSuggestion?.id === suggestionId) {

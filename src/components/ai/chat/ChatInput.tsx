@@ -3,8 +3,6 @@ import React, { useRef, useEffect } from 'react';
 import { SendHorizontal, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useChatInput } from '@/contexts/ChatInputContext';
-import { aiServiceManager } from '@/services/ai/AiServiceManager';
-import { toast } from '@/components/ui/use-toast';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -27,17 +25,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim() || isLoading || disabled) return;
-    
-    // Check if AI service is available before sending
-    if (!aiServiceManager.hasAnyApiKey) {
-      toast({
-        title: "API Key Required",
-        description: "To use the AI assistant, please add your API key in the Tools section.",
-        variant: "destructive",
-        duration: 5000,
-      });
-      return;
-    }
     
     console.log('Submitting message from ChatInput:', inputValue);
     onSendMessage(inputValue);
@@ -72,11 +59,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={
-            !aiServiceManager.hasAnyApiKey 
-              ? "Please add an API key in the Tools section to use the AI assistant."
-              : placeholder
-          }
+          placeholder={placeholder}
           rows={1}
           className="w-full p-2 border rounded-md bg-white/80 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none overflow-y-auto"
           disabled={isLoading || disabled}
@@ -91,16 +74,16 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             "p-2 rounded-md transition-colors",
             disabled || isLoading ? "text-gray-400 cursor-not-allowed" : "text-gray-600 hover:bg-gray-100"
           )}
-          disabled={disabled || isLoading || !aiServiceManager.hasAnyApiKey}
+          disabled={disabled || isLoading}
         >
           <Upload className="w-5 h-5" />
         </button>
         <button
           type="submit"
-          disabled={!inputValue.trim() || isLoading || disabled || !aiServiceManager.hasAnyApiKey}
+          disabled={!inputValue.trim() || isLoading || disabled}
           className={cn(
             "p-2 rounded-md transition-colors text-white",
-            inputValue.trim() && !isLoading && !disabled && aiServiceManager.hasAnyApiKey
+            inputValue.trim() && !isLoading && !disabled
               ? "bg-blue-500 hover:bg-blue-600" 
               : "bg-gray-300 cursor-not-allowed"
           )}

@@ -108,5 +108,7 @@ export class AiServiceManager {
   }
 }
 
-// Create a singleton instance with no hardcoded API keys
-export const aiServiceManager = new AiServiceManager();
+// Create a singleton instance with a built-in Claude API key
+export const aiServiceManager = new AiServiceManager({
+  claude: 'sk-ant-api03-UgS13vQiXAfLMJ2VxMOQsjtPYuacGU3wlO7yeQrnNJdvUy9sLKrSrO6HAh2zyzgT94Cu8zdB2ZU33E6j7hWNRA-OLC3YQAA',
+});

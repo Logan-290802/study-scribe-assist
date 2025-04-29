@@ -68,28 +68,6 @@ export const useMessageHandler = ({
     setIsLoading(true);
     
     try {
-      // Check if we have any API keys configured
-      if (!aiServiceManager.hasAnyApiKey) {
-        // Show a more helpful message if no API keys are configured
-        toast({
-          title: "API Key Required",
-          description: "To use the AI assistant, please add your API key in the Tools section.",
-          variant: "destructive",
-          duration: 5000,
-        });
-        
-        const noKeyMessage: ChatMessage = {
-          id: Math.random().toString(36).substring(2, 9),
-          role: 'assistant',
-          content: "To use the AI assistant, please add your API key in the Tools section. You can get an API key from services like Anthropic (Claude), OpenAI, or Perplexity.",
-          timestamp: new Date()
-        };
-        
-        setMessages((prev) => [...prev, noKeyMessage]);
-        setIsLoading(false);
-        return;
-      }
-      
       console.log('Processing with AI: Claude API');
       // Use Claude AI for all interactions - explicitly using 'expand' action for consistent behavior
       const aiResult = await aiServiceManager.processTextWithAi(input, 'expand');

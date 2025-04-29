@@ -5,6 +5,8 @@ import { useFileUpload } from './ai-chat/useFileUpload';
 import { useMessageHandler } from './ai-chat/useMessageHandler';
 import { useReferenceHandler } from './ai-chat/useReferenceHandler';
 import { convertFileToKnowledgeBaseItem } from '@/services/KnowledgeBaseService';
+import { aiServiceManager } from '@/services/ai/AiServiceManager';
+import { toast } from '@/components/ui/use-toast';
 
 interface UseAiChatProps {
   documentId?: string;
@@ -25,8 +27,18 @@ export const useAiChat = ({
 }: UseAiChatProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Check if Claude API is available
+  useEffect(() => {
+    const claudeKey = localStorage.getItem('claude_api_key');
+    if (!claudeKey) {
+      console.log('Claude API key not found');
+    } else {
+      console.log('Claude API key is configured');
+    }
+  }, []);
 
-  // Initialize with external chat history if provided
+  // Initialize with external chat history or welcome message if provided
   useEffect(() => {
     if (externalChatHistory && externalChatHistory.length > 0) {
       const convertedMessages = externalChatHistory.map((item, index) => ({
@@ -39,6 +51,15 @@ export const useAiChat = ({
       if (convertedMessages.length > 0) {
         setMessages(convertedMessages);
       }
+    } else if (!externalChatHistory?.length) {
+      // Only add welcome message if there's no history
+      const welcomeMessage: ChatMessage = {
+        id: 'welcome',
+        role: 'assistant',
+        content: "Hello! I'm your AI research assistant powered by Claude. How can I help with your academic or research needs today?",
+        timestamp: new Date()
+      };
+      setMessages([welcomeMessage]);
     }
   }, [externalChatHistory]);
 
@@ -53,6 +74,11 @@ export const useAiChat = ({
         return result;
       } catch (error) {
         console.error('Error in handleAddFileToKnowledgeBase:', error);
+        toast({
+          title: "Error adding to knowledge base",
+          description: "Failed to add the file to your knowledge base.",
+          variant: "destructive",
+        });
         return null;
       }
     }

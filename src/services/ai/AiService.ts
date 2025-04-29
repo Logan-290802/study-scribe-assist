@@ -30,4 +30,9 @@ export abstract class AiService {
       error: error.message || "Unknown error"
     };
   }
+  
+  // Check if the service has a valid API key
+  get hasApiKey(): boolean {
+    return !!this.apiKey;
+  }
 }

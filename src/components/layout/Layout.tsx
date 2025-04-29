@@ -1,43 +1,27 @@
-
 import React, { useState } from 'react';
 import { BookOpen, Library, Wrench, User, Settings, Home, ChevronRight, ChevronLeft, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { 
-  Sidebar, 
-  SidebarProvider, 
-  SidebarContent, 
-  SidebarHeader, 
-  SidebarMenu, 
-  SidebarMenuItem, 
-  SidebarMenuButton,
-  SidebarTrigger,
-  SidebarRail,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarGroupContent
-} from '@/components/ui/sidebar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Sidebar, SidebarProvider, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger, SidebarRail, SidebarGroup, SidebarGroupLabel, SidebarGroupContent } from '@/components/ui/sidebar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from '@/store/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
-
 interface LayoutProps {
   children: React.ReactNode;
 }
-
-export const Layout: React.FC<LayoutProps> = ({ children }) => {
+export const Layout: React.FC<LayoutProps> = ({
+  children
+}) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, signOut } = useAuth();
-  const { toast } = useToast();
-  
+  const {
+    user,
+    signOut
+  } = useAuth();
+  const {
+    toast
+  } = useToast();
   const handleLogout = async () => {
     try {
       await signOut();
@@ -45,8 +29,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         title: "Logged out successfully",
         description: "You have been logged out of your account."
       });
-      
-      navigate('/auth', { replace: true });
+      navigate('/auth', {
+        replace: true
+      });
     } catch (error) {
       console.error('Error logging out:', error);
       toast({
@@ -56,18 +41,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       });
     }
   };
-  
-  return (
-    <SidebarProvider defaultOpen={false} open={sidebarOpen} onOpenChange={setSidebarOpen}>
+  return <SidebarProvider defaultOpen={false} open={sidebarOpen} onOpenChange={setSidebarOpen}>
       <div className="flex flex-col min-h-screen animate-fade-in w-full relative">
         <header className="border-b shadow-sm bg-white/70 backdrop-blur-md sticky top-0 z-10 w-full">
           <div className="w-full px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
-              <div 
-                className="flex items-center gap-2 cursor-pointer"
-                onMouseEnter={() => setSidebarOpen(true)}
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-              >
+              <div className="flex items-center gap-2 cursor-pointer" onMouseEnter={() => setSidebarOpen(true)} onClick={() => setSidebarOpen(!sidebarOpen)}>
                 <BookOpen className="h-6 w-6 text-blue-600" />
                 <span className="font-medium text-lg">StudyScribe</span>
               </div>
@@ -106,10 +85,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <SidebarRail className="after:!bg-transparent" />
             <SidebarHeader>
               <div className="flex items-center justify-between px-2 py-1.5">
-                <div 
-                  className="ml-auto cursor-pointer p-1 rounded hover:bg-gray-100"
-                  onClick={() => setSidebarOpen(false)}
-                >
+                <div className="ml-auto cursor-pointer p-1 rounded hover:bg-gray-100" onClick={() => setSidebarOpen(false)}>
                   <ChevronLeft className="h-4 w-4" />
                 </div>
               </div>
@@ -149,15 +125,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             </SidebarContent>
           </Sidebar>
           
-          <main className="flex-grow py-6 w-full">
+          <main className="flex-grow w-full py-0">
             <div className="w-full px-4 sm:px-6 lg:px-8">
               {children}
             </div>
           </main>
         </div>
       </div>
-    </SidebarProvider>
-  );
+    </SidebarProvider>;
 };
-
 export default Layout;

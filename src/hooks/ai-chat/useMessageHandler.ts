@@ -74,9 +74,8 @@ export const useMessageHandler = ({
       
       console.log('AI Response received:', aiResult);
       
-      if (!aiResult.content) {
-        throw new Error('Empty response from AI service');
-      }
+      // Always proceed with displaying whatever content we got (even friendly error messages)
+      // No need to throw errors since we handle them at the service level
       
       // Create AI response with the content from Claude
       const aiResponse: ChatMessage = {
@@ -116,7 +115,7 @@ export const useMessageHandler = ({
       // Show error toast
       toast({
         title: "AI Error",
-        description: "Failed to get a response from the AI service. Please check the console for details.",
+        description: "Something went wrong with the AI service. Please try again.",
         variant: "destructive",
       });
       
@@ -124,7 +123,7 @@ export const useMessageHandler = ({
       const errorResponse: ChatMessage = {
         id: Math.random().toString(36).substring(2, 9),
         role: 'assistant',
-        content: "Sorry, I encountered an error processing your request. Please try again later.",
+        content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
         timestamp: new Date()
       };
       

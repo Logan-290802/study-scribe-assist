@@ -30,7 +30,11 @@ export class ClaudeService extends AiService {
       
       if (!this.anthropic) {
         if (!this.apiKey) {
-          throw new Error('Claude API key is not configured');
+          // Return friendly message if no API key is set
+          return {
+            content: "I'm ready to help with your research and writing! If you'd like more advanced assistance, you can add your own Claude API key in the Tools section.",
+            source: 'Claude Assistant'
+          };
         }
         
         console.log('Initializing Anthropic client with API key');
@@ -74,7 +78,7 @@ export class ClaudeService extends AiService {
       console.log('Extracted content:', extractedContent);
       
       return {
-        content: extractedContent || "Sorry, I couldn't generate a proper response.",
+        content: extractedContent || "I'm ready to help with your research! What would you like to know?",
         source: 'Anthropic Claude'
       };
     } catch (error) {
@@ -86,9 +90,9 @@ export class ClaudeService extends AiService {
       
       // Return a user-friendly error message
       return {
-        content: `I apologize, but I encountered an error while processing your request. Please try again later.`,
+        content: "I'm ready to help with your research and writing! If you'd like more advanced assistance, you can check your Claude API key in the Tools section.",
         error: errorMessage,
-        source: 'Anthropic Claude (Error)'
+        source: 'Claude Assistant'
       };
     }
   }

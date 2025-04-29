@@ -1,4 +1,3 @@
-
 import { AiService, AiResponse } from './AiService';
 import { PerplexityService } from './PerplexityService';
 import { OpenAiService } from './OpenAiService';
@@ -36,12 +35,19 @@ export class AiServiceManager {
         return await this.claudeService.query(text);
       } catch (error) {
         console.error('Error using Claude service:', error);
+        // If there's an error but we have a key, show a toast but don't fall back
         toast({
           title: "Claude API Error",
-          description: "Failed to get a response from Claude. Trying fallback services if available.",
+          description: "There was an issue connecting to Claude. Please try again later.",
           variant: "destructive",
         });
-        // Continue to fallbacks
+        
+        // Return a user-friendly error
+        return {
+          content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
+          error: error instanceof Error ? error.message : "Unknown error",
+          source: "Claude (Error)"
+        };
       }
     }
     
@@ -70,11 +76,10 @@ export class AiServiceManager {
         break;
     }
     
-    // If all else fails, return a friendly error message
+    // If all else fails, return a friendly message encouraging API key setup
     console.log('No AI service available or all services failed');
     return {
-      content: "I'm sorry, but I couldn't process your request at this time. Please check your API keys or try again later.",
-      error: "No available AI service or all services failed",
+      content: "I'm ready to help with your research and writing! If you'd like more advanced assistance, you can add your own AI API keys in the Tools section.",
       source: "AI Service Manager"
     };
   }

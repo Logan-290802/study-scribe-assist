@@ -11,7 +11,9 @@ export class AiServiceManager {
   private openAiService: OpenAiService;
   private claudeService: ClaudeService;
   private criticalThinkingService: CriticalThinkingService;
-  private builtInClaudeKey: string = 'sk-ant-api03-UgS13vQiXAfLMJ2VxMOQsjtPYuacGU3wlO7yeQrnNJdvUy9sLKrSrO6HAh2zyzgT94Cu8zdB2ZU33E6j7hWNRA-OLC3YQAA';
+  
+  // Updated API key (Using a temporary testing key - should be replaced in production)
+  private builtInClaudeKey: string = 'sk-ant-api03-z8L_kXjM1oCRGvO9mg1TnQ3Ve-g-wVgkdXYj3C4G-oZMV6ddRRfwsG7OmLJiGwsqhssaGvj7y71ltNNQzhDk3A-lQhPzAAA';
   
   constructor(apiKeys?: { perplexity?: string; openai?: string; claude?: string }) {
     console.log('Initializing AI Services');

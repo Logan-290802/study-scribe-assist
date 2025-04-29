@@ -38,33 +38,45 @@ export class AiServiceManager {
         console.error('Error using Claude service:', error);
         toast({
           title: "Claude API Error",
-          description: "Failed to get a response from Claude. Please try again.",
+          description: "Failed to get a response from Claude. Trying fallback services if available.",
           variant: "destructive",
         });
-        throw error;
+        // Continue to fallbacks
       }
     }
     
-    // If Claude is not available, try service-specific fallbacks
+    // If Claude is not available or failed, try service-specific fallbacks
     switch (action) {
       case 'research':
         if (this.perplexityService.hasApiKey) {
-          return this.perplexityService.query(text);
+          try {
+            return await this.perplexityService.query(text);
+          } catch (error) {
+            console.error('Error using Perplexity service:', error);
+          }
         }
         break;
       case 'critique':
         if (this.openAiService.hasApiKey) {
-          return this.openAiService.query(text);
+          try {
+            return await this.openAiService.query(text);
+          } catch (error) {
+            console.error('Error using OpenAI service:', error);
+          }
         }
         break;
       case 'expand':
-        // Already tried Claude above, no fallback
+        // Already tried Claude above, no specific fallback
         break;
     }
     
-    // If we reach here, use Claude with mock response as final fallback
-    console.log('No suitable API key found, using Claude with mock response');
-    return this.claudeService.query(text);
+    // If all else fails, return a friendly error message
+    console.log('No AI service available or all services failed');
+    return {
+      content: "I'm sorry, but I couldn't process your request at this time. Please check your API keys or try again later.",
+      error: "No available AI service or all services failed",
+      source: "AI Service Manager"
+    };
   }
   
   async analyzeCriticalThinking(text: string): Promise<CriticalSuggestion[]> {
@@ -72,12 +84,12 @@ export class AiServiceManager {
   }
   
   // Check if any API keys are configured
-  hasAnyApiKey(): boolean {
+  get hasAnyApiKey(): boolean {
     return !!(this.claudeService.hasApiKey || this.openAiService.hasApiKey || this.perplexityService.hasApiKey);
   }
   
   // Specifically check if Claude API is configured
-  hasClaudeApiKey(): boolean {
+  get hasClaudeApiKey(): boolean {
     return this.claudeService.hasApiKey;
   }
   

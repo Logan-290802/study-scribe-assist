@@ -29,16 +29,16 @@ export class ClaudeService extends AiService {
       console.log('Querying Claude API with text:', text.substring(0, 50) + '...');
       
       if (!this.anthropic) {
+        if (!this.apiKey) {
+          throw new Error('Claude API key is not configured');
+        }
+        
         console.log('Initializing Anthropic client with API key');
         this.anthropic = new Anthropic({
           apiKey: this.apiKey,
           // Allow browser usage with proper warning
           dangerouslyAllowBrowser: true
         });
-      }
-      
-      if (!this.apiKey) {
-        throw new Error('Claude API key is not configured');
       }
 
       console.log('Sending message to Claude API...');
@@ -63,12 +63,12 @@ export class ClaudeService extends AiService {
       // Check if response.content exists and is an array
       if (response.content && Array.isArray(response.content)) {
         // Process each content block
-        for (const block of response.content) {
+        response.content.forEach(block => {
           // Check if the block is a text block
-          if (block.type === 'text' && typeof block.text === 'string') {
+          if (block.type === 'text') {
             extractedContent += block.text;
           }
-        }
+        });
       }
       
       console.log('Extracted content:', extractedContent);

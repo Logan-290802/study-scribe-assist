@@ -40,13 +40,15 @@ export const AiChat: React.FC<AiChatProps> = ({
         <h3 className="font-medium">AI Research Assistant</h3>
       </div>
       
-      <ChatMessageList
-        messages={messages}
-        isLoading={isLoading}
-        uploadedFile={uploadedFile}
-        onRemoveUploadedFile={() => setUploadedFile(null)}
-        onAddReference={addSampleReference}
-      />
+      <div className="flex-grow overflow-hidden h-[calc(100vh-350px)]">
+        <ChatMessageList
+          messages={messages}
+          isLoading={isLoading}
+          uploadedFile={uploadedFile}
+          onRemoveUploadedFile={() => setUploadedFile(null)}
+          onAddReference={addSampleReference}
+        />
+      </div>
       
       <ChatControls
         onSendMessage={handleSendMessage}

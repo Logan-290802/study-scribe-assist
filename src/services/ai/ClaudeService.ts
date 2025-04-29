@@ -14,12 +14,16 @@ export class ClaudeService extends AiService {
       try {
         this.anthropic = new Anthropic({
           apiKey: this.apiKey,
-          // Allow browser usage with proper warning
           dangerouslyAllowBrowser: true
         });
         console.log('Anthropic client initialized successfully');
       } catch (error) {
         console.error('Error initializing Anthropic client:', error);
+        toast({
+          title: "Claude Service Error",
+          description: "Failed to initialize Claude service.",
+          variant: "destructive",
+        });
       }
     }
   }
@@ -32,23 +36,31 @@ export class ClaudeService extends AiService {
         if (!this.apiKey) {
           console.error('No Claude API key available');
           return {
-            content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
+            content: "I'm ready to help with your research! What would you like to know?",
             source: 'Claude Assistant'
           };
         }
         
         console.log('Initializing Anthropic client with API key');
-        this.anthropic = new Anthropic({
-          apiKey: this.apiKey,
-          // Allow browser usage with proper warning
-          dangerouslyAllowBrowser: true
-        });
+        try {
+          this.anthropic = new Anthropic({
+            apiKey: this.apiKey,
+            dangerouslyAllowBrowser: true
+          });
+        } catch (initError) {
+          console.error('Error initializing Anthropic client:', initError);
+          return {
+            content: "I'm having trouble connecting to my research database. Let me try again in a moment.",
+            error: initError instanceof Error ? initError.message : String(initError),
+            source: 'Claude Assistant'
+          };
+        }
       }
 
       console.log('Sending message to Claude API...');
       const response = await this.anthropic.messages.create({
-        model: 'claude-3-sonnet-20240229',
-        max_tokens: 1000,
+        model: 'claude-3-5-sonnet-latest',
+        max_tokens: 1024,
         temperature: 0.7,
         system: 'You are a creative, thoughtful research assistant who helps writers and students develop their ideas, find relevant information, and improve their academic writing. Your responses should be clear, well-structured, and academically oriented. When appropriate, include relevant citations or references to academic sources.',
         messages: [
@@ -88,9 +100,16 @@ export class ClaudeService extends AiService {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error details:', errorMessage);
       
-      // Return a user-friendly error message without mentioning API keys
+      // Show a toast notification for user feedback
+      toast({
+        title: "Claude API Error",
+        description: "There was an issue connecting to Claude. Please try again later.",
+        variant: "destructive",
+      });
+      
+      // Return a user-friendly error message
       return {
-        content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
+        content: "I'm having trouble accessing my knowledge database right now. Please try again in a moment.",
         error: errorMessage,
         source: 'Claude Assistant'
       };

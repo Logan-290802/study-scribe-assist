@@ -27,16 +27,6 @@ export const useAiChat = ({
 }: UseAiChatProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  
-  // Check if Claude API is available
-  useEffect(() => {
-    const claudeKey = localStorage.getItem('claude_api_key');
-    if (!claudeKey) {
-      console.log('Claude API key not found');
-    } else {
-      console.log('Claude API key is configured');
-    }
-  }, []);
 
   // Initialize with external chat history or welcome message if provided
   useEffect(() => {

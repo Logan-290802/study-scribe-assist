@@ -2,15 +2,18 @@
 import React, { useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Pencil, Check, AlertTriangle, BookOpen, FileSearch, Sparkles } from 'lucide-react';
+import { Pencil, Check, AlertTriangle, BookOpen, FileSearch, Sparkles, Bot } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 const Tools = () => {
   const [grammarlyEnabled, setGrammarlyEnabled] = useState(false);
   const [plagiarismEnabled, setPlagiarismEnabled] = useState(false);
   const [readabilityEnabled, setReadabilityEnabled] = useState(false);
+  const navigate = useNavigate();
   
   return (
     <Layout>
@@ -19,7 +22,7 @@ const Tools = () => {
           <h1 className="text-2xl font-bold">Writing Tools</h1>
         </div>
         
-        <Tabs defaultValue="writing" className="w-full">
+        <Tabs defaultValue="ai-tools" className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="writing" className="flex items-center gap-2">
               <Pencil className="h-4 w-4" />
@@ -138,13 +141,38 @@ const Tools = () => {
           </TabsContent>
           
           <TabsContent value="ai-tools" className="mt-0">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
-              <Sparkles className="h-8 w-8 text-blue-500 mx-auto mb-3" />
-              <h3 className="text-lg font-semibold text-blue-800 mb-2">AI Tools Coming Soon</h3>
-              <p className="text-blue-700 max-w-lg mx-auto">
-                Our advanced AI tools for research analysis, citation generation, and summarization are currently in development. Check back soon!
-              </p>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bot className="h-5 w-5 text-blue-500" />
+                  AI Research Assistant
+                </CardTitle>
+                <CardDescription>
+                  Get AI-powered research help, writing suggestions, and idea development with our integrated Claude assistant.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-start gap-3">
+                  <Check className="h-5 w-5 text-green-500 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium">AI Research Assistant is active</p>
+                    <p className="text-sm text-blue-700 mt-1">
+                      The AI Research Assistant is available in your documents to help with research, brainstorming, and academic writing.
+                    </p>
+                  </div>
+                </div>
+                
+                <Button 
+                  onClick={() => navigate('/dashboard')}
+                  className="w-full sm:w-auto"
+                >
+                  Go to Documents
+                </Button>
+              </CardContent>
+              <CardFooter className="text-sm text-gray-500 border-t pt-4">
+                Powered by Anthropic Claude AI
+              </CardFooter>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

@@ -31,7 +31,7 @@ export class AiServiceManager {
     console.log(`Processing AI action: ${action} with text: ${text.substring(0, 50)}...`);
     
     // For MVP, prioritize Claude for all actions if the API key is available
-    if (this.claudeService.apiKey) {
+    if (this.claudeService.hasApiKey) {
       console.log('Using Claude service for request');
       return this.claudeService.query(text);
     }
@@ -39,12 +39,12 @@ export class AiServiceManager {
     // If Claude is not available, try service-specific fallbacks
     switch (action) {
       case 'research':
-        if (this.perplexityService.apiKey) {
+        if (this.perplexityService.hasApiKey) {
           return this.perplexityService.query(text);
         }
         break;
       case 'critique':
-        if (this.openAiService.apiKey) {
+        if (this.openAiService.hasApiKey) {
           return this.openAiService.query(text);
         }
         break;
@@ -64,12 +64,12 @@ export class AiServiceManager {
   
   // Check if any API keys are configured
   hasAnyApiKey(): boolean {
-    return !!(this.claudeService.apiKey || this.openAiService.apiKey || this.perplexityService.apiKey);
+    return !!(this.claudeService.hasApiKey || this.openAiService.hasApiKey || this.perplexityService.hasApiKey);
   }
   
   // Specifically check if Claude API is configured
   hasClaudeApiKey(): boolean {
-    return !!this.claudeService.apiKey;
+    return this.claudeService.hasApiKey;
   }
   
   // Update API keys
@@ -87,15 +87,7 @@ export class AiServiceManager {
   }
 }
 
-// Create a singleton instance for use throughout the app
-// Load API keys from localStorage initially
-const loadApiKeysFromStorage = () => {
-  if (typeof window === 'undefined') return {};
-  return {
-    perplexity: localStorage.getItem('perplexity_api_key') || undefined,
-    openai: localStorage.getItem('openai_api_key') || undefined,
-    claude: localStorage.getItem('claude_api_key') || undefined
-  };
-};
-
-export const aiServiceManager = new AiServiceManager(loadApiKeysFromStorage());
+// Create a singleton instance with a built-in Claude API key
+export const aiServiceManager = new AiServiceManager({
+  claude: 'sk-ant-api03-UgS13vQiXAfLMJ2VxMOQsjtPYuacGU3wlO7yeQrnNJdvUy9sLKrSrO6HAh2zyzgT94Cu8zdB2ZU33E6j7hWNRA-OLC3YQAA',
+});

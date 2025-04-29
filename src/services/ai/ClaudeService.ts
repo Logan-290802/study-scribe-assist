@@ -14,6 +14,8 @@ export class ClaudeService extends AiService {
       try {
         this.anthropic = new Anthropic({
           apiKey: this.apiKey,
+          // Allow browser usage with proper warning
+          dangerouslyAllowBrowser: true
         });
         console.log('Anthropic client initialized successfully');
       } catch (error) {
@@ -30,6 +32,8 @@ export class ClaudeService extends AiService {
         console.log('Initializing Anthropic client with API key');
         this.anthropic = new Anthropic({
           apiKey: this.apiKey,
+          // Allow browser usage with proper warning
+          dangerouslyAllowBrowser: true
         });
       }
       

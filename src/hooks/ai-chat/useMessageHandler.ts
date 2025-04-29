@@ -58,11 +58,11 @@ export const useMessageHandler = ({
       });
     }
     
-    // If onNewMessage callback exists, use it instead of AI processing
+    // If onNewMessage callback exists, use it but ALSO continue processing with AI
     if (onNewMessage) {
       console.log('Using onNewMessage callback');
       onNewMessage(input);
-      return;
+      // Now we continue to process with AI rather than returning early
     }
     
     // Set loading state to true when waiting for AI response

@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { AiChat, Reference } from '@/components/ai';
 import { useDocuments } from '@/store/DocumentStore';
 import { KnowledgeBaseItem, convertFileToKnowledgeBaseItem } from '@/services/KnowledgeBaseService';
+import { useChatHistory } from '@/hooks/useChatHistory';
 
 interface ChatSidebarProps {
   documentId: string;
@@ -24,13 +25,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
 }) => {
   const { addKnowledgeBaseItem } = useDocuments();
   
-  const handleNewMessage = (message: string) => {
-    // We'll rely on the useChatHistory hook to manage state and database operations
-    // This simply passes the message to the parent component
-    const newMessage = { role: 'user' as const, content: message };
-    setChatHistory([...chatHistory, newMessage]);
-  };
-
   // Function to handle file uploads and add to knowledge base
   const handleAddToKnowledgeBase = async (item: any) => {
     if (!userId || !addKnowledgeBaseItem) return;
@@ -52,7 +46,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
         <AiChat
           onAddReference={onAddReference}
           documentId={documentId}
-          onNewMessage={handleNewMessage}
           chatHistory={chatHistory}
           onAddToKnowledgeBase={handleAddToKnowledgeBase}
         />

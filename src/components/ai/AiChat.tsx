@@ -29,8 +29,8 @@ export const AiChat: React.FC<AiChatProps> = ({
     userId: user?.id,
     onAddReference,
     externalChatHistory: chatHistory,
-    onNewMessage,
     onAddToKnowledgeBase
+    // Remove onNewMessage to ensure direct processing
   });
 
   if (!user) {

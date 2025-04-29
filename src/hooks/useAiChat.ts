@@ -93,8 +93,8 @@ export const useAiChat = ({
     setMessages,
     setIsLoading,
     uploadedFile,
-    setUploadedFile,
-    onNewMessage
+    setUploadedFile
+    // Removing onNewMessage to ensure direct processing
   });
 
   // Reference handling

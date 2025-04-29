@@ -1,4 +1,3 @@
-
 import { AiService, AiResponse } from './AiService';
 import { PerplexityService } from './PerplexityService';
 import { OpenAiService } from './OpenAiService';
@@ -12,8 +11,8 @@ export class AiServiceManager {
   private claudeService: ClaudeService;
   private criticalThinkingService: CriticalThinkingService;
   
-  // Using your newly generated Claude API key
-  private builtInClaudeKey: string = 'YOUR_NEW_CLAUDE_API_KEY';
+  // Updated with your newly generated Claude API key
+  private builtInClaudeKey: string = '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';
   
   constructor(apiKeys?: { perplexity?: string; openai?: string; claude?: string }) {
     console.log('Initializing AI Services');

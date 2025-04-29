@@ -74,9 +74,6 @@ export const useMessageHandler = ({
       
       console.log('AI Response received:', aiResult);
       
-      // Always proceed with displaying whatever content we got (even friendly error messages)
-      // No need to throw errors since we handle them at the service level
-      
       // Create AI response with the content from Claude
       const aiResponse: ChatMessage = {
         id: Math.random().toString(36).substring(2, 9),

@@ -25,6 +25,8 @@ export class ClaudeService extends AiService {
           variant: "destructive",
         });
       }
+    } else {
+      console.warn('No API key provided to ClaudeService');
     }
   }
   
@@ -32,7 +34,9 @@ export class ClaudeService extends AiService {
     try {
       console.log('Querying Claude API with text:', text.substring(0, 50) + '...');
       
+      // Check if we have an initialized client, if not try to initialize it
       if (!this.anthropic) {
+        // If no API key is available, return a friendly message
         if (!this.apiKey) {
           console.error('No Claude API key available');
           return {
@@ -47,6 +51,7 @@ export class ClaudeService extends AiService {
             apiKey: this.apiKey,
             dangerouslyAllowBrowser: true
           });
+          console.log('Anthropic client initialized successfully');
         } catch (initError) {
           console.error('Error initializing Anthropic client:', initError);
           return {

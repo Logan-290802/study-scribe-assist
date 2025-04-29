@@ -1,3 +1,4 @@
+
 import { AiService, AiResponse } from './AiService';
 import { PerplexityService } from './PerplexityService';
 import { OpenAiService } from './OpenAiService';
@@ -17,6 +18,7 @@ export class AiServiceManager {
     
     // Use built-in Claude key if no Claude key is provided
     const claudeKey = apiKeys?.claude || this.builtInClaudeKey;
+    console.log('Using Claude key:', claudeKey ? 'Key available' : 'No key available');
     
     this.perplexityService = new PerplexityService({ apiKey: apiKeys?.perplexity });
     this.openAiService = new OpenAiService({ apiKey: apiKeys?.openai });

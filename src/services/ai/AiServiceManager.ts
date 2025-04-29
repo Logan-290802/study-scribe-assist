@@ -10,78 +10,47 @@ export class AiServiceManager {
   private openAiService: OpenAiService;
   private claudeService: ClaudeService;
   private criticalThinkingService: CriticalThinkingService;
+  private builtInClaudeKey: string = 'sk-ant-api03-UgS13vQiXAfLMJ2VxMOQsjtPYuacGU3wlO7yeQrnNJdvUy9sLKrSrO6HAh2zyzgT94Cu8zdB2ZU33E6j7hWNRA-OLC3YQAA';
   
   constructor(apiKeys?: { perplexity?: string; openai?: string; claude?: string }) {
-    console.log('Initializing AI Services with keys:', {
-      claudeAvailable: !!apiKeys?.claude,
-      openAiAvailable: !!apiKeys?.openai,
-      perplexityAvailable: !!apiKeys?.perplexity
-    });
+    console.log('Initializing AI Services');
+    
+    // Use built-in Claude key if no Claude key is provided
+    const claudeKey = apiKeys?.claude || this.builtInClaudeKey;
     
     this.perplexityService = new PerplexityService({ apiKey: apiKeys?.perplexity });
     this.openAiService = new OpenAiService({ apiKey: apiKeys?.openai });
-    this.claudeService = new ClaudeService({ apiKey: apiKeys?.claude });
-    this.criticalThinkingService = new CriticalThinkingService({ apiKey: apiKeys?.claude || apiKeys?.openai });
+    this.claudeService = new ClaudeService({ apiKey: claudeKey });
+    
+    // Use Claude key first, fall back to OpenAI if Claude isn't available
+    this.criticalThinkingService = new CriticalThinkingService({ 
+      apiKey: claudeKey || apiKeys?.openai 
+    });
   }
   
   async processTextWithAi(text: string, action: 'research' | 'critique' | 'expand'): Promise<AiResponse> {
     // Main processing logic based on action
     console.log(`Processing AI action: ${action} with text: ${text.substring(0, 50)}...`);
     
-    // For MVP, prioritize Claude for all actions if the API key is available
-    if (this.claudeService.hasApiKey) {
+    // Always use Claude first with built-in key
+    try {
       console.log('Using Claude service for request');
-      try {
-        return await this.claudeService.query(text);
-      } catch (error) {
-        console.error('Error using Claude service:', error);
-        // If there's an error but we have a key, show a toast but don't fall back
-        toast({
-          title: "Claude API Error",
-          description: "There was an issue connecting to Claude. Please try again later.",
-          variant: "destructive",
-        });
-        
-        // Return a user-friendly error
-        return {
-          content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
-          error: error instanceof Error ? error.message : "Unknown error",
-          source: "Claude (Error)"
-        };
-      }
+      return await this.claudeService.query(text);
+    } catch (error) {
+      console.error('Error using Claude service:', error);
+      toast({
+        title: "Claude API Error",
+        description: "There was an issue connecting to Claude. Please try again later.",
+        variant: "destructive",
+      });
+      
+      // Return a user-friendly error
+      return {
+        content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
+        error: error instanceof Error ? error.message : "Unknown error",
+        source: "Claude (Error)"
+      };
     }
-    
-    // If Claude is not available or failed, try service-specific fallbacks
-    switch (action) {
-      case 'research':
-        if (this.perplexityService.hasApiKey) {
-          try {
-            return await this.perplexityService.query(text);
-          } catch (error) {
-            console.error('Error using Perplexity service:', error);
-          }
-        }
-        break;
-      case 'critique':
-        if (this.openAiService.hasApiKey) {
-          try {
-            return await this.openAiService.query(text);
-          } catch (error) {
-            console.error('Error using OpenAI service:', error);
-          }
-        }
-        break;
-      case 'expand':
-        // Already tried Claude above, no specific fallback
-        break;
-    }
-    
-    // If all else fails, return a friendly message encouraging API key setup
-    console.log('No AI service available or all services failed');
-    return {
-      content: "I'm ready to help with your research and writing! If you'd like more advanced assistance, you can add your own AI API keys in the Tools section.",
-      source: "AI Service Manager"
-    };
   }
   
   async analyzeCriticalThinking(text: string): Promise<CriticalSuggestion[]> {
@@ -90,23 +59,26 @@ export class AiServiceManager {
   
   // Check if any API keys are configured
   get hasAnyApiKey(): boolean {
-    return !!(this.claudeService.hasApiKey || this.openAiService.hasApiKey || this.perplexityService.hasApiKey);
+    return true;  // Always return true since we have a built-in Claude key
   }
   
   // Specifically check if Claude API is configured
   get hasClaudeApiKey(): boolean {
-    return this.claudeService.hasApiKey;
+    return true;  // Always return true since we have a built-in Claude key
   }
   
   // Update API keys
   updateApiKeys(apiKeys: { perplexity?: string; openai?: string; claude?: string }): void {
     if (apiKeys.perplexity) this.perplexityService = new PerplexityService({ apiKey: apiKeys.perplexity });
     if (apiKeys.openai) this.openAiService = new OpenAiService({ apiKey: apiKeys.openai });
-    if (apiKeys.claude) this.claudeService = new ClaudeService({ apiKey: apiKeys.claude });
+    
+    // Use user-provided Claude key if available, otherwise keep using the built-in key
+    const claudeKey = apiKeys.claude || this.builtInClaudeKey;
+    this.claudeService = new ClaudeService({ apiKey: claudeKey });
     
     // Critical thinking service can use either Claude or OpenAI
     this.criticalThinkingService = new CriticalThinkingService({ 
-      apiKey: apiKeys.claude || apiKeys.openai 
+      apiKey: claudeKey || apiKeys.openai 
     });
     
     console.log('AI Service API keys updated');
@@ -114,6 +86,4 @@ export class AiServiceManager {
 }
 
 // Create a singleton instance with a built-in Claude API key
-export const aiServiceManager = new AiServiceManager({
-  claude: 'sk-ant-api03-UgS13vQiXAfLMJ2VxMOQsjtPYuacGU3wlO7yeQrnNJdvUy9sLKrSrO6HAh2zyzgT94Cu8zdB2ZU33E6j7hWNRA-OLC3YQAA',
-});
+export const aiServiceManager = new AiServiceManager();

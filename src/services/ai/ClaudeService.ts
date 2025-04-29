@@ -30,9 +30,9 @@ export class ClaudeService extends AiService {
       
       if (!this.anthropic) {
         if (!this.apiKey) {
-          // Return friendly message if no API key is set
+          console.error('No Claude API key available');
           return {
-            content: "I'm ready to help with your research and writing! If you'd like more advanced assistance, you can add your own Claude API key in the Tools section.",
+            content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
             source: 'Claude Assistant'
           };
         }
@@ -88,9 +88,9 @@ export class ClaudeService extends AiService {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Error details:', errorMessage);
       
-      // Return a user-friendly error message
+      // Return a user-friendly error message without mentioning API keys
       return {
-        content: "I'm ready to help with your research and writing! If you'd like more advanced assistance, you can check your Claude API key in the Tools section.",
+        content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
         error: errorMessage,
         source: 'Claude Assistant'
       };

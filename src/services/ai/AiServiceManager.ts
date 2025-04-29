@@ -13,17 +13,16 @@ export class AiServiceManager {
   private criticalThinkingService: CriticalThinkingService;
   
   constructor(apiKeys?: { perplexity?: string; openai?: string; claude?: string }) {
-    this.perplexityService = new PerplexityService({ apiKey: apiKeys?.perplexity });
-    this.openAiService = new OpenAiService({ apiKey: apiKeys?.openai });
-    this.claudeService = new ClaudeService({ apiKey: apiKeys?.claude });
-    this.criticalThinkingService = new CriticalThinkingService({ apiKey: apiKeys?.claude || apiKeys?.openai });
-    
-    // Log which services are available based on API keys
-    console.log('AI Services initialized:', {
+    console.log('Initializing AI Services with keys:', {
       claudeAvailable: !!apiKeys?.claude,
       openAiAvailable: !!apiKeys?.openai,
       perplexityAvailable: !!apiKeys?.perplexity
     });
+    
+    this.perplexityService = new PerplexityService({ apiKey: apiKeys?.perplexity });
+    this.openAiService = new OpenAiService({ apiKey: apiKeys?.openai });
+    this.claudeService = new ClaudeService({ apiKey: apiKeys?.claude });
+    this.criticalThinkingService = new CriticalThinkingService({ apiKey: apiKeys?.claude || apiKeys?.openai });
   }
   
   async processTextWithAi(text: string, action: 'research' | 'critique' | 'expand'): Promise<AiResponse> {
@@ -33,7 +32,17 @@ export class AiServiceManager {
     // For MVP, prioritize Claude for all actions if the API key is available
     if (this.claudeService.hasApiKey) {
       console.log('Using Claude service for request');
-      return this.claudeService.query(text);
+      try {
+        return await this.claudeService.query(text);
+      } catch (error) {
+        console.error('Error using Claude service:', error);
+        toast({
+          title: "Claude API Error",
+          description: "Failed to get a response from Claude. Please try again.",
+          variant: "destructive",
+        });
+        throw error;
+      }
     }
     
     // If Claude is not available, try service-specific fallbacks

@@ -1,7 +1,6 @@
 
 import { useToast } from '@/components/ui/use-toast';
 import { ChatMessage } from '@/components/ai/types';
-import { Progress } from '@/components/ui/progress';
 import { aiServiceManager } from '@/services/ai/AiServiceManager';
 import { 
   createUserMessage, 
@@ -62,7 +61,7 @@ export const useMessageHandler = ({
     if (onNewMessage) {
       console.log('Using onNewMessage callback');
       onNewMessage(input);
-      // Now we continue to process with AI rather than returning early
+      // Continue to process with AI
     }
     
     // Set loading state to true when waiting for AI response
@@ -73,7 +72,11 @@ export const useMessageHandler = ({
       // Use Claude AI for all interactions - explicitly using 'expand' action for consistent behavior
       const aiResult = await aiServiceManager.processTextWithAi(input, 'expand');
       
-      console.log('AI Response received:', aiResult.content?.substring(0, 50) + '...');
+      console.log('AI Response received:', aiResult);
+      
+      if (!aiResult.content) {
+        throw new Error('Empty response from AI service');
+      }
       
       // Create AI response with the content from Claude
       const aiResponse: ChatMessage = {
@@ -113,7 +116,7 @@ export const useMessageHandler = ({
       // Show error toast
       toast({
         title: "AI Error",
-        description: "Failed to get a response from the AI service",
+        description: "Failed to get a response from the AI service. Please check the console for details.",
         variant: "destructive",
       });
       

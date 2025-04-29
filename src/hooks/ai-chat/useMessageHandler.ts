@@ -35,9 +35,13 @@ export const useMessageHandler = ({
   const handleSendMessage = async (input: string) => {
     if (!input.trim()) return;
 
+    console.log('Sending message:', input);
+    
+    // Create and add user message to the UI
     const userMessage = createUserMessage(input);
     setMessages((prev) => [...prev, userMessage]);
     
+    // Save user message to Supabase if documentId and userId exist
     if (documentId && userId) {
       await saveChatMessageToSupabase({
         role: 'user',
@@ -45,6 +49,7 @@ export const useMessageHandler = ({
         document_id: documentId,
         user_id: userId,
       }, (error) => {
+        console.error('Failed to save user message:', error);
         toast({
           title: "Error",
           description: "Failed to save chat message",
@@ -53,7 +58,9 @@ export const useMessageHandler = ({
       });
     }
     
+    // If onNewMessage callback exists, use it instead of AI processing
     if (onNewMessage) {
+      console.log('Using onNewMessage callback');
       onNewMessage(input);
       return;
     }
@@ -62,8 +69,11 @@ export const useMessageHandler = ({
     setIsLoading(true);
     
     try {
-      // Use Claude AI for all interactions
+      console.log('Processing with AI: Claude API');
+      // Use Claude AI for all interactions - explicitly using 'expand' action for consistent behavior
       const aiResult = await aiServiceManager.processTextWithAi(input, 'expand');
+      
+      console.log('AI Response received:', aiResult.content?.substring(0, 50) + '...');
       
       // Create AI response with the content from Claude
       const aiResponse: ChatMessage = {
@@ -73,6 +83,7 @@ export const useMessageHandler = ({
         timestamp: new Date()
       };
       
+      // Add AI response to messages state
       setMessages((prev) => [...prev, aiResponse]);
       
       // If there's an uploaded file, clear it after processing
@@ -88,6 +99,7 @@ export const useMessageHandler = ({
           document_id: documentId,
           user_id: userId,
         }, (error) => {
+          console.error('Failed to save AI response:', error);
           toast({
             title: "Error",
             description: "Failed to save chat message",

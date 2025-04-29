@@ -26,6 +26,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     e.preventDefault();
     if (!inputValue.trim() || isLoading || disabled) return;
     
+    console.log('Submitting message:', inputValue);
     onSendMessage(inputValue);
     setInputValue('');
   };

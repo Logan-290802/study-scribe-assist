@@ -42,9 +42,10 @@ export class ClaudeService extends AiService {
       }
 
       const data = await response.json();
-      console.log('Claude API response received', data);
+      console.log('Claude API response received:', data);
       
       if (!data.content || !data.content[0] || !data.content[0].text) {
+        console.error('Unexpected Claude API response format:', data);
         throw new Error('Unexpected response format from Claude API');
       }
 
@@ -58,7 +59,7 @@ export class ClaudeService extends AiService {
       // Use a generic error response without showing the API key configuration message
       return {
         content: `I apologize, but I encountered an error while processing your request. Please try again later.`,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         source: 'Anthropic Claude (Error)'
       };
     }

@@ -51,13 +51,26 @@ export class ClaudeService extends AiService {
         ]
       });
       
-      console.log('Claude API response received:', response.content);
+      console.log('Claude API response received:', response);
       
       // Extract the text content from the response
-      const content = response.content[0].text;
+      let extractedContent = '';
+      
+      // Check if response.content exists and is an array
+      if (response.content && Array.isArray(response.content)) {
+        // Process each content block
+        for (const block of response.content) {
+          // Check if the block is a text block
+          if (block.type === 'text' && typeof block.text === 'string') {
+            extractedContent += block.text;
+          }
+        }
+      }
+      
+      console.log('Extracted content:', extractedContent);
       
       return {
-        content: content,
+        content: extractedContent || "Sorry, I couldn't generate a proper response.",
         source: 'Anthropic Claude'
       };
     } catch (error) {

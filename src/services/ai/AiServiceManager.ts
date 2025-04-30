@@ -1,25 +1,28 @@
+
 import { AiService, AiResponse } from './AiService';
 import { PerplexityService } from './PerplexityService';
 import { OpenAiService } from './OpenAiService';
 import { ClaudeService } from './ClaudeService';
 import { CriticalThinkingService, CriticalSuggestion } from './CriticalThinkingService';
 import { toast } from '@/components/ui/use-toast';
+import { supabase } from '@/lib/supabase';
 
 export class AiServiceManager {
   private perplexityService: PerplexityService;
   private openAiService: OpenAiService;
   private claudeService: ClaudeService;
   private criticalThinkingService: CriticalThinkingService;
+  private isInitialized: boolean = false;
   
-  // Updated with your newly generated Claude API key
-  private builtInClaudeKey: string = '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';
+  // Temporary API key to use while we're fetching the real one
+  private builtInClaudeKey: string = '';
   
   constructor(apiKeys?: { perplexity?: string; openai?: string; claude?: string }) {
     console.log('Initializing AI Services');
     
-    // Use built-in Claude key if no Claude key is provided
+    // Initialize with provided keys or temporarily with empty strings
     const claudeKey = apiKeys?.claude || this.builtInClaudeKey;
-    console.log('Using Claude key:', claudeKey ? 'Key available' : 'No key available');
+    console.log('Initial Claude key status:', claudeKey ? 'Key available' : 'No key available');
     
     this.perplexityService = new PerplexityService({ apiKey: apiKeys?.perplexity });
     this.openAiService = new OpenAiService({ apiKey: apiKeys?.openai });
@@ -29,13 +32,53 @@ export class AiServiceManager {
     this.criticalThinkingService = new CriticalThinkingService({ 
       apiKey: claudeKey || apiKeys?.openai 
     });
+    
+    // Fetch the real Claude API key from Supabase
+    this.fetchClaudeApiKey();
+  }
+  
+  private async fetchClaudeApiKey(): Promise<void> {
+    try {
+      const { data, error } = await supabase.functions.invoke('get-claude-key');
+      
+      if (error) {
+        console.error('Error fetching Claude API key:', error);
+        return;
+      }
+      
+      if (data && data.apiKey) {
+        console.log('Successfully fetched Claude API key from Supabase');
+        this.builtInClaudeKey = data.apiKey;
+        
+        // Reinitialize services with the fetched key
+        this.claudeService = new ClaudeService({ apiKey: this.builtInClaudeKey });
+        this.criticalThinkingService = new CriticalThinkingService({ 
+          apiKey: this.builtInClaudeKey 
+        });
+        
+        this.isInitialized = true;
+        console.log('AI services reinitialized with fetched Claude API key');
+      }
+    } catch (error) {
+      console.error('Exception while fetching Claude API key:', error);
+    }
   }
   
   async processTextWithAi(text: string, action: 'research' | 'critique' | 'expand'): Promise<AiResponse> {
     // Main processing logic based on action
     console.log(`Processing AI action: ${action} with text: ${text.substring(0, 50)}...`);
     
-    // Always use Claude first with built-in key
+    // If we haven't fetched the API key yet, wait a moment
+    if (!this.isInitialized) {
+      try {
+        console.log('Waiting for API key initialization...');
+        await this.waitForInitialization();
+      } catch (error) {
+        console.warn('Timed out waiting for API key, proceeding with current state');
+      }
+    }
+    
+    // Always use Claude with fetched key
     try {
       console.log('Using Claude service for request');
       return await this.claudeService.query(text);
@@ -56,18 +99,37 @@ export class AiServiceManager {
     }
   }
   
+  // Helper method to wait for initialization
+  private waitForInitialization(timeoutMs: number = 5000): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const startTime = Date.now();
+      
+      const checkInitialization = () => {
+        if (this.isInitialized) {
+          resolve();
+        } else if (Date.now() - startTime > timeoutMs) {
+          reject(new Error('Initialization timeout'));
+        } else {
+          setTimeout(checkInitialization, 100);
+        }
+      };
+      
+      checkInitialization();
+    });
+  }
+  
   async analyzeCriticalThinking(text: string): Promise<CriticalSuggestion[]> {
     return this.criticalThinkingService.analyzeText(text);
   }
   
   // Check if any API keys are configured
   get hasAnyApiKey(): boolean {
-    return true;  // Always return true since we have a built-in Claude key
+    return true;  // Always return true since we're fetching the key from Supabase
   }
   
   // Specifically check if Claude API is configured
   get hasClaudeApiKey(): boolean {
-    return true;  // Always return true since we have a built-in Claude key
+    return true;  // Always return true since we're fetching the key from Supabase
   }
   
   // Update API keys
@@ -88,5 +150,5 @@ export class AiServiceManager {
   }
 }
 
-// Create a singleton instance with a built-in Claude API key
+// Create a singleton instance
 export const aiServiceManager = new AiServiceManager();

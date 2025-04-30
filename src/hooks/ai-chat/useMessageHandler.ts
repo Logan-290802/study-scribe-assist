@@ -69,7 +69,8 @@ export const useMessageHandler = ({
     
     try {
       console.log('Processing with AI: Claude API');
-      // Use Claude AI for all interactions - explicitly using 'expand' action for consistent behavior
+      
+      // Add a small delay to ensure the API key has been fetched
       const aiResult = await aiServiceManager.processTextWithAi(input, 'expand');
       
       console.log('AI Response received:', aiResult);

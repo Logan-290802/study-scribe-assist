@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -177,9 +176,10 @@ const MyWorkList: React.FC<MyWorkListProps> = ({ searchQuery }) => {
                           </Popover>
                         </div>
                         
-                        <p className="text-gray-600 text-sm line-clamp-2 mb-4">
-                          {project.snippet}
-                        </p>
+                        <p 
+                          className="text-gray-600 text-sm line-clamp-2 mb-4"
+                          dangerouslySetInnerHTML={{ __html: project.snippet }}
+                        />
                         
                         <div className="flex justify-between text-xs text-gray-500">
                           <div className="flex items-center">
@@ -196,7 +196,10 @@ const MyWorkList: React.FC<MyWorkListProps> = ({ searchQuery }) => {
                   </HoverCardTrigger>
                   <HoverCardContent className="w-80 p-4">
                     <h4 className="font-semibold">{project.title}</h4>
-                    <p className="text-sm text-gray-600 mt-2">{project.snippet}</p>
+                    <p 
+                      className="text-sm text-gray-600 mt-2"
+                      dangerouslySetInnerHTML={{ __html: project.snippet }}
+                    />
                     <div className="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-500 space-y-1">
                       <div className="flex items-center">
                         <Clock className="h-3 w-3 mr-2" />
@@ -269,9 +272,10 @@ const MyWorkList: React.FC<MyWorkListProps> = ({ searchQuery }) => {
                           </Popover>
                         </div>
                         
-                        <p className="text-gray-600 text-sm line-clamp-2 mb-4">
-                          {project.snippet}
-                        </p>
+                        <p 
+                          className="text-gray-600 text-sm line-clamp-2 mb-4"
+                          dangerouslySetInnerHTML={{ __html: project.snippet }}
+                        />
                         
                         <div className="flex justify-between text-xs text-gray-500">
                           <div className="flex items-center">
@@ -288,7 +292,10 @@ const MyWorkList: React.FC<MyWorkListProps> = ({ searchQuery }) => {
                   </HoverCardTrigger>
                   <HoverCardContent className="w-80 p-4">
                     <h4 className="font-semibold">{project.title}</h4>
-                    <p className="text-sm text-gray-600 mt-2">{project.snippet}</p>
+                    <p 
+                      className="text-sm text-gray-600 mt-2"
+                      dangerouslySetInnerHTML={{ __html: project.snippet }}
+                    />
                     <div className="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-500 space-y-1">
                       <div className="flex items-center">
                         <Clock className="h-3 w-3 mr-2" />

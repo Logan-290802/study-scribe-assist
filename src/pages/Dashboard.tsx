@@ -136,7 +136,10 @@ const Dashboard = () => {
                 onClick={() => navigate(`/documents/${doc.id}`)}
               >
                 <h3 className="font-medium text-lg line-clamp-1 mb-2">{doc.title}</h3>
-                <p className="text-gray-600 text-sm line-clamp-2 mb-4">{doc.snippet}</p>
+                <p 
+                  className="text-gray-600 text-sm line-clamp-2 mb-4"
+                  dangerouslySetInnerHTML={{ __html: doc.snippet }}
+                />
                 <div className="flex justify-between text-xs text-gray-500">
                   <div>Last modified: {format(doc.lastModified, 'PPP')}</div>
                   {doc.dueDate && <div>Due: {format(doc.dueDate, 'PPP')}</div>}

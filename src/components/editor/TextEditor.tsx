@@ -1,5 +1,6 @@
+
 import React, { useEffect } from 'react';
-import { useEditor } from '@tiptap/react';
+import { useEditor, Editor } from '@tiptap/react';
 import Document from '@tiptap/extension-document';
 import Paragraph from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Editor } from '@tiptap/react';
+import { Editor } from '@tiptap/core';
 import { CriticalSuggestion } from '@/services/ai/CriticalThinkingService';
 
 export const useEditorSuggestions = (
@@ -12,7 +12,7 @@ export const useEditorSuggestions = (
   const [suggestionPopoverOpen, setSuggestionPopoverOpen] = useState(false);
 
   useEffect(() => {
-    if (!editor || !editor.view.dom) return;
+    if (!editor || !editor.view || !editor.view.dom) return;
     
     const handleEditorClick = () => {
       if (enabled) {

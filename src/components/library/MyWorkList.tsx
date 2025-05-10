@@ -1,23 +1,12 @@
+
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { FileText, MoreVertical, Edit, Trash2, Archive, Clock, Link2, Calendar, ArchiveRestore } from 'lucide-react';
+import { FileText, Archive } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDocuments } from '@/store/DocumentStore';
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import DocumentGrid from './DocumentGrid';
+import DeleteDocumentDialog from './DeleteDocumentDialog';
 
 interface MyWorkListProps {
   searchQuery: string;
@@ -104,238 +93,36 @@ const MyWorkList: React.FC<MyWorkListProps> = ({ searchQuery }) => {
         </TabsList>
         
         <TabsContent value="active" className="mt-0">
-          {sortedProjects.length === 0 ? (
-            <div className="text-center py-12 border rounded-md bg-gray-50">
-              <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900">No documents found</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                {searchQuery ? 'Try a different search term' : 'Start by creating a new document'}
-              </p>
-              <Button className="mt-4" onClick={() => navigate('/dashboard')}>
-                Create Document
-              </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {sortedProjects.map((project) => (
-                <HoverCard key={project.id} openDelay={200} closeDelay={100}>
-                  <HoverCardTrigger asChild>
-                    <Card 
-                      className="cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => handleOpenProject(project.id)}
-                    >
-                      <CardContent className="p-5">
-                        <div className="flex justify-between items-start">
-                          <h3 className="font-medium text-lg line-clamp-1 mb-2">{project.title}</h3>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-48" align="end">
-                              <div className="flex flex-col space-y-1">
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="justify-start" 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleOpenProject(project.id);
-                                  }}
-                                >
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  Edit
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="justify-start text-amber-600" 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleArchiveProject(project.id, true);
-                                  }}
-                                >
-                                  <Archive className="mr-2 h-4 w-4" />
-                                  Archive
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="justify-start text-red-600" 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setDocToDelete(project.id);
-                                  }}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Delete
-                                </Button>
-                              </div>
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                        
-                        <p 
-                          className="text-gray-600 text-sm line-clamp-2 mb-4"
-                          dangerouslySetInnerHTML={{ __html: project.snippet }}
-                        />
-                        
-                        <div className="flex justify-between text-xs text-gray-500">
-                          <div className="flex items-center">
-                            <Calendar className="h-3 w-3 mr-1" />
-                            {formatDate(project.lastModified)}
-                          </div>
-                          <div className="flex items-center">
-                            <Link2 className="h-3 w-3 mr-1" />
-                            {project.referencesCount} references
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </HoverCardTrigger>
-                  <HoverCardContent className="w-80 p-4">
-                    <h4 className="font-semibold">{project.title}</h4>
-                    <p 
-                      className="text-sm text-gray-600 mt-2"
-                      dangerouslySetInnerHTML={{ __html: project.snippet }}
-                    />
-                    <div className="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-500 space-y-1">
-                      <div className="flex items-center">
-                        <Clock className="h-3 w-3 mr-2" />
-                        Last modified: {formatDate(project.lastModified)}
-                      </div>
-                      <div className="flex items-center">
-                        <Link2 className="h-3 w-3 mr-2" />
-                        {project.referencesCount} references
-                      </div>
-                    </div>
-                  </HoverCardContent>
-                </HoverCard>
-              ))}
-            </div>
-          )}
+          <DocumentGrid
+            projects={sortedProjects}
+            isArchived={false}
+            searchQuery={searchQuery}
+            onOpenProject={handleOpenProject}
+            onArchiveProject={handleArchiveProject}
+            onDeleteClick={setDocToDelete}
+            formatDate={formatDate}
+          />
         </TabsContent>
         
         <TabsContent value="archived" className="mt-0">
-          {sortedProjects.length === 0 ? (
-            <div className="text-center py-12 border rounded-md bg-gray-50">
-              <Archive className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900">No archived documents</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                {searchQuery ? 'Try a different search term' : 'Documents you archive will appear here'}
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {sortedProjects.map((project) => (
-                <HoverCard key={project.id} openDelay={200} closeDelay={100}>
-                  <HoverCardTrigger asChild>
-                    <Card className="cursor-pointer hover:shadow-md transition-shadow opacity-75">
-                      <CardContent className="p-5">
-                        <div className="flex justify-between items-start">
-                          <h3 className="font-medium text-lg line-clamp-1 mb-2">{project.title}</h3>
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-48" align="end">
-                              <div className="flex flex-col space-y-1">
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="justify-start text-blue-600" 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleArchiveProject(project.id, false);
-                                  }}
-                                >
-                                  <ArchiveRestore className="mr-2 h-4 w-4" />
-                                  Restore
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm" 
-                                  className="justify-start text-red-600" 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setDocToDelete(project.id);
-                                  }}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Delete Permanently
-                                </Button>
-                              </div>
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                        
-                        <p 
-                          className="text-gray-600 text-sm line-clamp-2 mb-4"
-                          dangerouslySetInnerHTML={{ __html: project.snippet }}
-                        />
-                        
-                        <div className="flex justify-between text-xs text-gray-500">
-                          <div className="flex items-center">
-                            <Calendar className="h-3 w-3 mr-1" />
-                            {formatDate(project.lastModified)}
-                          </div>
-                          <div className="flex items-center">
-                            <Link2 className="h-3 w-3 mr-1" />
-                            {project.referencesCount} references
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </HoverCardTrigger>
-                  <HoverCardContent className="w-80 p-4">
-                    <h4 className="font-semibold">{project.title}</h4>
-                    <p 
-                      className="text-sm text-gray-600 mt-2"
-                      dangerouslySetInnerHTML={{ __html: project.snippet }}
-                    />
-                    <div className="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-500 space-y-1">
-                      <div className="flex items-center">
-                        <Clock className="h-3 w-3 mr-2" />
-                        Last modified: {formatDate(project.lastModified)}
-                      </div>
-                      <div className="flex items-center">
-                        <Link2 className="h-3 w-3 mr-2" />
-                        {project.referencesCount} references
-                      </div>
-                    </div>
-                  </HoverCardContent>
-                </HoverCard>
-              ))}
-            </div>
-          )}
+          <DocumentGrid
+            projects={sortedProjects}
+            isArchived={true}
+            searchQuery={searchQuery}
+            onOpenProject={handleOpenProject}
+            onArchiveProject={handleArchiveProject}
+            onDeleteClick={setDocToDelete}
+            formatDate={formatDate}
+          />
         </TabsContent>
       </Tabs>
       
-      <AlertDialog 
-        open={!!docToDelete} 
-        onOpenChange={(open) => !open && setDocToDelete(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this document? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={() => docToDelete && handleDeleteProject(docToDelete)}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteDocumentDialog
+        isOpen={!!docToDelete}
+        docId={docToDelete}
+        onClose={() => setDocToDelete(null)}
+        onDelete={handleDeleteProject}
+      />
     </div>
   );
 };

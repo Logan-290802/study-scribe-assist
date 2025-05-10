@@ -56,7 +56,7 @@ export const AiChat: React.FC<AiChatProps> = ({
         <h3 className="font-medium">AI Research Assistant</h3>
       </div>
       
-      <div className="flex-grow overflow-hidden">
+      <div className="flex-grow overflow-hidden h-[300px]">
         <ChatMessageList
           messages={messages}
           isLoading={isLoading}

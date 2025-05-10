@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Editor } from '@tiptap/core';
+import { Editor } from '@tiptap/react';
 import { 
   Bold, Italic, Underline, Strikethrough, Heading1, Heading2, 
   List, ListOrdered, Quote, Code, Link, Undo, Redo
@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import CriticalThinkingToggle from './CriticalThinkingToggle';
 
 interface EditorToolbarProps {
-  editor: Editor | null;
+  editor: Editor;
   criticalThinkingEnabled?: boolean;
   criticalThinkingAnalyzing?: boolean;
   onToggleCriticalThinking?: () => void;
@@ -153,14 +153,14 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
       
       <ToolbarButton
         onClick={() => editor.commands.undo()}
-        disabled={!editor.can().undo()}
+        disabled={!editor.isActive('history')}
       >
         <Undo className="w-4 h-4" />
       </ToolbarButton>
       
       <ToolbarButton
         onClick={() => editor.commands.redo()}
-        disabled={!editor.can().redo()}
+        disabled={!editor.isActive('history')}
       >
         <Redo className="w-4 h-4" />
       </ToolbarButton>

@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { Editor } from '@tiptap/core';
+import { Editor } from '@tiptap/react';
 
 export interface Heading {
   id: string;

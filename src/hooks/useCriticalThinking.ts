@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
-import { Editor } from '@tiptap/core';
+import { Editor } from '@tiptap/react';
 import { aiServiceManager } from '@/services/ai/AiServiceManager';
 import { CriticalSuggestion } from '@/services/ai/CriticalThinkingService';
 import { useToast } from '@/components/ui/use-toast';
@@ -114,7 +114,7 @@ export const useCriticalThinking = (editor: Editor | null) => {
     enabled,
     analyzing,
     suggestions,
-    setSuggestions,
+    setSuggestions,  // Add this to expose the setSuggestions function
     selectedSuggestion,
     setSelectedSuggestion,
     toggleCriticalThinking,

@@ -13,7 +13,6 @@ import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
 import { convertReferenceToKnowledgeBaseItem } from '@/services/KnowledgeBaseService';
 import { ChatInputProvider } from '@/contexts/ChatInputContext';
 import { useDocumentAutosave } from '@/hooks/useDocumentAutosave';
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 
 const DocumentEditor = () => {
   const navigate = useNavigate();
@@ -111,39 +110,35 @@ const DocumentEditor = () => {
           />
           
           <div className="grid grid-cols-12 gap-6 h-[calc(100vh-200px)]">
-            <ResizablePanelGroup className="col-span-12" direction="horizontal">
-              <ResizablePanel defaultSize={66} className="space-y-6 flex flex-col">
-                <div className="flex-grow overflow-hidden">
-                  <EditorArea 
-                    content={documentContent}
-                    onChange={setDocumentContent}
-                    onAiAction={handleAiAction}
-                  />
-                </div>
-                
-                <DocumentToolsPanel
-                  references={references}
-                  documentTitle={documentTitle}
-                  documentContent={documentContent}
-                  aiChatHistory={aiChatHistory}
-                  onAddReference={handleAddReferenceWithKnowledgeBase}
-                  onDeleteReference={handleDeleteReference}
+            <div className="col-span-12 lg:col-span-8 space-y-6 flex flex-col">
+              <div className="flex-grow overflow-hidden">
+                <EditorArea 
+                  content={documentContent}
+                  onChange={setDocumentContent}
+                  onAiAction={handleAiAction}
                 />
-              </ResizablePanel>
+              </div>
               
-              <ResizableHandle withHandle />
-              
-              <ResizablePanel defaultSize={34} className="h-full">
-                <ChatSidebar 
-                  documentId={id || ''}
-                  onAddReference={handleAddReferenceWithKnowledgeBase}
-                  chatHistory={aiChatHistory}
-                  setChatHistory={setAiChatHistory}
-                  userId={user?.id}
-                  onAddToKnowledgeBase={addToKnowledgeBase}
-                />
-              </ResizablePanel>
-            </ResizablePanelGroup>
+              <DocumentToolsPanel
+                references={references}
+                documentTitle={documentTitle}
+                documentContent={documentContent}
+                aiChatHistory={aiChatHistory}
+                onAddReference={handleAddReferenceWithKnowledgeBase}
+                onDeleteReference={handleDeleteReference}
+              />
+            </div>
+            
+            <div className="col-span-12 lg:col-span-4 h-full">
+              <ChatSidebar 
+                documentId={id || ''}
+                onAddReference={handleAddReferenceWithKnowledgeBase}
+                chatHistory={aiChatHistory}
+                setChatHistory={setAiChatHistory}
+                userId={user?.id}
+                onAddToKnowledgeBase={addToKnowledgeBase}
+              />
+            </div>
           </div>
         </div>
       </ChatInputProvider>

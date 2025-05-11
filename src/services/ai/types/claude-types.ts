@@ -1,6 +1,4 @@
 
-import { ContentBlockParam } from '@anthropic-ai/sdk';
-
 export interface ClaudeFileAnalysisOptions {
   file: File;
   prompt?: string;
@@ -25,3 +23,22 @@ export const DEFAULT_CLAUDE_OPTIONS: ClaudeMessageOptions = {
 };
 
 export const FILE_ANALYSIS_SYSTEM_PROMPT = 'You are a creative, thoughtful research assistant who helps writers and students analyze documents and images. When analyzing documents, focus on extracting key information, identifying main themes, and providing useful insights.';
+
+// Define ContentBlockParam types to match Anthropic's expected structure
+export type ContentBlockType = 'text' | 'image' | 'document';
+
+export interface TextBlockParam {
+  type: 'text';
+  text: string;
+}
+
+export interface DocumentBlockParam {
+  type: 'document';
+  source: {
+    type: 'base64';
+    media_type: string;
+    data: string;
+  };
+}
+
+export type ContentBlockParam = TextBlockParam | DocumentBlockParam;

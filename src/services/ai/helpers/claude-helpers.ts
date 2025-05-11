@@ -1,7 +1,6 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { toast } from '@/components/ui/use-toast';
-import { ContentBlockParam } from '@anthropic-ai/sdk';
 import { DEFAULT_CLAUDE_OPTIONS, ClaudeMessageOptions } from '../types/claude-types';
 
 /**
@@ -74,7 +73,7 @@ export const createClaudeMessage = (text: string, options: ClaudeMessageOptions 
     system: systemPrompt,
     messages: [
       {
-        role: 'user',
+        role: 'user' as const,
         content: text
       }
     ]

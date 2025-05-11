@@ -4,7 +4,8 @@ import { OpenAiService } from './OpenAiService';
 import { ClaudeService } from './ClaudeService';
 import { CriticalThinkingService, CriticalSuggestion } from './CriticalThinkingService';
 import { toast } from '@/components/ui/use-toast';
-import { supabase } from '@/lib/supabase';
+import { fetchClaudeApiKey, waitForInitialization, createServiceErrorResponse } from './helpers/ai-manager-helpers';
+import { ApiKeys } from './types/ai-manager-types';
 
 export class AiServiceManager {
   private perplexityService: PerplexityService;
@@ -16,7 +17,7 @@ export class AiServiceManager {
   // Temporary API key to use while we're fetching the real one
   private builtInClaudeKey: string = '';
   
-  constructor(apiKeys?: { perplexity?: string; openai?: string; claude?: string }) {
+  constructor(apiKeys?: ApiKeys) {
     console.log('Initializing AI Services');
     
     // Initialize with provided keys or temporarily with empty strings
@@ -33,33 +34,23 @@ export class AiServiceManager {
     });
     
     // Fetch the real Claude API key from Supabase
-    this.fetchClaudeApiKey();
+    this.initializeWithApiKey();
   }
   
-  private async fetchClaudeApiKey(): Promise<void> {
-    try {
-      const { data, error } = await supabase.functions.invoke('get-claude-key');
+  private async initializeWithApiKey(): Promise<void> {
+    const apiKey = await fetchClaudeApiKey();
+    
+    if (apiKey) {
+      this.builtInClaudeKey = apiKey;
       
-      if (error) {
-        console.error('Error fetching Claude API key:', error);
-        return;
-      }
+      // Reinitialize services with the fetched key
+      this.claudeService = new ClaudeService({ apiKey: this.builtInClaudeKey });
+      this.criticalThinkingService = new CriticalThinkingService({ 
+        apiKey: this.builtInClaudeKey 
+      });
       
-      if (data && data.apiKey) {
-        console.log('Successfully fetched Claude API key from Supabase');
-        this.builtInClaudeKey = data.apiKey;
-        
-        // Reinitialize services with the fetched key
-        this.claudeService = new ClaudeService({ apiKey: this.builtInClaudeKey });
-        this.criticalThinkingService = new CriticalThinkingService({ 
-          apiKey: this.builtInClaudeKey 
-        });
-        
-        this.isInitialized = true;
-        console.log('AI services reinitialized with fetched Claude API key');
-      }
-    } catch (error) {
-      console.error('Exception while fetching Claude API key:', error);
+      this.isInitialized = true;
+      console.log('AI services reinitialized with fetched Claude API key');
     }
   }
   
@@ -71,7 +62,7 @@ export class AiServiceManager {
     if (!this.isInitialized) {
       try {
         console.log('Waiting for API key initialization...');
-        await this.waitForInitialization();
+        await waitForInitialization(() => this.isInitialized);
       } catch (error) {
         console.warn('Timed out waiting for API key, proceeding with current state');
       }
@@ -82,39 +73,8 @@ export class AiServiceManager {
       console.log('Using Claude service for request');
       return await this.claudeService.query(text);
     } catch (error) {
-      console.error('Error using Claude service:', error);
-      toast({
-        title: "Claude API Error",
-        description: "There was an issue connecting to Claude. Please try again later.",
-        variant: "destructive",
-      });
-      
-      // Return a user-friendly error
-      return {
-        content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
-        error: error instanceof Error ? error.message : "Unknown error",
-        source: "Claude (Error)"
-      };
+      return createServiceErrorResponse(error);
     }
-  }
-  
-  // Helper method to wait for initialization
-  private waitForInitialization(timeoutMs: number = 5000): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const startTime = Date.now();
-      
-      const checkInitialization = () => {
-        if (this.isInitialized) {
-          resolve();
-        } else if (Date.now() - startTime > timeoutMs) {
-          reject(new Error('Initialization timeout'));
-        } else {
-          setTimeout(checkInitialization, 100);
-        }
-      };
-      
-      checkInitialization();
-    });
   }
   
   async analyzeCriticalThinking(text: string): Promise<CriticalSuggestion[]> {
@@ -132,7 +92,7 @@ export class AiServiceManager {
   }
   
   // Update API keys
-  updateApiKeys(apiKeys: { perplexity?: string; openai?: string; claude?: string }): void {
+  updateApiKeys(apiKeys: ApiKeys): void {
     if (apiKeys.perplexity) this.perplexityService = new PerplexityService({ apiKey: apiKeys.perplexity });
     if (apiKeys.openai) this.openAiService = new OpenAiService({ apiKey: apiKeys.openai });
     
@@ -161,7 +121,7 @@ export class AiServiceManager {
     if (!this.isInitialized) {
       try {
         console.log('Waiting for API key initialization before file analysis...');
-        await this.waitForInitialization();
+        await waitForInitialization(() => this.isInitialized);
       } catch (error) {
         console.warn('Timed out waiting for API key, proceeding with current state');
       }

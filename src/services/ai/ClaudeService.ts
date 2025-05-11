@@ -4,7 +4,7 @@ import { toast } from '@/components/ui/use-toast';
 import Anthropic from '@anthropic-ai/sdk';
 import { fileToBase64, createClaudeFileMessage, isClaudeCompatibleFile } from '@/utils/file-processing';
 import { initializeClaudeClient, extractClaudeContent, createClaudeMessage } from './helpers/claude-helpers';
-import { DEFAULT_CLAUDE_OPTIONS, FILE_ANALYSIS_SYSTEM_PROMPT, ClaudeFileAnalysisOptions } from './types/claude-types';
+import { DEFAULT_CLAUDE_OPTIONS, FILE_ANALYSIS_SYSTEM_PROMPT, ClaudeFileAnalysisOptions, ContentBlockParam } from './types/claude-types';
 
 export class ClaudeService extends AiService {
   private anthropic: Anthropic | null = null;
@@ -126,8 +126,8 @@ export class ClaudeService extends AiService {
         system: FILE_ANALYSIS_SYSTEM_PROMPT,
         messages: [
           {
-            role: 'user',
-            content: contentBlocks
+            role: 'user' as const,
+            content: contentBlocks as any
           }
         ]
       });

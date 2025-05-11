@@ -4,6 +4,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { checkStorageBucket } from './fileUtils';
 import { uploadFileToStorage, addFileToKnowledgeBase } from './fileUploadService';
 import { createFileUploadMessages } from './fileUploadMessages';
+import { isClaudeCompatibleFile } from '@/utils/file-processing';
 
 interface UseFileUploadProps {
   documentId?: string;
@@ -31,6 +32,19 @@ export const useFileUpload = ({
       // Create and handle file upload messages
       const { userMessage, getErrorMessage, addProcessingAndAnalysisMessages } = 
         await createFileUploadMessages(file, documentId, userId, setMessages, setIsLoading);
+      
+      // Check if file is compatible with Claude
+      if (!isClaudeCompatibleFile(file)) {
+        console.log('File type not compatible with Claude analysis:', file.type);
+        toast({
+          title: "Unsupported File Type",
+          description: `Claude can only analyze PDFs and images. This file type (${file.type}) is not supported for analysis.`,
+          variant: "warning",
+        });
+      }
+      
+      // Add user message to chat
+      setMessages(prev => [...prev, userMessage]);
       
       // If document and user IDs are available, proceed with storage and knowledge base
       if (userId && documentId) {
@@ -60,8 +74,8 @@ export const useFileUpload = ({
             description: `"${file.name}" has been uploaded and added to your knowledge base.`,
           });
           
-          // Add the processing and analysis messages
-          addProcessingAndAnalysisMessages();
+          // Now process with Claude and add the analysis
+          await addProcessingAndAnalysisMessages();
           
         } catch (uploadError: any) {
           console.error('Error uploading file:', uploadError);
@@ -91,8 +105,9 @@ export const useFileUpload = ({
           return;
         }
       } else {
-        // If no document/user ID, just show the messages without storage/knowledge base
-        addProcessingAndAnalysisMessages();
+        // If no document/user ID, just analyze the file with Claude
+        // without saving to storage or knowledge base
+        await addProcessingAndAnalysisMessages();
       }
     } catch (error) {
       console.error('Error handling file:', error);

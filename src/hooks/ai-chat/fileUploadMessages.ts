@@ -1,16 +1,7 @@
 
-import { 
-  createUserMessage, 
-  createProcessingPdfMessage, 
-  createProcessingImageMessage,
-  createPdfAnalysisResponse,
-  createImageAnalysisResponse,
-  createErrorMessage,
-  saveChatMessageToSupabase
-} from './messageUtils';
 import { ChatMessage } from '@/components/ai/types';
+import { aiServiceManager } from '@/services/ai/AiServiceManager';
 
-// Creates and handles the sequence of messages for file upload
 export const createFileUploadMessages = async (
   file: File,
   documentId?: string,
@@ -18,104 +9,87 @@ export const createFileUploadMessages = async (
   setMessages?: React.Dispatch<React.SetStateAction<ChatMessage[]>>,
   setIsLoading?: React.Dispatch<React.SetStateAction<boolean>>
 ) => {
-  // Create initial user message about the file upload
-  const userMessage = createUserMessage(`I've uploaded a file: "${file.name}". Can you analyze it for me?`);
-  
-  if (setMessages) {
-    setMessages((prev) => [...prev, userMessage]);
-  }
-  
-  // First add the user message to chat history if applicable
-  if (userId && documentId) {
-    try {
-      await saveChatMessageToSupabase({
-        role: 'user',
-        content: userMessage.content,
-        document_id: documentId,
-        user_id: userId,
-      }, (error) => {
-        console.error('Error saving chat message:', error);
-      });
-    } catch (error) {
-      console.error('Error saving chat message:', error);
-    }
-  }
-  
-  // Returns the error message if needed
-  const getErrorMessage = (errorDescription: string, actionNeeded: string = '') => {
-    const errorMsg = createErrorMessage(`I'm sorry, I couldn't process your file. ${errorDescription} ${actionNeeded}`);
-    if (setMessages) {
-      setMessages(prev => [...prev, errorMsg]);
-    }
-    if (setIsLoading) {
-      setIsLoading(false);
-    }
-    return errorMsg;
+  // Create initial user message about uploading
+  const userMessage: ChatMessage = {
+    id: Math.random().toString(36).substring(2, 9),
+    role: 'user',
+    content: `I've uploaded a file: ${file.name}`,
+    timestamp: new Date()
   };
-  
-  // Adds the processing and analysis messages with delays
-  const addProcessingAndAnalysisMessages = () => {
-    // Processing message after short delay
-    setTimeout(() => {
-      const isImage = file.type.startsWith('image/');
-      const processingMessage = isImage 
-        ? createProcessingImageMessage(file.name)
-        : createProcessingPdfMessage(file.name);
+
+  // Function to add the user message to the chat history
+  const addUserMessage = () => {
+    if (setMessages) {
+      setMessages(prev => [...prev, userMessage]);
+    }
+  };
+
+  // Error message function 
+  const getErrorMessage = (errorDescription: string, actionNeeded: string = "") => {
+    const errorMessage: ChatMessage = {
+      id: Math.random().toString(36).substring(2, 9),
+      role: 'assistant',
+      content: `There was a problem processing your file: ${errorDescription} ${actionNeeded}`,
+      timestamp: new Date()
+    };
+    
+    if (setMessages) {
+      setMessages(prev => [...prev, errorMessage]);
+      if (setIsLoading) setIsLoading(false);
+    }
+    
+    return errorMessage;
+  };
+
+  // Function to analyze file with Claude and add response
+  const addProcessingAndAnalysisMessages = async () => {
+    try {
+      // Add a processing message
+      const processingMessage: ChatMessage = {
+        id: Math.random().toString(36).substring(2, 9),
+        role: 'assistant',
+        content: `I'm analyzing your file: ${file.name}...`,
+        timestamp: new Date()
+      };
       
       if (setMessages) {
-        setMessages((prev) => [...prev, processingMessage]);
+        setMessages(prev => [...prev, processingMessage]);
+      }
+
+      // Get actual analysis from Claude
+      const prompt = `Please analyze this file (${file.name}) and provide useful insights and a summary of its contents. If it's a research paper or article, extract key findings and methodology.`;
+      
+      const aiResult = await aiServiceManager.processFileWithAi(file, prompt);
+      
+      // Replace processing message with actual analysis
+      const analysisMessage: ChatMessage = {
+        id: Math.random().toString(36).substring(2, 9),
+        role: 'assistant',
+        content: aiResult.content,
+        timestamp: new Date()
+      };
+      
+      if (setMessages) {
+        // Replace the processing message with the analysis
+        setMessages(prev => prev.map(msg => 
+          msg.id === processingMessage.id ? analysisMessage : msg
+        ));
+        
+        if (setIsLoading) setIsLoading(false);
       }
       
-      if (userId && documentId) {
-        try {
-          saveChatMessageToSupabase({
-            role: 'assistant',
-            content: processingMessage.content,
-            document_id: documentId,
-            user_id: userId,
-          }, (error) => {
-            console.error('Error saving processing message:', error);
-          });
-        } catch (error) {
-          console.error('Error saving processing message:', error);
-        }
-      }
+      return analysisMessage;
+    } catch (error) {
+      console.error('Error in file analysis:', error);
+      const errorMsg = error instanceof Error ? error.message : String(error);
       
-      // Analysis message after longer delay
-      setTimeout(() => {
-        const isImage = file.type.startsWith('image/');
-        const analysisMessage = isImage
-          ? createImageAnalysisResponse(file.name)
-          : createPdfAnalysisResponse(file.name);
-          
-        if (setMessages) {
-          setMessages((prev) => [...prev, analysisMessage]);
-        }
-        
-        if (setIsLoading) {
-          setIsLoading(false);
-        }
-        
-        if (userId && documentId) {
-          try {
-            saveChatMessageToSupabase({
-              role: 'assistant',
-              content: analysisMessage.content,
-              document_id: documentId,
-              user_id: userId,
-            }, (error) => {
-              console.error('Error saving analysis message:', error);
-            });
-          } catch (error) {
-            console.error('Error saving analysis message:', error);
-          }
-        }
-      }, 2000);
-    }, 1500);
+      return getErrorMessage(`Failed to analyze the file. ${errorMsg}`);
+    }
   };
-  
+
   return {
     userMessage,
+    addUserMessage,
     getErrorMessage,
     addProcessingAndAnalysisMessages
   };

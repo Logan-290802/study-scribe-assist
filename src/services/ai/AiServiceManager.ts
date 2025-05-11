@@ -1,4 +1,3 @@
-
 import { AiService, AiResponse } from './AiService';
 import { PerplexityService } from './PerplexityService';
 import { OpenAiService } from './OpenAiService';
@@ -147,6 +146,46 @@ export class AiServiceManager {
     });
     
     console.log('AI Service API keys updated');
+  }
+  
+  /**
+   * Process a file with AI (primarily Claude)
+   * @param file The file to analyze
+   * @param prompt Optional text prompt to guide analysis
+   * @returns Promise with AI analysis results
+   */
+  async processFileWithAi(file: File, prompt?: string): Promise<AiResponse> {
+    console.log(`Processing file with AI: ${file.name} (${file.type}, ${file.size} bytes)`);
+    
+    // If we haven't fetched the API key yet, wait a moment
+    if (!this.isInitialized) {
+      try {
+        console.log('Waiting for API key initialization before file analysis...');
+        await this.waitForInitialization();
+      } catch (error) {
+        console.warn('Timed out waiting for API key, proceeding with current state');
+      }
+    }
+    
+    // Use Claude for file processing
+    try {
+      console.log('Using Claude service for file analysis');
+      return await this.claudeService.queryWithFile(file, prompt);
+    } catch (error) {
+      console.error('Error using Claude service for file analysis:', error);
+      toast({
+        title: "File Analysis Error",
+        description: "There was an issue analyzing your file with Claude.",
+        variant: "destructive",
+      });
+      
+      // Return a user-friendly error
+      return {
+        content: "I'm sorry, I'm having trouble analyzing your file right now. This might be due to file size limits (32MB max) or a temporary issue with the Claude API.",
+        error: error instanceof Error ? error.message : "Unknown error",
+        source: "Claude (Error)"
+      };
+    }
   }
 }
 

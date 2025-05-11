@@ -16,6 +16,12 @@ export const fileToBase64 = async (file: File): Promise<{ base64: string; mediaT
       reject(new Error(`File size exceeds the 32MB limit for Claude API`));
       return;
     }
+    
+    // Check if file is empty
+    if (file.size === 0) {
+      reject(new Error('File is empty'));
+      return;
+    }
 
     const reader = new FileReader();
     reader.readAsArrayBuffer(file);
@@ -23,10 +29,25 @@ export const fileToBase64 = async (file: File): Promise<{ base64: string; mediaT
     reader.onload = () => {
       try {
         const arrayBuffer = reader.result as ArrayBuffer;
+        
+        // Verify we got actual data
+        if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+          reject(new Error('File read resulted in empty buffer'));
+          return;
+        }
+        
         const base64 = btoa(
           new Uint8Array(arrayBuffer)
             .reduce((data, byte) => data + String.fromCharCode(byte), '')
         );
+        
+        // Validate base64 output
+        if (!base64 || base64.length < 10) {
+          reject(new Error('Base64 conversion produced invalid output'));
+          return;
+        }
+        
+        console.log(`File successfully converted to base64. Original size: ${file.size} bytes, Base64 length: ${base64.length}`);
         resolve({ base64, mediaType: file.type });
       } catch (error) {
         console.error('Error converting file to base64:', error);
@@ -38,6 +59,14 @@ export const fileToBase64 = async (file: File): Promise<{ base64: string; mediaT
       console.error('FileReader error:', error);
       reject(error);
     };
+    
+    // Add a timeout to prevent hanging
+    setTimeout(() => {
+      if (reader.readyState !== 2) { // DONE state
+        reader.abort();
+        reject(new Error('File read operation timed out'));
+      }
+    }, 30000); // 30 second timeout
   });
 };
 
@@ -48,6 +77,8 @@ export const fileToBase64 = async (file: File): Promise<{ base64: string; mediaT
  */
 export const isClaudeCompatibleFile = (file: File): boolean => {
   // Claude supports PDFs and images
+  if (!file || !file.type) return false;
+  
   if (file.type === 'application/pdf') return true;
   if (file.type.startsWith('image/')) return true;
   return false;

@@ -14,4 +14,10 @@ export interface FileAnalysisOptions {
 
 export interface ProcessTextOptions {
   action: 'research' | 'critique' | 'expand';
+  chatHistory?: ChatHistoryMessage[];
+}
+
+export interface ChatHistoryMessage {
+  role: 'user' | 'assistant';
+  content: string;
 }

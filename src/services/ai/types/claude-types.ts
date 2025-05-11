@@ -13,6 +13,12 @@ export interface ClaudeMessageOptions {
   maxTokens?: number;
   temperature?: number;
   systemPrompt?: string;
+  chatHistory?: ChatHistoryMessage[];
+}
+
+export interface ChatHistoryMessage {
+  role: 'user' | 'assistant';
+  content: string;
 }
 
 export const DEFAULT_CLAUDE_OPTIONS: ClaudeMessageOptions = {

@@ -70,8 +70,11 @@ export const useMessageHandler = ({
     try {
       console.log('Processing with AI: Claude API');
       
+      // Fetch previous chat messages to include as history
+      const chatHistory = await fetchChatHistoryForAi(documentId, userId);
+      
       // Add a small delay to ensure the API key has been fetched
-      const aiResult = await aiServiceManager.processTextWithAi(input, 'expand');
+      const aiResult = await aiServiceManager.processTextWithAi(input, 'expand', chatHistory);
       
       console.log('AI Response received:', aiResult);
       
@@ -129,6 +132,32 @@ export const useMessageHandler = ({
     } finally {
       // Always set loading to false when done
       setIsLoading(false);
+    }
+  };
+
+  // Helper function to fetch chat history in the format needed for Claude API
+  const fetchChatHistoryForAi = async (documentId?: string, userId?: string) => {
+    if (!documentId || !userId) return [];
+    
+    try {
+      // Import the fetchChatHistoryFromDb function from the chat database utils
+      const { fetchChatHistoryFromDb } = await import('@/utils/chat/chatDatabaseUtils');
+      
+      // Fetch chat history from the database
+      const history = await fetchChatHistoryFromDb(documentId, userId);
+      
+      // If we have history, return it (it's already in the right format)
+      if (history && history.length > 0) {
+        // We only send the last 10 messages to avoid token limits
+        const recentHistory = history.slice(-10);
+        console.log(`Fetched ${recentHistory.length} recent messages for context`);
+        return recentHistory;
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('Error fetching chat history for AI context:', error);
+      return [];
     }
   };
 

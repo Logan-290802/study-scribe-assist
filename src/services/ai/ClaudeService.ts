@@ -4,7 +4,7 @@ import { toast } from '@/components/ui/use-toast';
 import Anthropic from '@anthropic-ai/sdk';
 import { fileToBase64, createClaudeFileMessage, isClaudeCompatibleFile } from '@/utils/file-processing';
 import { initializeClaudeClient, extractClaudeContent, createClaudeMessage } from './helpers/claude-helpers';
-import { DEFAULT_CLAUDE_OPTIONS, FILE_ANALYSIS_SYSTEM_PROMPT, ClaudeFileAnalysisOptions, ContentBlockParam } from './types/claude-types';
+import { DEFAULT_CLAUDE_OPTIONS, FILE_ANALYSIS_SYSTEM_PROMPT, ClaudeFileAnalysisOptions, ContentBlockParam, ChatHistoryMessage } from './types/claude-types';
 
 export class ClaudeService extends AiService {
   private anthropic: Anthropic | null = null;
@@ -14,9 +14,12 @@ export class ClaudeService extends AiService {
     this.anthropic = initializeClaudeClient(this.apiKey);
   }
   
-  async query(text: string): Promise<AiResponse> {
+  async query(text: string, chatHistory?: ChatHistoryMessage[]): Promise<AiResponse> {
     try {
       console.log('Querying Claude API with text:', text.substring(0, 50) + '...');
+      if (chatHistory && chatHistory.length > 0) {
+        console.log(`Including ${chatHistory.length} previous messages in conversation history`);
+      }
       
       // Initialize client if not already done
       if (!this.anthropic) {
@@ -39,7 +42,7 @@ export class ClaudeService extends AiService {
       }
 
       console.log('Sending message to Claude API...');
-      const messageConfig = createClaudeMessage(text);
+      const messageConfig = createClaudeMessage(text, { chatHistory });
       const response = await this.anthropic.messages.create(messageConfig);
       
       console.log('Claude API response received:', response);

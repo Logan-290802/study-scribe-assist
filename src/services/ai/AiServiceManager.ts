@@ -1,3 +1,4 @@
+
 import { AiService, AiResponse } from './AiService';
 import { PerplexityService } from './PerplexityService';
 import { OpenAiService } from './OpenAiService';
@@ -5,7 +6,7 @@ import { ClaudeService } from './ClaudeService';
 import { CriticalThinkingService, CriticalSuggestion } from './CriticalThinkingService';
 import { toast } from '@/components/ui/use-toast';
 import { fetchClaudeApiKey, waitForInitialization, createServiceErrorResponse } from './helpers/ai-manager-helpers';
-import { ApiKeys } from './types/ai-manager-types';
+import { ApiKeys, ChatHistoryMessage, ProcessTextOptions } from './types/ai-manager-types';
 
 export class AiServiceManager {
   private perplexityService: PerplexityService;
@@ -54,9 +55,10 @@ export class AiServiceManager {
     }
   }
   
-  async processTextWithAi(text: string, action: 'research' | 'critique' | 'expand'): Promise<AiResponse> {
+  async processTextWithAi(text: string, action: 'research' | 'critique' | 'expand', chatHistory?: ChatHistoryMessage[]): Promise<AiResponse> {
     // Main processing logic based on action
     console.log(`Processing AI action: ${action} with text: ${text.substring(0, 50)}...`);
+    console.log(`Chat history included: ${chatHistory ? chatHistory.length : 0} messages`);
     
     // If we haven't fetched the API key yet, wait a moment
     if (!this.isInitialized) {
@@ -71,7 +73,7 @@ export class AiServiceManager {
     // Always use Claude with fetched key
     try {
       console.log('Using Claude service for request');
-      return await this.claudeService.query(text);
+      return await this.claudeService.query(text, chatHistory);
     } catch (error) {
       return createServiceErrorResponse(error);
     }

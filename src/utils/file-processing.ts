@@ -1,6 +1,6 @@
 
 import { toast } from '@/components/ui/use-toast';
-import { ContentBlockParam } from '@anthropic-ai/sdk';
+import type { ContentBlockParam } from '@anthropic-ai/sdk';
 
 const MAX_FILE_SIZE = 32 * 1024 * 1024; // 32MB - Claude's limit
 

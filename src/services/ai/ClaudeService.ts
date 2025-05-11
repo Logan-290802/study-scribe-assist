@@ -174,9 +174,10 @@ export class ClaudeService extends AiService {
 
       // Default prompt if none provided
       const defaultPrompt = `Please analyze this ${file.name} and provide a summary of its key contents and insights.`;
+      const userPrompt = prompt || defaultPrompt;
       
-      // Create message content blocks for Claude API
-      const contentBlocks = createClaudeFileMessage(base64, mediaType, file.name, prompt || defaultPrompt);
+      // Create properly typed content blocks for Claude API
+      const contentBlocks = createClaudeFileMessage(base64, mediaType, file.name, userPrompt);
       
       console.log('Sending file to Claude API for analysis...');
       const response = await this.anthropic.messages.create({

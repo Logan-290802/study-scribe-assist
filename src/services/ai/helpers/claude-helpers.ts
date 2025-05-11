@@ -67,7 +67,7 @@ export const createClaudeMessage = (text: string, options: ClaudeMessageOptions 
   };
 
   // Create the base messages array with the new user message
-  let messages = [
+  let messages: Array<{role: 'user' | 'assistant', content: string}> = [
     { role: 'user' as const, content: text }
   ];
 
@@ -75,7 +75,7 @@ export const createClaudeMessage = (text: string, options: ClaudeMessageOptions 
   if (chatHistory && chatHistory.length > 0) {
     // Convert chat history to Anthropic's expected format
     const historyMessages = chatHistory.map(msg => ({
-      role: msg.role as 'user' | 'assistant',
+      role: msg.role,
       content: msg.content
     }));
     

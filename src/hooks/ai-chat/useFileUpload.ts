@@ -39,7 +39,7 @@ export const useFileUpload = ({
         toast({
           title: "Unsupported File Type",
           description: `Claude can only analyze PDFs and images. This file type (${file.type}) is not supported for analysis.`,
-          variant: "warning",
+          variant: "destructive",
         });
       }
       

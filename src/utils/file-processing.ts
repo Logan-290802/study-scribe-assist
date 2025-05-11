@@ -56,24 +56,22 @@ export const isClaudeCompatibleFile = (file: File): boolean => {
  * Creates a message format compatible with Claude's API for file analysis
  */
 export const createClaudeFileMessage = (base64: string, mediaType: string, fileName: string, prompt?: string) => {
-  const content = [
-    {
-      type: 'document',
-      source: {
-        type: 'base64',
-        media_type: mediaType,
-        data: base64
-      }
+  // Create the document content block
+  const documentBlock = {
+    type: 'document' as const,
+    source: {
+      type: 'base64' as const,
+      media_type: mediaType,
+      data: base64
     }
-  ];
+  };
 
-  // Add text prompt if provided
-  if (prompt) {
-    content.push({
-      type: 'text',
-      text: prompt || `Please analyze this ${fileName} and provide a summary of its contents.`
-    });
-  }
+  // Create the prompt content block if provided
+  const textBlock = prompt ? {
+    type: 'text' as const,
+    text: prompt || `Please analyze this ${fileName} and provide a summary of its contents.`
+  } : null;
 
-  return content;
+  // Return the array of content blocks
+  return textBlock ? [documentBlock, textBlock] : [documentBlock];
 };

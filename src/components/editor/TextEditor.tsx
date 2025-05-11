@@ -1,5 +1,6 @@
+
 import React, { useEffect } from 'react';
-import { useEditor } from '@tiptap/react';
+import { useEditor, Editor as TiptapEditor } from '@tiptap/react';
 import Document from '@tiptap/extension-document';
 import Paragraph from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
@@ -66,14 +67,14 @@ export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange, onAiA
     content,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
-      updateHeadings(editor);
+      updateHeadings(editor as TiptapEditor);
     }
   });
 
-  const criticalThinking = useCriticalThinking(editor);
-  const { headings, updateHeadings, scrollToHeading } = useEditorHeadings(editor);
+  const criticalThinking = useCriticalThinking(editor as TiptapEditor);
+  const { headings, updateHeadings, scrollToHeading } = useEditorHeadings(editor as TiptapEditor);
   const { suggestionPopoverOpen, setSuggestionPopoverOpen } = useEditorSuggestions(
-    editor,
+    editor as TiptapEditor,
     criticalThinking.enabled,
     criticalThinking.suggestions,
     criticalThinking.setSelectedSuggestion
@@ -87,7 +88,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({ content, onChange, onAiA
 
   useEffect(() => {
     if (editor) {
-      updateHeadings(editor);
+      updateHeadings(editor as TiptapEditor);
     }
   }, [editor, updateHeadings]);
 
